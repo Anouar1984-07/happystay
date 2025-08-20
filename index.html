@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Happy Stay - Nettoyage Professionnel à Agadir</title>
+    <meta name="description" content="Services de nettoyage professionnel à Agadir : canapés, matelas, fauteuils, ménage standard et grand ménage. Contactez-nous sur WhatsApp !">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="overrides.css">
+    
+    <!-- Google Maps API -->
+    <!-- Google Maps API - Removed to prevent API key errors -->
+    <!-- <script async defer 
+        src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initializeGoogleMap&libraries=geometry"
+        onerror="initializeMapFallback()">
+    </script> -->
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-brand">
+                <div class="logo">
+                    <img src="https://darkcyan-grouse-291782.hostingersite.com/photos/logo.png" alt="Happy Stay Logo">
+                </div>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#accueil" data-lang="nav-home">Home</a></li>
+                <li><a href="#services" data-lang="nav-services">Nos Services</a></li>
+                <li><a href="#how-it-works" data-lang="nav-how">Accédez à nos services</a></li>
+                <li><a href="#why-choose" data-lang="nav-why">Pourquoi nous choisir</a></li>
+                <li><a href="#contact" data-lang="nav-contact">Contact</a></li>
+            </ul>
+            <button class="mobile-menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="accueil" class="hero">
+        <!-- Sélecteur de langue mobile avec icône globe -->
+        <div class="language-globe-selector">
+            <button class="globe-button" onclick="toggleLanguageDropdown()">
+                <i class="fas fa-globe"></i>
+            </button>
+            <div class="language-dropdown" id="language-dropdown">
+                <button onclick="changeLanguage('fr')" class="lang-dropdown-btn active" data-lang="fr">Français</button>
+                <button onclick="changeLanguage('ar')" class="lang-dropdown-btn" data-lang="ar">العربية</button>
+                <button onclick="changeLanguage('en')" class="lang-dropdown-btn" data-lang="en">English</button>
+            </div>
+        </div>
+        
+        <div class="language-switcher-vertical">
+            <button class="lang-btn-vertical active" data-lang-code="fr">FR</button>
+            <button class="lang-btn-vertical" data-lang-code="ar">AR</button>
+            <button class="lang-btn-vertical" data-lang-code="en">EN</button>
+        </div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <p class="hero-subtitle" data-lang="hero-subtitle">Le Souci Du Détail</p>
+                    <h1 class="hero-title" data-lang="hero-title">VOTRE SATISFACTION, NOTRE PRIORITÉ</h1>
+                </div>
+                <div class="hero-buttons">
+                    <button type="button" class="hero-cta" data-lang="hero-cta">Réservation et Demande de Devis</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="services">
+        <div class="services-overlay"></div>
+        <div class="container">
+            <div class="section-header">
+                <h2 data-lang="services-title">Nos Services</h2>
+                <p data-lang="services-subtitle">Un accompagnement sur mesure pour votre confort : conciergerie, entretien professionnel et prestations exclusives.</p>
+            </div>
+            <div class="services-grid">
+                <div class="service-card" data-service="concierge">
+                    <div class="service-card-image" style="background-image: url('https://darkcyan-grouse-291782.hostingersite.com/photos/concièrgerie.png');"></div>
+                    <div class="service-card-content">
+                        <h3 data-lang="service-concierge">Service Conciergerie</h3>
+                        <p data-lang="service-concierge-desc">Prise en charge de vos besoins quotidiens : gestion des clés, assistance logistique, accueil et suivi de vos invités.</p>
+                    </div>
+                </div>
+                <div class="service-card" data-service="sofa-chair">
+                    <div class="service-card-image" style="background-image: url('https://darkcyan-grouse-291782.hostingersite.com/photos/Canape2.png');"></div>
+                    <div class="service-card-content">
+                        <h3 data-lang="service-sofa-chair">Nettoyage Canapés / Fauteuils</h3>
+                        <p data-lang="service-sofa-chair-desc">Un nettoyage en profondeur qui redonne éclat et fraîcheur à vos tissus et prolonge la durée de vie de vos assises.</p>
+                    </div>
+                </div>
+                <div class="service-card" data-service="chairs">
+                    <div class="service-card-image" style="background-image: url('https://darkcyan-grouse-291782.hostingersite.com/photos/chaises.jpeg');"></div>
+                    <div class="service-card-content">
+                        <h3 data-lang="service-chairs">Nettoyage Chaises</h3>
+                        <p data-lang="service-chairs-desc">Traitement adapté pour éliminer taches et saletés, en préservant le confort et l'esthétique de vos chaises.</p>
+                    </div>
+                </div>
+                <div class="service-card" data-service="mattress">
+                    <div class="service-card-image" style="background-image: url('https://darkcyan-grouse-291782.hostingersite.com/photos/image4.png');"></div>
+                    <div class="service-card-content">
+                        <h3 data-lang="service-mattress">Nettoyage Matelas</h3>
+                        <p data-lang="service-mattress-desc">Désinfection et nettoyage en profondeur de vos matelas pour un sommeil sain et hygiénique.</p>
+                    </div>
+                </div>
+                <div class="service-card" data-service="cleaning">
+                    <div class="service-card-image" style="background-image: url('https://darkcyan-grouse-291782.hostingersite.com/photos/Menage1.png');"></div>
+                    <div class="service-card-content">
+                        <h3 data-lang="service-cleaning">Ménage Standard</h3>
+                        <p data-lang="service-cleaning-desc">Entretien régulier de votre logement avec des produits adaptés, pour un intérieur propre et agréable au quotidien.</p>
+                    </div>
+                </div>
+                <div class="service-card" data-service="deep">
+                    <div class="service-card-image" style="background-image: url('https://darkcyan-grouse-291782.hostingersite.com/photos/image8.png');"></div>
+                    <div class="service-card-content">
+                        <h3 data-lang="service-deep">Grand Ménage</h3>
+                        <p data-lang="service-deep-desc">Une prestation complète et minutieuse pour un nettoyage en profondeur de toutes les pièces, idéale avant/après événement.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Video Presentation Section -->
+    <section class="video-presentation">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-lang="video-title">Découvrez Notre Expertise</h2>
+                <p data-lang="video-subtitle">Voyez notre équipe à l'œuvre pour un service de qualité professionnelle.</p>
+            </div>
+            <div class="video-container">
+                <div class="video-wrapper">
+                    <video 
+                        id="presentation-video"
+                        controls 
+                        playsinline 
+                        preload="metadata"
+                        muted
+                        autoplay="false"
+                        aria-label="Vidéo de présentation Happy Stay"
+                        poster="https://darkcyan-grouse-291782.hostingersite.com/photos/video-poster.jpg">
+                        <source src="https://darkcyan-grouse-291782.hostingersite.com/videos/video1.mp4" type="video/mp4">
+                        <p data-lang="video-fallback">Votre navigateur ne supporte pas la lecture vidéo. <a href="https://darkcyan-grouse-291782.hostingersite.com/videos/video1.mp4" download="Happy-Stay-Presentation.mp4">Télécharger la vidéo</a></p>
+                    </video>
+                    <div id="video-error" class="video-error" style="display: none;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p data-lang="video-error">Impossible de charger la vidéo. Vérifiez votre connexion internet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-lang="how-title">Accédez à Nos Services</h2>
+            </div>
+            <div class="paths-container">
+                <!-- Parcours Conciergerie -->
+                <div class="path-card">
+                    <div class="path-header">
+                        <div class="path-icon">
+                            <i class="fas fa-concierge-bell"></i>
+                        </div>
+                        <h3 data-lang="path-concierge-title">Service Conciergerie</h3>
+                    </div>
+                    <div class="path-steps">
+                        <div class="path-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4 data-lang="concierge-step1-title">Contactez-nous</h4>
+                                <p data-lang="concierge-step1-desc">Envoyez-nous un message WhatsApp directement</p>
+                            </div>
+                        </div>
+                        <div class="path-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4 data-lang="concierge-step2-title">Expliquez vos besoins</h4>
+                                <p data-lang="concierge-step2-desc">Décrivez vos besoins de conciergerie</p>
+                            </div>
+                        </div>
+                        <div class="path-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4 data-lang="concierge-step3-title">Confirmation rapide</h4>
+                                <p data-lang="concierge-step3-desc">Nous confirmons votre demande immédiatement</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="path-action">
+                        <a href="https://wa.me/212639887031" class="path-btn whatsapp-btn" target="_blank">
+                            <i class="fab fa-whatsapp"></i>
+                            <span data-lang="contact-whatsapp">Contacter sur WhatsApp</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Parcours Nettoyage -->
+                <div class="path-card">
+                    <div class="path-header">
+                        <div class="path-icon">
+                            <i class="fas fa-spray-can"></i>
+                        </div>
+                        <h3 data-lang="path-cleaning-title">Services de Nettoyage</h3>
+                    </div>
+                    <div class="path-steps">
+                        <div class="path-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4 data-lang="cleaning-step1-title">Remplir le formulaire</h4>
+                                <p data-lang="cleaning-step1-desc">Complétez notre formulaire de réservation</p>
+                            </div>
+                        </div>
+                        <div class="path-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4 data-lang="cleaning-step2-title">Envoyer des photos</h4>
+                                <p data-lang="cleaning-step2-desc">Ajoutez des photos pour un devis précis</p>
+                            </div>
+                        </div>
+                        <div class="path-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4 data-lang="cleaning-step3-title">Devis + Confirmation</h4>
+                                <p data-lang="cleaning-step3-desc">Recevez votre devis et confirmez votre RDV</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="path-action">
+                        <button type="button" class="path-btn booking-btn" onclick="document.querySelector('.hero-cta').click()">
+                            <i class="fas fa-calendar-plus"></i>
+                            <span data-lang="open-booking-form">Ouvrir le formulaire</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Us Section -->
+    <section id="why-choose" class="why-choose">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-lang="why-title">Pourquoi Nous Choisir ?</h2>
+            </div>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-medal"></i>
+                    </div>
+                    <h3 data-lang="feature-quality">Qualité Garantie</h3>
+                    <p data-lang="feature-quality-desc">Satisfaction client garantie avec nos équipes expérimentées.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3 data-lang="feature-punctual">Ponctualité</h3>
+                    <p data-lang="feature-punctual-desc">Respect des horaires convenus et service rapide.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <h3 data-lang="feature-eco">Produits Écologiques</h3>
+                    <p data-lang="feature-eco-desc">Utilisation de produits respectueux de l'environnement.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <h3 data-lang="feature-price">Prix Compétitifs</h3>
+                    <p data-lang="feature-price-desc">Tarifs transparents et compétitifs sur le marché.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reviews Section -->
+    <section id="avis" class="reviews">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-lang="reviews-title">Avis Clients</h2>
+                <div class="rating">
+                    <div class="stars">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <span class="rating-text">4.9/5 - <span data-lang="reviews-count">127 avis</span></span>
+                </div>
+            </div>
+            <div class="reviews-carousel">
+                <div class="carousel-container">
+                    <button class="carousel-btn carousel-prev" aria-label="Avis précédent">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="reviews-wrapper">
+                        <div class="reviews-track">
+                            <div class="review-card active">
+                                <div class="review-stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <p data-lang="review-1">"Service impeccable ! Mon canapé est comme neuf. L'équipe est professionnelle et ponctuelle."</p>
+                                <div class="reviewer">
+                                    <strong>Fatima M.</strong>
+                                    <span>Agadir</span>
+                                </div>
+                            </div>
+                            <div class="review-card">
+                                <div class="review-stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <p data-lang="review-2">"Très satisfait du grand ménage. Chaque coin de la maison a été nettoyé avec soin."</p>
+                                <div class="reviewer">
+                                    <strong>Ahmed B.</strong>
+                                    <span>Inezgane</span>
+                                </div>
+                            </div>
+                            <div class="review-card">
+                                <div class="review-stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <p data-lang="review-3">"Excellent travail sur le nettoyage de matelas. Service rapide et efficace."</p>
+                                <div class="reviewer">
+                                    <strong>Khadija L.</strong>
+                                    <span>Ait Melloul</span>
+                                </div>
+                            </div>
+                            <div class="review-card">
+                                <div class="review-stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <p data-lang="review-4">"Équipe très professionnelle pour le nettoyage de fauteuils. Résultat parfait !"</p>
+                                <div class="reviewer">
+                                    <strong>Youssef K.</strong>
+                                    <span>Drarga</span>
+                                </div>
+                            </div>
+                            <div class="review-card">
+                                <div class="review-stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <p data-lang="review-5">"Service de ménage impeccable. Je recommande vivement Happy Stay !"</p>
+                                <div class="reviewer">
+                                    <strong>Aicha T.</strong>
+                                    <span>Ait Melloul</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="carousel-btn carousel-next" aria-label="Avis suivant">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="carousel-indicators">
+                    <button class="indicator active" data-slide="0"></button>
+                    <button class="indicator" data-slide="1"></button>
+                    <button class="indicator" data-slide="2"></button>
+                    <button class="indicator" data-slide="3"></button>
+                    <button class="indicator" data-slide="4"></button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Service Area Section -->
+    <section class="service-area">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-lang="area-title">Zone d'Intervention</h2>
+                <p data-lang="area-subtitle">Nous intervenons dans tout Agadir et sa région</p>
+            </div>
+            <div class="map-container">
+                <div id="google-map" class="google-map"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Instagram Section -->
+    <section class="instagram-section">
+        <div class="container">
+            <div class="instagram-container">
+                <div class="instagram-header">
+                    <div class="instagram-profile">
+                        <div class="profile-avatar">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <div class="profile-info">
+                            <h3>happy_stay_agadir</h3>
+                            <p>111 publications • 13 k abonnés</p>
+                        </div>
+                    </div>
+                    <button class="instagram-follow-btn">
+                        <i class="fab fa-instagram"></i>
+                        <span data-lang="instagram-follow">Suivre</span>
+                    </button>
+                </div>
+                
+                <div class="instagram-carousel">
+                    <button class="instagram-nav instagram-prev" aria-label="Post précédent">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    
+                    <div class="instagram-posts-container">
+                        <div class="instagram-posts-track">
+                            <div class="instagram-post">
+                                <a href="https://www.instagram.com/p/DMdNZh6tCXq/?utm_source=ig_web_copy_link" target="_blank">
+                                    <img src="https://images.pexels.com/photos/6195148/pexels-photo-6195148.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop" alt="Post Instagram 1">
+                                </a>
+                                <div class="post-overlay">
+                                    <div class="post-username">happy_stay_agadir</div>
+                                    <div class="post-date">Décembre 2024</div>
+                                    <div class="post-icon">
+                                        <i class="fab fa-instagram"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="instagram-post">
+                                <a href="https://www.instagram.com/p/DMNgqKEtmP1/?utm_source=ig_web_copy_link" target="_blank">
+                                    <img src="https://images.pexels.com/photos/6195149/pexels-photo-6195149.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop" alt="Post Instagram 2">
+                                </a>
+                                <div class="post-overlay">
+                                    <div class="post-username">happy_stay_agadir</div>
+                                    <div class="post-date">Décembre 2024</div>
+                                    <div class="post-icon">
+                                        <i class="fab fa-instagram"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="instagram-post">
+                                <a href="https://www.instagram.com/p/DL8MxOAN9Jr/?utm_source=ig_web_copy_link" target="_blank">
+                                    <img src="https://images.pexels.com/photos/6197119/pexels-photo-6197119.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop" alt="Post Instagram 3">
+                                </a>
+                                <div class="post-overlay">
+                                    <div class="post-username">happy_stay_agadir</div>
+                                    <div class="post-date">Décembre 2024</div>
+                                    <div class="post-icon">
+                                        <i class="fab fa-instagram"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="instagram-post">
+                                <a href="https://www.instagram.com/p/DL5mklftwTV/?utm_source=ig_web_copy_link" target="_blank">
+                                    <img src="https://images.pexels.com/photos/4239146/pexels-photo-4239146.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop" alt="Post Instagram 4">
+                                </a>
+                                <div class="post-overlay">
+                                    <div class="post-username">happy_stay_agadir</div>
+                                    <div class="post-date">Décembre 2024</div>
+                                    <div class="post-icon">
+                                        <i class="fab fa-instagram"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="instagram-post">
+                                <a href="https://www.instagram.com/reel/DLA3_34NRvo/?utm_source=ig_web_copy_link" target="_blank">
+                                    <img src="https://images.pexels.com/photos/4239013/pexels-photo-4239013.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop" alt="Reel Instagram 5">
+                                </a>
+                                <div class="post-overlay">
+                                    <div class="post-username">happy_stay_agadir</div>
+                                    <div class="post-date">Décembre 2024</div>
+                                    <div class="post-icon">
+                                        <i class="fab fa-instagram"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="instagram-nav instagram-next" aria-label="Post suivant">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact" class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="https://darkcyan-grouse-291782.hostingersite.com/photos/logo.png" alt="Happy Stay Logo" style="height: 32px; width: auto;">
+                    </div>
+                    <p data-lang="footer-desc">Votre partenaire de confiance pour tous vos besoins de nettoyage à Agadir et sa région.</p>
+                    <div class="social-links">
+                        <a href="https://www.instagram.com/happy_stay_services" target="_blank" aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://wa.me/message/7JEHCNCMTSBYG1" target="_blank" aria-label="WhatsApp">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3 data-lang="footer-contact">Contact</h3>
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <a href="tel:+212639887031" data-lang="phone-number">063 988 7031</a>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fab fa-whatsapp"></i>
+                            <a href="https://wa.me/message/7JEHCNCMTSBYG1" target="_blank">WhatsApp</a>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Agadir, Maroc</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3 data-lang="footer-hours">Horaires</h3>
+                    <div class="hours-info">
+                        <div class="hours-item">
+                            <span data-lang="weekdays">Lun - Sam</span>
+                            <span>8h00 - 18h00</span>
+                        </div>
+                        <div class="hours-item">
+                            <span data-lang="weekend">Dimanche</span>
+                            <span>Fermé</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3 data-lang="footer-services">Services</h3>
+                    <ul class="footer-services">
+                        <li data-lang="footer-service1">Service Conciergerie</li>
+                        <li data-lang="footer-service2">Nettoyage Canapés/Fauteuils</li>
+                        <li data-lang="footer-service3">Nettoyage Chaises</li>
+                        <li data-lang="footer-service4">Nettoyage Matelas</li>
+                        <li data-lang="footer-service5">Ménage Standard</li>
+                        <li data-lang="footer-service6">Grand Ménage</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-legal">
+                    <span>&copy; 2024 Happy Stay. <span data-lang="rights">Tous droits réservés.</span></span>
+                    <a href="/admin.html" class="admin-link">Admin</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Float Button -->
+    <!-- WhatsApp Float Button masqué - remplacé par le chat widget -->
+    <!-- <a href="https://wa.me/212639887031" class="whatsapp-float" target="_blank" aria-label="Contacter sur WhatsApp">
+         <i class="fab fa-whatsapp"></i>
+     </a> -->
+
+    <!-- Booking Modal -->
+    <div id="booking-modal" class="booking-modal">
+        <div class="booking-modal-backdrop"></div>
+        <div class="booking-modal-dialog">
+            <div class="booking-modal-header">
+                <h2 data-lang="booking-title">Demande de Devis</h2>
+                <button class="booking-modal-close" onclick="closeBookingModal()" aria-label="Fermer">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="booking-modal-content">
+                <!-- Message d'erreur global -->
+                <div id="form-global-error" class="form-global-error" style="display: none;"></div>
+                
+                <form id="booking-form" class="booking-form">
+                    <!-- Informations client -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName" data-lang="form-firstname">Prénom *</label>
+                            <input type="text" id="firstName" name="firstName" required autocomplete="given-name">
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName" data-lang="form-lastname">Nom *</label>
+                            <input type="text" id="lastName" name="lastName" required autocomplete="family-name">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone" data-lang="form-phone">Numéro de téléphone *</label>
+                        <input type="tel" id="phone" name="phone" required autocomplete="tel" inputmode="tel" value="+212">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="district" data-lang="form-district">Quartier à Agadir *</label>
+                        <select id="district" name="district" required>
+                            <option value="" data-lang="select-district">Sélectionnez votre quartier</option>
+                            <option value="Al Houda">Al Houda</option>
+                            <option value="Anza">Anza</option>
+                            <option value="Bensergao">Bensergao</option>
+                            <option value="Dakhla">Dakhla</option>
+                            <option value="Founty">Founty</option>
+                            <option value="Hay Mohammadi">Hay Mohammadi</option>
+                            <option value="Sonaba">Sonaba</option>
+                            <option value="Taghazout">Taghazout</option>
+                            <option value="Talborjt">Talborjt</option>
+                            <option value="Tikiouine">Tikiouine</option>
+                            <option value="Autre" data-lang="other-option">Autre</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="other-district-group" style="display: none;">
+                        <label for="otherDistrict" data-lang="form-other-district">Précisez votre quartier</label>
+                        <input type="text" id="otherDistrict" name="otherDistrict">
+                    </div>
+                    
+                    <!-- Services (panier multi-services) -->
+                    <div class="services-section">
+                        <h3 data-lang="services-title-form">Services demandés *</h3>
+                        <div id="services-container" class="services-container">
+                            <!-- Les cartes de services seront ajoutées ici -->
+                        </div>
+                        <button type="button" id="add-service-btn" class="add-service-btn">
+                            <i class="fas fa-plus"></i>
+                            <span data-lang="add-service">Ajouter un service</span>
+                        </button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="date" data-lang="form-date">Date souhaitée *</label>
+                        <input type="date" id="date" name="date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label data-lang="form-time">Créneau horaire *</label>
+                        <div class="time-slots">
+                            <button type="button" class="time-slot" data-time="10:30">10:30</button>
+                            <button type="button" class="time-slot" data-time="13:30">13:30</button>
+                            <button type="button" class="time-slot" data-time="15:30">15:30</button>
+                        </div>
+                        <input type="hidden" id="selectedTime" name="selectedTime" required>
+                    </div>
+                    
+                    <!-- Photos obligatoires -->
+                    <div class="photos-section">
+                        <div class="photos-header">
+                            <label data-lang="form-photos">Photos (2 à 4 obligatoires) *</label>
+                            <span id="photos-counter" class="photos-counter">0/4</span>
+                        </div>
+                        <p id="photos-help" class="photos-help" data-lang="photos-help">Ajoutez 2 à 4 photos (vue d'ensemble + zones à traiter).</p>
+                        <div id="photos-error" class="photos-error" style="display: none;"></div>
+                        <div class="photo-input-options">
+                            <button type="button" class="photo-option-btn" id="gallery-btn">
+                                <i class="fas fa-images"></i>
+                                <span data-lang="gallery">Galerie</span>
+                            </button>
+                            <button type="button" class="photo-option-btn" id="camera-btn">
+                                <i class="fas fa-camera"></i>
+                                <span data-lang="camera">Appareil photo</span>
+                            </button>
+                        </div>
+                        <input type="file" id="photos-gallery" name="photos" multiple accept="image/*" style="display: none;">
+                        <input type="file" id="photos-camera" name="photos" multiple accept="image/*" capture="environment" style="display: none;">
+                        <div id="photo-previews" class="photo-previews"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="comments" data-lang="form-comments">Informations complémentaires (optionnel)</label>
+                        <textarea 
+                            id="comments" 
+                            name="comments" 
+                            rows="4" 
+                            maxlength="600"
+                            data-lang="comments-placeholder">
+                        </textarea>
+                        <div class="form-help">
+                            <span class="help-text" data-lang="form-comments-help">Détails utiles pour le devis ou l'accès (tissu/taches, étage/ascenseur, codes, dispos…).</span>
+                            <span class="char-counter" id="comments-count">0/600</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn" data-lang="form-submit">Envoyer la demande</button>
+                    </div>
+                </form>
+                
+                <!-- Message de statut (succès/erreur) -->
+                <div id="booking-status-message" style="display: none;">
+                    <div class="success-message">
+                        <div class="success-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="success-text">
+                            <h3 data-lang="booking-success-title">Demande envoyée avec succès !</h3>
+                            <p data-lang="booking-success-message">Votre demande de devis a bien été reçue. Nous vous contacterons très prochainement sur WhatsApp pour finaliser les détails.</p>
+                            <div id="booking-summary" class="booking-summary"></div>
+                        </div>
+                        <div class="success-actions">
+                            <button type="button" class="success-btn" onclick="closeBookingModal()">
+                                <i class="fas fa-times"></i>
+                                <span data-lang="close-modal">Fermer</span>
+                            </button>
+                            <a href="https://wa.me/212639887031" target="_blank" class="success-btn whatsapp">
+                                <i class="fab fa-whatsapp"></i>
+                                <span data-lang="contact-whatsapp-btn">Nous contacter sur WhatsApp</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts avec nouvelle architecture -->
+    <script type="module" src="./js/config.js"></script>
+    <script type="module" src="./js/data-layer/index.js"></script>
+    <script type="module" src="./servicesCart.js"></script>
+    <script type="module" src="./photosUploader.js"></script>
+    <script type="module" src="./formValidation.js"></script>
+    <script type="module" src="./script.js"></script>
+    <script type="module" src="./chat-widget.js"></script>
+</body>
+</html>

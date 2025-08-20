@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Happy Stay</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="auth-modal show">
+        <div class="auth-modal-backdrop"></div>
+        <div class="auth-modal-dialog">
+            <div class="auth-modal-content">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <img src="https://darkcyan-grouse-291782.hostingersite.com/photos/logo.png" alt="Happy Stay Logo">
+                    </div>
+                    <h2>Accès Administration</h2>
+                    <p>Veuillez saisir le token d'administration</p>
+                </div>
+                <form id="auth-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="admin-token">Token Admin</label>
+                        <input type="password" id="admin-token" name="adminToken" placeholder="••••" required>
+                        <small class="form-hint">Token de démonstration : <code>2025</code></small>
+                    </div>
+                    <button type="submit" class="auth-btn">
+                        <i class="fas fa-unlock"></i>
+                        Accéder à l'administration
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" class="admin-dashboard" style="display: none;">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="admin-header-content">
+                <div class="admin-brand">
+                    <img src="https://darkcyan-grouse-291782.hostingersite.com/photos/logo.png" alt="Happy Stay Logo">
+                    <div class="admin-title">
+                        <h1>Administration Happy Stay</h1>
+                        <p id="current-date"></p>
+                    </div>
+                </div>
+                <div class="admin-actions">
+                    <button class="admin-btn danger" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Déconnexion
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="admin-container">
+                <!-- Toolbar -->
+                <section class="toolbar-section">
+                    <div class="date-selector">
+                        <button class="date-nav-btn" onclick="changeDate(-1)">
+                            <i class="fas fa-chevron-left"></i>
+                            Précédent
+                        </button>
+                        <div class="current-date-display">
+                            <input type="date" id="date-picker" class="date-input">
+                            <span id="selected-date-text" class="selected-date-text"></span>
+                        </div>
+                        <button class="date-nav-btn" onclick="changeDate(1)">
+                            Suivant
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="day-actions">
+                        <button class="day-action-btn block-all" onclick="blockAllSlots()">
+                            <i class="fas fa-lock"></i>
+                            Bloquer toute la journée
+                        </button>
+                        <button class="day-action-btn unblock-all" onclick="unblockAllSlots()">
+                            <i class="fas fa-unlock"></i>
+                            Débloquer toute la journée
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Planning Section -->
+                <section class="admin-section">
+                    <div class="section-header">
+                        <h2>
+                            <i class="fas fa-clock"></i>
+                            Planning du jour
+                        </h2>
+                    </div>
+                    <div class="planning-slots" id="planning-slots">
+                        <!-- Les 3 créneaux fixes seront générés ici -->
+                    </div>
+                </section>
+
+                <!-- Reservations Section -->
+                <section class="admin-section">
+                    <div class="section-header">
+                        <h2>
+                            <i class="fas fa-list"></i>
+                            Réservations du jour
+                            <span class="reservations-count" id="reservations-count">0</span>
+                        </h2>
+                    </div>
+                    <div class="reservations-list" id="reservations-list">
+                        <!-- Réservations seront générées ici -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Photo Modal -->
+    <div id="photo-modal" class="photo-modal">
+        <div class="photo-modal-backdrop" onclick="closePhotoModal()"></div>
+        <div class="photo-modal-dialog">
+            <div class="photo-modal-header">
+                <h3>Photos de la réservation</h3>
+                <button class="photo-modal-close" onclick="closePhotoModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="photo-modal-content" id="photo-modal-content">
+                <!-- Photos will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Quote Modal -->
+    <div id="quote-modal" class="quote-modal">
+        <div class="quote-modal-backdrop" onclick="closeQuoteModal()"></div>
+        <div class="quote-modal-dialog">
+            <div class="quote-modal-header">
+                <h3>Créer un devis</h3>
+                <button class="quote-modal-close" onclick="closeQuoteModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="quote-modal-content">
+                <form id="quote-form">
+                    <div class="quote-items" id="quote-items">
+                        <!-- Quote items will be generated here -->
+                    </div>
+                    <div class="quote-add-item">
+                        <button type="button" class="add-item-btn" onclick="addQuoteItem()">
+                            <i class="fas fa-plus"></i>
+                            Ajouter une ligne
+                        </button>
+                    </div>
+                    <div class="quote-total">
+                        <strong>Total: <span id="quote-total">0</span> DH</strong>
+                    </div>
+                    <div class="form-group">
+                        <label for="quote-notes">Notes (optionnel)</label>
+                        <textarea id="quote-notes" name="notes" rows="3" placeholder="Notes additionnelles pour le devis..."></textarea>
+                    </div>
+                    <div class="quote-actions">
+                        <button type="button" class="quote-btn secondary" onclick="saveQuoteDraft()">
+                            <i class="fas fa-save"></i>
+                            Enregistrer (Brouillon)
+                        </button>
+                        <button type="button" class="quote-btn primary" onclick="sendQuoteWhatsApp()">
+                            <i class="fab fa-whatsapp"></i>
+                            Envoyer sur WhatsApp
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts admin avec DataLayer -->
+    <script type="module" src="./js/config.js"></script>
+    <script type="module" src="./js/data-layer/index.js"></script>
+    <script type="module" src="admin-api-client.js"></script>
+    <script type="module" src="admin-script.js"></script>
+</body>
+</html>

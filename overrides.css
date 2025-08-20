@@ -1,0 +1,1991 @@
+/* Happy Stay - Améliorations Mobile Header + Hero */
+/* Ce fichier corrige et améliore l'affichage mobile sans modifier styles.css */
+
+/* Variables CSS manquantes */
+:root {
+    --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --border-light: #e2e8f0;
+    --text-muted: #64748b;
+}
+
+/* =================================
+   1. OVERLAY SOMBRE HERO SECTION
+   ================================= */
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(0, 0, 0, 0.25) 0%,
+        rgba(0, 0, 0, 0.15) 50%,
+        rgba(0, 0, 0, 0.25) 100%
+    );
+    z-index: 1;
+}
+
+.hero-content {
+    position: relative !important;
+    z-index: 2 !important;
+}
+
+/* =================================
+   2. AMÉLIORATION TEXTE HERO
+   ================================= */
+.hero-subtitle {
+    color: #f8f9fa !important; /* Blanc cassé */
+    font-size: 1.1em !important; /* +10% */
+    margin-bottom: 1.5rem !important; /* Plus d'espacement */
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+.hero-title {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* =================================
+   3. LOGO AGRANDI (+20%)
+   ================================= */
+.nav-brand .logo img {
+    height: 100px !important; /* 50px * 1.5 = 75px (150%) */
+    width: auto !important; /* Maintenir les proportions */
+    margin: 0.5rem 0 !important; /* Espacement vertical pour éviter de coller */
+}
+
+@media (max-width: 480px) {
+    .nav-brand .logo img {
+        height: 100px !important; /* 45px * 1.5 = 67px (150%) */
+        width: auto !important; /* Maintenir les proportions */
+        margin: 0.4rem 0 !important; /* Espacement vertical adapté aux petits écrans */
+    }
+}
+
+/* Assurer le centrage horizontal du logo */
+@media (max-width: 768px) {
+    .nav-brand {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+    
+    .nav-brand .logo {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+}
+
+/* =================================
+   4. SÉLECTEUR DE LANGUE AVEC ICÔNE GLOBE
+   ================================= */
+
+/* Masquer l'ancien sélecteur vertical sur mobile */
+@media (max-width: 768px) {
+    .language-switcher-vertical {
+        display: none !important;
+    }
+}
+
+/* Nouveau sélecteur avec icône globe */
+.language-globe-selector {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: none; /* Masqué par défaut, affiché sur mobile */
+}
+
+@media (max-width: 768px) {
+    .language-globe-selector {
+        display: block !important;
+    }
+}
+
+.globe-button {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #007BFF;
+    color: #007BFF;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.globe-button:hover {
+    background: #007BFF;
+    color: white;
+    transform: scale(1.05);
+}
+
+.language-dropdown {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    min-width: 100px;
+}
+
+.language-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.language-dropdown button {
+    display: block;
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: white;
+    color: #333;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.language-dropdown button:hover {
+    background: #f8f9fa;
+}
+
+.language-dropdown button.active {
+    background: #007BFF;
+    color: white;
+}
+
+/* =================================
+   5. BOUTON HERO RACCOURCI
+   ================================= */
+@media (max-width: 768px) {
+    .hero-cta {
+        font-size: 1rem !important;
+        padding: 1rem 1.5rem !important;
+        line-height: 1.3 !important;
+        white-space: pre-line !important; /* Permet les retours à la ligne */
+        text-align: center !important;
+        min-height: auto !important;
+    }
+}
+
+/* =================================
+   6. EFFET PULSE BOUTON WHATSAPP
+   ================================= */
+.whatsapp-float {
+    animation: whatsappPulse 3s infinite !important;
+}
+
+@keyframes whatsappPulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 4px 20px rgba(37, 211, 102, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 6px 25px rgba(37, 211, 102, 0.4);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 4px 20px rgba(37, 211, 102, 0.3);
+    }
+}
+
+/* Pause l'animation au hover */
+.whatsapp-float:hover {
+    animation-play-state: paused !important;
+    transform: scale(1.1) !important;
+}
+
+/* =================================
+   7. UNIFORMISATION BOUTONS LANGUE DESKTOP
+   ================================= */
+.language-switcher-vertical .lang-btn-vertical {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    font-size: 0.8rem !important;
+    border: 2px solid var(--primary-blue) !important;
+    background: white !important;
+    color: var(--primary-blue) !important;
+    transition: all 0.3s ease !important;
+}
+
+.language-switcher-vertical .lang-btn-vertical:hover {
+    background: var(--primary-blue) !important;
+    color: white !important;
+    transform: scale(1.1) !important;
+}
+
+.language-switcher-vertical .lang-btn-vertical.active {
+    background: var(--primary-blue) !important;
+    color: white !important;
+}
+
+/* Correction du gap pour tous les écrans */
+.language-switcher-vertical {
+    gap: 0.5rem !important;
+}
+
+/* =================================
+   8. CORRECTIONS RESPONSIVE SUPPLÉMENTAIRES
+   ================================= */
+
+/* Ajustements header mobile */
+@media (max-width: 768px) {
+    .header {
+        padding: 0.75rem 0 !important;
+    }
+    
+    .nav {
+        padding: 0 1rem !important;
+    }
+}
+
+/* Ajustements hero mobile */
+@media (max-width: 768px) {
+    .hero {
+        min-height: 70vh !important;
+        padding-top: 2rem !important;
+    }
+    
+    .hero-content {
+        padding: 2rem 1rem !important;
+    }
+    
+    .hero-title {
+        font-size: 2rem !important;
+        margin-bottom: 2rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero {
+        min-height: 65vh !important;
+    }
+    
+    .hero-title {
+        font-size: 1.75rem !important;
+    }
+    
+    .language-globe-selector {
+        top: 15px !important;
+        right: 15px !important;
+    }
+    
+    .globe-button {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 1.1rem !important;
+    }
+}
+/* =================================
+   9. CORRECTION FORMULAIRE ARABE
+   ================================= */
+
+/* Forcer l'affichage du code pays à gauche même en RTL */
+.rtl .phone-input-group {
+    direction: ltr !important;
+    text-align: left !important;
+}
+
+.rtl .phone-input-group .country-code-input {
+    order: 1 !important;
+}
+
+.rtl .phone-input-group input[type="tel"] {
+    order: 2 !important;
+}
+/* =================================
+   10. MASQUER ANCIEN BOUTON WHATSAPP
+   ================================= */
+.whatsapp-float {
+    display: none !important;
+}
+
+/* =================================
+   11. WIDGET DE CHAT HAPPY STAY
+   ================================= */
+
+/* Container principal */
+.happystay-chat-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Bouton flottant (bubble) */
+.chat-bubble {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #007BFF, #4BB5FF);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0, 123, 255, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.chat-bubble:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(0, 123, 255, 0.4);
+}
+
+.chat-bubble.active {
+    transform: scale(0.9);
+}
+
+/* Notification badge */
+.chat-notification {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Panneau de chat */
+.chat-panel {
+    position: absolute;
+    bottom: 80px;
+    right: 0;
+    width: 350px;
+    height: 500px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.chat-panel.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+/* Header du chat */
+.chat-header {
+    background: linear-gradient(135deg, #007BFF, #4BB5FF);
+    color: white;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.chat-header-content {
+    flex: 1;
+}
+
+.chat-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.chat-subtitle {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    line-height: 1.2;
+}
+
+.chat-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+}
+
+.chat-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Body du chat */
+.chat-body {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Messages */
+.chat-message {
+    display: flex;
+    flex-direction: column;
+    max-width: 80%;
+}
+
+.chat-message.user {
+    align-self: flex-end;
+    align-items: flex-end;
+}
+
+.chat-message.bot {
+    align-self: flex-start;
+    align-items: flex-start;
+}
+
+.message-content {
+    padding: 0.75rem 1rem;
+    border-radius: 18px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.chat-message.user .message-content {
+    background: linear-gradient(135deg, #007BFF, #4BB5FF);
+    color: white;
+    border-bottom-right-radius: 6px;
+}
+
+.chat-message.bot .message-content {
+    background: #f1f3f5;
+    color: #333;
+    border-bottom-left-radius: 6px;
+}
+
+.message-time {
+    font-size: 0.7rem;
+    color: #666;
+    margin-top: 0.25rem;
+    padding: 0 0.5rem;
+}
+
+/* Indicateur de frappe */
+.typing-indicator .message-content {
+    padding: 1rem;
+}
+
+.typing-dots {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.typing-dots span {
+    width: 6px;
+    height: 6px;
+    background: #666;
+    border-radius: 50%;
+    animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+.typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typing {
+    0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+}
+
+/* Options de contact */
+.contact-options .message-content {
+    padding: 1rem;
+}
+
+.contact-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.contact-btn {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.contact-btn.whatsapp-btn {
+    background: #25d366;
+    color: white;
+}
+
+.contact-btn.booking-btn {
+    background: #007BFF;
+    color: white;
+}
+
+.contact-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Suggestions */
+.chat-suggestions {
+    padding: 0 1rem;
+    display: none;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.suggestion-chip {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 20px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.suggestion-chip:hover {
+    background: #007BFF;
+    color: white;
+    border-color: #007BFF;
+}
+
+/* Zone d'input */
+.chat-input-container {
+    padding: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.chat-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 25px;
+    padding: 0.5rem;
+}
+
+.chat-input {
+    flex: 1;
+    border: none;
+    background: none;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    outline: none;
+    resize: none;
+}
+
+.chat-input::placeholder {
+    color: #666;
+}
+
+.chat-send {
+    background: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chat-send:hover {
+    background: #0056b3;
+    transform: scale(1.05);
+}
+
+.chat-send:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .happystay-chat-widget {
+        bottom: 15px;
+        right: 15px;
+    }
+    
+    .chat-panel {
+        width: calc(100vw - 30px);
+        height: calc(100vh - 150px);
+        max-height: 500px;
+        bottom: 80px;
+        right: -15px;
+    }
+    
+    .chat-bubble {
+        width: 55px;
+        height: 55px;
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .chat-panel {
+        width: calc(100vw - 20px);
+        right: -10px;
+    }
+    
+    .chat-message {
+        max-width: 90%;
+    }
+    
+    .contact-buttons {
+        flex-direction: column;
+    }
+    
+    .suggestion-chip {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.6rem;
+    }
+}
+
+/* Support RTL pour l'arabe */
+.rtl .chat-panel {
+    right: auto;
+    left: 0;
+}
+
+/* =================================
+   12. STYLES FORMULAIRE COMMENTAIRES
+   ================================= */
+
+/* Textarea pour les commentaires */
+.booking-form textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    resize: vertical;
+    min-height: 100px;
+    transition: border-color 0.3s ease;
+}
+
+.booking-form textarea:focus {
+    outline: none;
+    border-color: #007BFF;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.booking-form textarea::placeholder {
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Conteneur d'aide avec compteur */
+.form-help {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-top: 0.5rem;
+    gap: 1rem;
+}
+
+.help-text {
+    font-size: 0.8rem;
+    color: #6c757d;
+    line-height: 1.3;
+    flex: 1;
+}
+
+.char-counter {
+    font-size: 0.75rem;
+    color: #6c757d;
+    font-weight: 500;
+    white-space: nowrap;
+    padding: 0.2rem 0.5rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+}
+
+/* Responsive pour mobile */
+@media (max-width: 480px) {
+    .form-help {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .char-counter {
+        align-self: flex-end;
+    }
+}
+
+/* Support RTL pour l'arabe */
+.rtl .form-help {
+    flex-direction: row-reverse;
+}
+
+.rtl .char-counter {
+    align-self: flex-start;
+}
+
+@media (max-width: 480px) {
+    .rtl .form-help {
+        flex-direction: column;
+    }
+    
+    .rtl .char-counter {
+        align-self: flex-start;
+    }
+}
+
+/* =================================
+   15. NOUVEAU FORMULAIRE DE DEVIS - MOBILE FIRST
+   ================================= */
+
+/* Modal plein écran sur mobile */
+@media (max-width: 768px) {
+    .booking-modal-dialog {
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: none !important;
+        max-height: none !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .booking-modal-header {
+        padding: 1rem !important;
+        border-bottom: 1px solid #e9ecef !important;
+        flex-shrink: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        min-height: 60px !important;
+    }
+    
+    .booking-modal-header h2 {
+        font-size: 1.25rem !important;
+        margin: 0 !important;
+    }
+    
+    .booking-modal-close {
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 50% !important;
+        background: #f8f9fa !important;
+        border: 1px solid #e9ecef !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 1.2rem !important;
+    }
+    
+    .booking-modal-content {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        padding: 0 !important;
+    }
+    
+    .booking-form {
+        padding: 12px !important;
+    }
+}
+
+/* Largeur contenu mobile */
+@media (max-width: 768px) {
+    .booking-form .form-group,
+    .booking-form .form-row {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+    }
+}
+
+/* Inputs et labels - Mobile first */
+.booking-form label {
+    font-size: 16px !important; /* Éviter le zoom iOS */
+    font-weight: 500 !important;
+    color: #333 !important;
+    margin-bottom: 8px !important;
+    display: block !important;
+}
+
+.booking-form input,
+.booking-form select,
+.booking-form textarea {
+    font-size: 16px !important; /* Éviter le zoom iOS */
+    padding: 12px 16px !important;
+    border: 2px solid #e9ecef !important;
+    border-radius: 8px !important;
+    width: 100% !important;
+    transition: border-color 0.3s ease !important;
+    background: white !important;
+}
+
+.booking-form input:focus,
+.booking-form select:focus,
+.booking-form textarea:focus {
+    outline: none !important;
+    border-color: #007BFF !important;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1) !important;
+}
+
+/* Espacement vertical */
+.booking-form .form-group {
+    margin-bottom: 16px !important;
+}
+
+.booking-form .form-row {
+    display: flex !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+}
+
+@media (max-width: 480px) {
+    .booking-form .form-row {
+        flex-direction: column !important;
+        gap: 16px !important;
+    }
+}
+
+/* Téléphone avec code pays */
+.phone-input-group {
+    display: flex !important;
+    gap: 8px !important;
+}
+
+.country-code-input {
+    flex: 0 0 80px !important;
+    text-align: center !important;
+    font-weight: 600 !important;
+}
+
+.phone-input-group input[type="tel"] {
+    flex: 1 !important;
+}
+
+/* Services Cart - Cartes repliables */
+.services-section {
+    margin-bottom: 24px !important;
+}
+
+.services-container {
+    margin-bottom: 16px !important;
+}
+
+.service-card {
+    border: 2px solid #e9ecef !important;
+    border-radius: 12px !important;
+    margin-bottom: 12px !important;
+    background: white !important;
+    transition: all 0.3s ease !important;
+}
+
+.service-card:hover {
+    border-color: #007BFF !important;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1) !important;
+}
+
+/* Cartes validées et réduites - Version compacte */
+.service-card.collapsed {
+    margin-bottom: 8px !important;
+    /* Masquer complètement tout sauf le header */
+    overflow: hidden !important;
+    height: auto !important;
+    min-height: auto !important;
+}
+
+.service-card.collapsed .service-header {
+    padding: 16px !important; /* Padding normal pour la lisibilité */
+    min-height: auto !important;
+    margin-bottom: 0 !important;
+    border-bottom: none !important;
+}
+
+.service-card.collapsed .service-title {
+    font-size: 1.1rem !important; /* Taille normale du titre */
+    margin-bottom: 4px !important; /* Espacement normal sous le titre */
+}
+
+.service-card.collapsed .service-summary {
+    font-size: 0.9rem !important; /* Taille lisible du résumé */
+    margin: 0 !important;
+    color: #28a745 !important; /* Couleur verte pour indiquer que c'est validé */
+    font-weight: 500 !important;
+}
+
+.service-card.collapsed .service-actions {
+    gap: 8px !important; /* Espacement normal entre les boutons */
+}
+
+.service-card.collapsed .remove-service-btn,
+.service-card.collapsed .toggle-service-btn {
+    width: 36px !important; /* Taille normale des boutons */
+    height: 36px !important;
+    font-size: 1rem !important;
+}
+
+/* Masquer COMPLÈTEMENT le contenu des cartes réduites - pas de hauteur du tout */
+.service-card.collapsed .service-content {
+    display: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    border: none !important;
+}
+
+/* S'assurer qu'il n'y a aucun espace après le header */
+.service-card.collapsed .service-header + * {
+    display: none !important;
+}
+
+/* Forcer la hauteur de la carte à être seulement celle du header */
+.service-card.collapsed {
+    height: fit-content !important;
+    max-height: 100px !important; /* Hauteur encore plus grande */
+}
+
+/* Indicateur visuel pour les cartes validées */
+.service-card.collapsed {
+    border-color: #28a745 !important; /* Bordure verte */
+    background: linear-gradient(135deg, #f8fff9 0%, #ffffff 100%) !important; /* Fond légèrement vert */
+}
+
+.service-card.collapsed:hover {
+    border-color: #1e7e34 !important;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.15) !important;
+}
+.service-header {
+    padding: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    min-height: 60px !important;
+}
+
+.service-info {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+}
+
+.service-title {
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    color: #333 !important;
+    margin: 0 0 4px 0 !important;
+    line-height: 1.3 !important;
+}
+
+.service-summary {
+    font-size: 0.9rem !important;
+    color: #666 !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+}
+
+.service-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    align-self: center !important;
+}
+
+.remove-service-btn {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    background: #dc3545 !important;
+    color: white !important;
+    border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.remove-service-btn:hover {
+    background: #c82333 !important;
+    transform: scale(1.05) !important;
+}
+
+.toggle-service-btn {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    background: #f8f9fa !important;
+    border: 1px solid #e9ecef !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+}
+
+.toggle-service-btn i {
+    transition: transform 0.3s ease !important;
+}
+
+.service-card.collapsed .toggle-service-btn i {
+    transform: rotate(-90deg) !important;
+}
+
+.service-content {
+    padding: 0 16px 16px 16px !important;
+    border-top: 1px solid #f0f0f0 !important;
+    margin-top: 0 !important;
+    transition: all 0.3s ease !important;
+}
+
+.service-card.collapsed .service-content {
+    display: none !important;
+}
+
+/* Section de validation du service */
+.service-validation {
+    margin-top: 20px !important;
+    padding-top: 16px !important;
+    border-top: 1px solid #e9ecef !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+
+.validate-service-btn {
+    width: 100% !important;
+    padding: 12px 16px !important;
+    border: 2px solid #28a745 !important;
+    border-radius: 8px !important;
+    background: white !important;
+    color: #28a745 !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    min-height: 44px !important;
+}
+
+.validate-service-btn:hover:not(:disabled) {
+    background: #28a745 !important;
+    color: white !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3) !important;
+}
+
+.validate-service-btn:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.validate-service-btn.validated {
+    background: #28a745 !important;
+    color: white !important;
+    border-color: #28a745 !important;
+    cursor: default !important;
+}
+
+.validate-service-btn.validated:hover {
+    transform: none !important;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2) !important;
+}
+
+/* Statut du service */
+.service-status {
+    text-align: center !important;
+    padding: 8px 12px !important;
+    border-radius: 6px !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    background: #f8f9fa !important;
+    color: #6c757d !important;
+    border: 1px solid #e9ecef !important;
+}
+
+.service-status.validated {
+    background: #d4edda !important;
+    color: #155724 !important;
+    border-color: #c3e6cb !important;
+}
+
+.service-status.complete {
+    background: #fff3cd !important;
+    color: #856404 !important;
+    border-color: #ffeaa7 !important;
+}
+
+.service-status.incomplete {
+    background: #f8d7da !important;
+    color: #721c24 !important;
+    border-color: #f5c6cb !important;
+}
+
+.service-status.error {
+    background: #f8d7da !important;
+    color: #721c24 !important;
+    border-color: #f5c6cb !important;
+    animation: shake 0.5s ease-in-out !important;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.service-fields {
+    margin-top: 16px !important;
+}
+
+/* Bouton ajouter service */
+.add-service-btn {
+    width: 100% !important;
+    padding: 16px !important;
+    border: 2px dashed #007BFF !important;
+    border-radius: 12px !important;
+    background: rgba(0, 123, 255, 0.05) !important;
+    color: #007BFF !important;
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    min-height: 44px !important;
+}
+
+.add-service-btn:hover {
+    background: rgba(0, 123, 255, 0.1) !important;
+    border-color: #0056b3 !important;
+    color: #0056b3 !important;
+}
+
+.add-service-btn:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+}
+
+/* Checkboxes personnalisées */
+.checkbox-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+
+.checkbox-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    cursor: pointer !important;
+    font-size: 16px !important;
+    line-height: 1.4 !important;
+}
+
+.checkbox-item input[type="checkbox"] {
+    display: none !important;
+}
+
+.checkmark {
+    width: 20px !important;
+    height: 20px !important;
+    border: 2px solid #e9ecef !important;
+    border-radius: 4px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    flex-shrink: 0 !important;
+}
+
+.checkbox-item input[type="checkbox"]:checked + .checkmark {
+    background: #007BFF !important;
+    border-color: #007BFF !important;
+    color: white !important;
+}
+
+.checkbox-item input[type="checkbox"]:checked + .checkmark::after {
+    content: '✓' !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+}
+
+/* Créneaux horaires */
+.time-slots {
+    display: flex !important;
+    gap: 12px !important;
+    flex-wrap: wrap !important;
+}
+
+.time-slot {
+    flex: 1 !important;
+    min-width: 80px !important;
+    height: 44px !important;
+    border: 2px solid #e9ecef !important;
+    border-radius: 8px !important;
+    background: white !important;
+    color: #333 !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.time-slot:hover:not(:disabled) {
+    border-color: #007BFF !important;
+    background: rgba(0, 123, 255, 0.05) !important;
+}
+
+.time-slot.selected {
+    background: #007BFF !important;
+    border-color: #007BFF !important;
+    color: white !important;
+}
+
+.time-slot:disabled,
+.time-slot.unavailable {
+    background: #f8f9fa !important;
+    border-color: #e9ecef !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+}
+
+@media (max-width: 480px) {
+    .time-slots {
+        flex-direction: column !important;
+    }
+    
+    .time-slot {
+        min-width: auto !important;
+        width: 100% !important;
+    }
+}
+
+/* Photos uploader */
+.photos-section {
+    margin-bottom: 24px !important;
+}
+
+.photos-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 12px !important;
+}
+
+.photos-counter {
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    padding: 4px 8px !important;
+    border-radius: 12px !important;
+    background: #f8f9fa !important;
+    border: 1px solid #e9ecef !important;
+}
+
+.photos-counter.insufficient {
+    background: #fff3cd !important;
+    border-color: #ffc107 !important;
+    color: #856404 !important;
+}
+
+.photos-counter.valid {
+    background: #d4edda !important;
+    border-color: #28a745 !important;
+    color: #155724 !important;
+}
+
+.photos-counter.full {
+    background: #cce5ff !important;
+    border-color: #007BFF !important;
+    color: #004085 !important;
+}
+
+.photo-input-options {
+    display: flex !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+}
+
+.photo-option-btn {
+    flex: 1 !important;
+    padding: 16px !important;
+    border: 2px solid #007BFF !important;
+    border-radius: 8px !important;
+    background: white !important;
+    color: #007BFF !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 8px !important;
+    min-height: 44px !important;
+}
+
+.photo-option-btn:hover:not(.disabled) {
+    background: #007BFF !important;
+    color: white !important;
+}
+
+.photo-option-btn.disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    border-color: #e9ecef !important;
+    color: #6c757d !important;
+}
+
+.photo-option-btn i {
+    font-size: 1.2rem !important;
+}
+
+@media (max-width: 480px) {
+    .photo-input-options {
+        flex-direction: column !important;
+    }
+}
+
+/* Prévisualisations photos */
+.photo-previews {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+    gap: 12px !important;
+    margin-bottom: 12px !important;
+}
+
+.photo-preview {
+    position: relative !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    background: #f8f9fa !important;
+    border: 1px solid #e9ecef !important;
+}
+
+.photo-image {
+    position: relative !important;
+    width: 100% !important;
+    height: 120px !important;
+}
+
+.photo-image img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+.photo-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    opacity: 0 !important;
+    transition: opacity 0.3s ease !important;
+}
+
+.photo-preview:hover .photo-overlay {
+    opacity: 1 !important;
+}
+
+.remove-photo-btn {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    background: #dc3545 !important;
+    color: white !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.remove-photo-btn:hover {
+    background: #c82333 !important;
+    transform: scale(1.1) !important;
+}
+
+.photo-info {
+    padding: 8px !important;
+    font-size: 0.8rem !important;
+    color: #666 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+}
+
+.photo-name {
+    font-weight: 500 !important;
+    color: #333 !important;
+}
+
+.photo-size {
+    color: #999 !important;
+}
+
+/* Messages d'aide et d'erreur */
+.photos-help {
+    font-size: 0.9rem !important;
+    color: #666 !important;
+    margin-bottom: 8px !important;
+    line-height: 1.4 !important;
+}
+
+.photos-error {
+    background: #f8d7da !important;
+    color: #721c24 !important;
+    padding: 12px !important;
+    border-radius: 8px !important;
+    border: 1px solid #f5c6cb !important;
+    margin-bottom: 12px !important;
+    font-size: 0.9rem !important;
+    display: none !important;
+}
+
+.field-error {
+    color: #dc3545 !important;
+    font-size: 0.85rem !important;
+    margin-top: 4px !important;
+    display: none !important;
+}
+
+.booking-form input.error,
+.booking-form select.error,
+.booking-form textarea.error {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
+}
+
+.form-global-error {
+    background: #f8d7da !important;
+    color: #721c24 !important;
+    padding: 16px !important;
+    border-radius: 8px !important;
+    border: 1px solid #f5c6cb !important;
+    margin-bottom: 20px !important;
+    font-weight: 500 !important;
+    display: none !important;
+    position: relative !important;
+}
+
+.form-global-error::before {
+    content: '⚠️' !important;
+    margin-right: 8px !important;
+    font-size: 1.1rem !important;
+}
+
+/* Bouton de soumission */
+.booking-form .submit-btn {
+    width: 100% !important;
+    padding: 16px !important;
+    background: linear-gradient(135deg, #007BFF, #4BB5FF) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    margin-top: 24px !important;
+    min-height: 44px !important;
+}
+
+.booking-form .submit-btn:hover {
+    background: linear-gradient(135deg, #0056b3, #007BFF) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3) !important;
+}
+
+.booking-form .submit-btn:disabled {
+    background: #6c757d !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Accessibilité - Focus visible */
+.booking-form input:focus,
+.booking-form select:focus,
+.booking-form textarea:focus,
+.booking-form button:focus,
+.time-slot:focus,
+.photo-option-btn:focus,
+.add-service-btn:focus,
+.remove-service-btn:focus,
+.checkbox-item:focus-within {
+    outline: 2px solid #007BFF !important;
+    outline-offset: 2px !important;
+}
+
+/* Contrastes AA */
+.booking-form label {
+    color: #212529 !important; /* Contraste 4.5:1 minimum */
+}
+
+.service-summary {
+    color: #495057 !important; /* Contraste suffisant */
+}
+
+/* Responsive final */
+@media (max-width: 320px) {
+    .booking-form {
+        padding: 8px !important;
+    }
+    
+    .booking-form .form-group {
+        margin-bottom: 12px !important;
+    }
+    
+    .service-header {
+        padding: 12px !important;
+    }
+    
+    .service-content {
+        padding: 0 12px 12px 12px !important;
+    }
+}
+
+/* =================================
+   14. STYLES MESSAGES SUCCÈS/ERREUR
+   ================================= */
+
+.success-message, .error-message {
+    text-align: center;
+    padding: 2rem;
+}
+
+.success-icon, .error-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    color: var(--success-green, #28a745);
+}
+
+.success-text, .error-text {
+    margin-bottom: 2rem;
+}
+
+.success-text p, .error-text p {
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.success-text h3 {
+    color: var(--success-green, #28a745);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.success-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.success-btn, .error-btn {
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0.5rem;
+}
+
+.success-btn {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.success-btn.whatsapp {
+    background: #25d366;
+    color: white;
+}
+
+.success-btn:hover {
+    background: var(--dark-blue);
+    transform: translateY(-2px);
+}
+
+.success-btn.whatsapp:hover {
+    background: #128c7e;
+    transform: translateY(-2px);
+}
+
+.error-btn.retry {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.error-btn.whatsapp {
+    background: #25d366;
+    color: white;
+}
+
+.error-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.error-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+    .error-actions, .success-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .error-btn, .success-btn {
+        width: 200px;
+        justify-content: center;
+    }
+}
+
+/* =================================
+   13. STYLES BOUTONS D'ACTIONS API
+   ================================= */
+
+.actions-message .message-content {
+    padding: 1rem;
+    background: transparent !important;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    min-height: 48px;
+}
+
+.action-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.action-btn:hover::before {
+    left: 100%;
+}
+
+/* Priorités des boutons d'actions */
+.action-btn.primary {
+    background: linear-gradient(135deg, #25d366, #20c55a);
+    color: white;
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+    border: 2px solid transparent;
+}
+
+.action-btn.primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+    background: linear-gradient(135deg, #20c55a, #1db954);
+}
+
+.action-btn.default {
+    background: linear-gradient(135deg, #007BFF, #4BB5FF);
+    color: #007BFF;
+    color: white;
+    border: 2px solid transparent;
+    box-shadow: 0 3px 12px rgba(0, 123, 255, 0.25);
+}
+
+.action-btn.default:hover {
+    background: linear-gradient(135deg, #0056b3, #0066cc);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 18px rgba(0, 123, 255, 0.35);
+}
+
+.action-btn.secondary {
+    background: #f8f9fa;
+    color: #6c757d;
+    border: 2px solid #e9ecef;
+}
+
+.action-btn.secondary:hover {
+    background: #e9ecef;
+    color: #495057;
+    border-color: #6c757d;
+    transform: translateY(-1px);
+}
+
+/* Styles spéciaux pour WhatsApp */
+.action-btn[href*="whatsapp"], .action-btn[href*="wa.me"] {
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    color: white;
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+    position: relative;
+}
+
+.action-btn[href*="whatsapp"]:hover, .action-btn[href*="wa.me"]:hover {
+    background: linear-gradient(135deg, #128c7e, #075e54);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+}
+
+/* Styles spéciaux pour les réservations */
+.action-btn[href*="reservation"], .action-btn[href*="booking"], .action-btn[href*="formulaire"] {
+    background: linear-gradient(135deg, #007BFF, #0056b3);
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.action-btn[href*="reservation"]:hover, .action-btn[href*="booking"]:hover, .action-btn[href*="formulaire"]:hover {
+    background: linear-gradient(135deg, #0056b3, #004085);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+}
+
+/* Styles pour les appels téléphoniques */
+.action-btn[href^="tel:"] {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.action-btn[href^="tel:"]:hover {
+    background: linear-gradient(135deg, #1e7e34, #17a2b8);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+/* Contenu des boutons */
+.action-btn-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex: 1;
+}
+
+.action-btn-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.2;
+}
+
+.action-btn-subtitle {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    margin-top: 0.2rem;
+    line-height: 1.1;
+}
+
+/* Icônes spécifiques */
+.action-btn i {
+    font-size: 1.2rem;
+    min-width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn .fa-whatsapp {
+    color: white;
+    font-size: 1.3rem;
+}
+
+.action-btn .fa-phone {
+    color: white;
+    font-size: 1.1rem;
+}
+
+.action-btn .fa-calendar-plus {
+    color: white;
+    font-size: 1.1rem;
+}
+
+.action-btn .fa-external-link-alt {
+    color: white;
+    font-size: 1rem;
+}
+
+/* Animation de pulsation pour les boutons prioritaires */
+.action-btn.primary {
+    animation: subtlePulse 3s infinite;
+}
+
+@keyframes subtlePulse {
+    0%, 100% { 
+        box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+    }
+    50% { 
+        box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+    }
+}
+
+/* Pause l'animation au hover */
+.action-btn.primary:hover {
+    animation-play-state: paused;
+}
+
+/* Responsive pour les actions */
+@media (max-width: 480px) {
+    .action-buttons {
+        gap: 0.5rem;
+    }
+    
+    .action-btn {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* Support RTL pour les actions */
+.rtl .action-buttons {
+    direction: ltr; /* Garder les boutons en LTR pour la lisibilité */
+}
+
+.rtl .action-btn {
+    flex-direction: row-reverse;
+}
+
+.rtl .happystay-chat-widget {
+    right: auto;
+    left: 20px;
+}
+
+.rtl .chat-message.user {
+    align-self: flex-start;
+    align-items: flex-start;
+}
+
+.rtl .chat-message.bot {
+    align-self: flex-end;
+    align-items: flex-end;
+}
+
+.rtl .chat-message.user .message-content {
+    border-bottom-right-radius: 18px;
+    border-bottom-left-radius: 6px;
+}
+
+.rtl .chat-message.bot .message-content {
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 6px;
+}
+
+@media (max-width: 768px) {
+    .rtl .happystay-chat-widget {
+        left: 15px;
+    }
+    
+    .rtl .chat-panel {
+        left: -15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .rtl .chat-panel {
+        left: -10px;
+    }
+}
