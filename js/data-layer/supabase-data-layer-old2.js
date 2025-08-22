@@ -1,33 +1,35 @@
-// Happy Stay - Supabase DataLayer (clean build)
+// Happy Stay - Supabase DataLayer (revamped)
+// Implémentation réelle avec Supabase + normalisation date/heure
 
 import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js@2';
 
 export class SupabaseDataLayer {
   constructor() {
-    this.supabase = createClient(window.HS_SUPABASE_URL, window.HS_SUPABASE_ANON_KEY);
+    this.supabase = createClient(
+      window.HS_SUPABASE_URL,
+      window.HS_SUPABASE_ANON_KEY
+    );
     console.log('🌐 SupabaseDataLayer initialisé');
     this.testConnection();
   }
 
-  // ---------- Helpers date/heure ----------
-toYMDLocal(d) {
-  // Si on reçoit déjà 'YYYY-MM-DD', on NE PARSE PAS (évite le décalage UTC)
-  if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
-    return d;
+  // ---------- Helpers : date/heure ----------
+  toYMDLocal(d) {
+    const dt = d instanceof Date ? d : new Date(d);
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth() + 1).padStart(2, '0');
+    const day = String(dt.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
   }
-  // Sinon, on parse et on extrait en LOCAL
-  const dt = d instanceof Date ? d : new Date(d);
-  const y = dt.getFullYear();
-  const m = String(dt.getMonth() + 1).padStart(2, '0');
-  const day = String(dt.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
   hhmmFromHMS(hms) {
     return hms ? hms.slice(0, 5) : null;
   }
-
   frFromYMD(ymd) {
-    return new Date(ymd).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return new Date(ymd).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
   }
 
   // =================================
@@ -36,21 +38,35 @@ toYMDLocal(d) {
   async signIn(email, password) {
     try {
       console.log('🔐 Tentative de connexion admin:', email);
-      const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
-      if (error) return { success: false, error: error.message };
+      const { data, error } = await this.supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) {
+        console.error('❌ Erreur connexion:', error);
+        return { success: false, error: error.message };
+      }
+      console.log('✅ Connexion réussie:', data.user?.email);
       return { success: true, user: data.user, session: data.session };
-    } catch (err) {
-      return { success: false, error: err.message };
+    } catch (error) {
+      console.error('❌ Erreur signIn:', error);
+      return { success: false, error: error.message };
     }
   }
 
   async signOut() {
     try {
+      console.log('🔐 Déconnexion admin');
       const { error } = await this.supabase.auth.signOut();
-      if (error) return { success: false, error: error.message };
+      if (error) {
+        console.error('❌ Erreur déconnexion:', error);
+        return { success: false, error: error.message };
+      }
+      console.log('✅ Déconnexion réussie');
       return { success: true };
-    } catch (err) {
-      return { success: false, error: err.message };
+    } catch (error) {
+      console.error('❌ Erreur signOut:', error);
+      return { success: false, error: error.message };
     }
   }
 
@@ -58,7 +74,8 @@ toYMDLocal(d) {
     try {
       const { data: { user } } = await this.supabase.auth.getUser();
       return user;
-    } catch {
+    } catch (error) {
+      console.error('❌ Erreur getCurrentUser:', error);
       return null;
     }
   }
@@ -85,31 +102,42 @@ toYMDLocal(d) {
   // =================================
   async getSlotsByDate(date) {
     try {
-      const ymd = this.toYMDLocal(date);
-      const weekday = new Date(ymd).getDay(); // 0=dimanche
-      if (weekday === 0) return [];
+      console.log('🔍 Recherche créneaux pour la date:', date);
+      const d = new Date(date);
+      const weekday = d.getDay();
+      if (weekday === 0) {
+        console.log('🚫 Dimanche bloqué');
+        return [];
+      }
+      const { data: availableSlots, error } = await this.supabase
+        .rpc('get_available_slots', { p_date: this.toYMDLocal(date) });
 
-      const { data: availableSlots, error } = await this.supabase.rpc('get_available_slots', {
-  p_date: ymd,
-  p_times: ['10:30','13:30','15:30'],
-  p_capacity: 2
-});
       if (error) {
         console.error('Erreur récupération créneaux (RPC):', error);
-        const timeSlots = window.HS_CONFIG?.getTimeSlots() || ['10:30', '13:30', '15:30'];
-        return timeSlots.map((t) => ({ time: t, status: 'FREE', available: 2, blocked: false }));
+        const timeSlots = window.HS_CONFIG?.getTimeSlots() || ['10:00', '13:30', '15:00'];
+        return timeSlots.map((time) => ({
+          time,
+          status: 'FREE',
+          available: 2,
+          blocked: false,
+        }));
       }
-
-      return (availableSlots || []).map((slot) => ({
+      const transformedSlots = (availableSlots || []).map((slot) => ({
         time: slot.slot_time,
         status: slot.blocked ? 'BLOCKED' : (slot.available > 0 ? 'FREE' : 'BOOKED'),
         available: slot.available,
         blocked: slot.blocked,
       }));
-    } catch (err) {
-      console.error('Erreur getSlotsByDate:', err);
-      const timeSlots = window.HS_CONFIG?.getTimeSlots() || ['10:30', '13:30', '15:30'];
-      return timeSlots.map((t) => ({ time: t, status: 'FREE', available: 2, blocked: false }));
+      return transformedSlots;
+    } catch (error) {
+      console.error('Erreur getSlotsByDate:', error);
+      const timeSlots = window.HS_CONFIG?.getTimeSlots() || ['10:00', '13:30', '15:00'];
+      return timeSlots.map((time) => ({
+        time,
+        status: 'FREE',
+        available: 2,
+        blocked: false,
+      }));
     }
   }
 
@@ -117,44 +145,27 @@ toYMDLocal(d) {
     try {
       console.log('🔄 markSlotBooked:', { date, time, reservationId });
       return { success: true };
-    } catch (err) {
-      return { success: false, error: err.message };
+    } catch (error) {
+      console.error('Erreur markSlotBooked:', error);
+      return { success: false, error: error.message };
     }
   }
-
   async markSlotBlocked(date, time) {
     try {
-      const ymd = this.toYMDLocal(date);
-      const { error } = await this.supabase
-        .from('slots')
-        .upsert(
-          { date: ymd, time, blocked: true, updated_at: new Date().toISOString() },
-          { onConflict: 'date,time' }
-        );
-      if (error) throw error;
-      console.log('✅ Créneau bloqué:', { date: ymd, time });
+      console.log('🔄 markSlotBlocked:', { date, time });
       return { success: true };
-    } catch (err) {
-      console.error('❌ Erreur markSlotBlocked:', err.message);
-      return { success: false, error: err.message };
+    } catch (error) {
+      console.error('Erreur markSlotBlocked:', error);
+      return { success: false, error: error.message };
     }
   }
-
   async markSlotFree(date, time) {
     try {
-      const ymd = this.toYMDLocal(date);
-      const { error } = await this.supabase
-        .from('slots')
-        .upsert(
-          { date: ymd, time, blocked: false, updated_at: new Date().toISOString() },
-          { onConflict: 'date,time' }
-        );
-      if (error) throw error;
-      console.log('✅ Créneau débloqué:', { date: ymd, time });
+      console.log('🔄 markSlotFree:', { date, time });
       return { success: true };
-    } catch (err) {
-      console.error('❌ Erreur markSlotFree:', err.message);
-      return { success: false, error: err.message };
+    } catch (error) {
+      console.error('Erreur markSlotFree:', error);
+      return { success: false, error: error.message };
     }
   }
 
@@ -172,13 +183,15 @@ toYMDLocal(d) {
   // =================================
   async createReservation(payload) {
     try {
+      console.log('🔄 createReservation payload:', payload);
       const { data: services, error: servicesError } = await this.supabase
         .from('services')
         .select('id')
         .eq('active', true)
         .limit(1);
-      if (servicesError || !services || services.length === 0) throw new Error('Aucun service disponible');
-
+      if (servicesError || !services || services.length === 0) {
+        throw new Error('Aucun service disponible');
+      }
       const serviceId = services[0].id;
 
       const { data: reservationId, error } = await this.supabase.rpc('api_create_booking', {
@@ -193,7 +206,10 @@ toYMDLocal(d) {
         p_notes: payload.comments || null,
         p_photos: JSON.stringify(payload.photos || []),
       });
-      if (error) return { success: false, error: error.message };
+      if (error) {
+        console.error('Erreur création réservation:', error);
+        return { success: false, error: error.message };
+      }
 
       if (payload.items && payload.items.length > 0) {
         const itemsToInsert = payload.items.map((item) => ({
@@ -203,24 +219,25 @@ toYMDLocal(d) {
           quantity: item.quantity || 1,
           details: JSON.stringify(item),
         }));
-        const { error: itemsError } = await this.supabase.from('reservation_items').insert(itemsToInsert);
-        if (itemsError) console.error('Erreur création items:', itemsError);
+        await this.supabase.from('reservation_items').insert(itemsToInsert);
       }
-
       if (payload.photos && payload.photos.length > 0) {
-        const photosToInsert = payload.photos.map((photo, i) => ({
+        const photosToInsert = payload.photos.map((photo, index) => ({
           reservation_id: reservationId,
           url: photo.url,
-          filename: photo.name || `photo_${i + 1}`,
+          filename: photo.name || `photo_${index + 1}`,
           size: photo.size || 0,
         }));
-        const { error: photosError } = await this.supabase.from('reservation_photos').insert(photosToInsert);
-        if (photosError) console.error('Erreur création photos:', photosError);
+        await this.supabase.from('reservation_photos').insert(photosToInsert);
       }
-
-      return { success: true, reservationId, reservation: { id: reservationId, ...payload, status: 'PENDING' } };
-    } catch (err) {
-      return { success: false, error: err.message };
+      return {
+        success: true,
+        reservationId,
+        reservation: { id: reservationId, ...payload, status: 'PENDING' },
+      };
+    } catch (error) {
+      console.error('Erreur createReservation:', error);
+      return { success: false, error: error.message };
     }
   }
 
@@ -229,9 +246,17 @@ toYMDLocal(d) {
       const ymd = this.toYMDLocal(date);
       const { data: reservations, error } = await this.supabase
         .from('bookings')
-        .select(`*, reservation_items(*), reservation_photos(*)`)
+        .select(`
+          *,
+            reservation_items(*),
+            reservation_photos(*),
+            service:services(name)
+
+            `)
+
         .eq('date', ymd)
         .order('time', { ascending: true });
+
       if (error) return [];
 
       return (reservations || []).map((r) => ({
@@ -241,7 +266,7 @@ toYMDLocal(d) {
         time: r.time,
         time_hm: this.hhmmFromHMS(r.time),
         status: (r.status || '').toUpperCase(),
-        service: this.generateServiceSummary(r.reservation_items || []),
+        service: r.service?.name || this.generateServiceSummary(r.reservation_items || []),
         serviceDetails: this.transformItems(r.reservation_items || []),
         customerName: r.customer_name,
         customerPhone: r.customer_phone,
@@ -253,7 +278,8 @@ toYMDLocal(d) {
         quote: null,
         createdAt: r.created_at,
       }));
-    } catch {
+    } catch (error) {
+      console.error('Erreur getReservationsOfDate:', error);
       return [];
     }
   }
@@ -262,9 +288,15 @@ toYMDLocal(d) {
     try {
       const { data: r, error } = await this.supabase
         .from('bookings')
-        .select(`*, reservation_items(*), reservation_photos(*)`)
+    .select(`
+  *,
+  reservation_items(*),
+  reservation_photos(*),
+  service:services(name)
+`)
         .eq('id', id)
         .single();
+
       if (error) return null;
 
       return {
@@ -274,7 +306,7 @@ toYMDLocal(d) {
         time: r.time,
         time_hm: this.hhmmFromHMS(r.time),
         status: (r.status || '').toUpperCase(),
-        service: this.generateServiceSummary(r.reservation_items || []),
+        service: r.service?.name || this.generateServiceSummary(r.reservation_items || []),
         serviceDetails: this.transformItems(r.reservation_items || []),
         customerName: r.customer_name,
         customerPhone: r.customer_phone,
@@ -286,30 +318,30 @@ toYMDLocal(d) {
         quote: null,
         createdAt: r.created_at,
       };
-    } catch {
+    } catch (error) {
+      console.error('Erreur getReservationById:', error);
       return null;
     }
   }
 
-async updateReservationStatus(id, status) {
-  try {
-    const s = (status || '').toLowerCase();
-    // normalisation pour coller au CHECK de la DB
-    const dbStatus = s === 'canceled' ? 'cancelled' : s;
+  async updateReservationStatus(id, status) {
+    try {
+      const supabaseStatus = status.toLowerCase();
+      const { data: r, error } = await this.supabase
+        .from('bookings')
+        .update({ status: supabaseStatus, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
 
-    const { data: r, error } = await this.supabase
-      .from('bookings')
-      .update({ status: dbStatus, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .select()
-      .single();
-    if (error) return { success: false, error: error.message };
+      if (error) return { success: false, error: error.message };
 
-    return { success: true, reservation: { id: r.id, status: (r.status || '').toUpperCase() } };
-  } catch (err) {
-    return { success: false, error: err.message };
+      return { success: true, reservation: { id: r.id, status: r.status.toUpperCase() } };
+    } catch (error) {
+      console.error('Erreur updateReservationStatus:', error);
+      return { success: false, error: error.message };
+    }
   }
-}
 
   // =================================
   // UTILITAIRES
@@ -322,9 +354,13 @@ async updateReservationStatus(id, status) {
   transformItems(items) {
     return (items || []).map((item) => {
       try {
-        const details = typeof item.details === 'string' ? JSON.parse(item.details) : (item.details || {});
-        return { type: item.service_type, data: { quantity: item.quantity, ...details } };
-      } catch {
+        const details =
+          typeof item.details === 'string' ? JSON.parse(item.details) : item.details || {};
+        return {
+          type: item.service_type,
+          data: { quantity: item.quantity, ...details },
+        };
+      } catch (error) {
         return { type: item.service_type, data: { quantity: item.quantity } };
       }
     });
@@ -334,9 +370,16 @@ async updateReservationStatus(id, status) {
     try {
       const { data: reservations, error } = await this.supabase
         .from('bookings')
-        .select(`*, reservation_items(*), reservation_photos(*)`)
+       .select(`
+  *,
+  reservation_items(*),
+  reservation_photos(*),
+  service:services(name)
+`)
         .order('created_at', { ascending: false });
+
       if (error) return [];
+
       return (reservations || []).map((r) => ({
         id: r.id,
         date: r.date,
@@ -345,10 +388,11 @@ async updateReservationStatus(id, status) {
         time_hm: this.hhmmFromHMS(r.time),
         status: (r.status || '').toUpperCase(),
         customerName: r.customer_name,
-        service: this.generateServiceSummary(r.reservation_items || []),
+        service: r.service?.name || this.generateServiceSummary(r.reservation_items || []),
         createdAt: r.created_at,
       }));
-    } catch {
+    } catch (error) {
+      console.error('Erreur getAllReservations:', error);
       return [];
     }
   }
@@ -356,19 +400,37 @@ async updateReservationStatus(id, status) {
   async getStats() {
     try {
       const today = this.toYMDLocal(new Date());
-      const { count: totalReservations } = await this.supabase.from('bookings').select('*', { count: 'exact', head: true });
-      const { count: todayReservations } = await this.supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('date', today);
-      const { count: pendingReservations } = await this.supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('date', today).eq('status', 'pending');
-      const { count: confirmedReservations } = await this.supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('date', today).eq('status', 'confirmed');
-
+      const { count: totalReservations } = await this.supabase
+        .from('bookings')
+        .select('*', { count: 'exact', head: true });
+      const { count: todayReservations } = await this.supabase
+        .from('bookings')
+        .select('*', { count: 'exact', head: true })
+        .eq('date', today);
+      const { count: pendingReservations } = await this.supabase
+        .from('bookings')
+        .select('*', { count: 'exact', head: true })
+        .eq('date', today)
+        .eq('status', 'pending');
+      const { count: confirmedReservations } = await this.supabase
+        .from('bookings')
+        .select('*', { count: 'exact', head: true })
+        .eq('date', today)
+        .eq('status', 'confirmed');
       return {
         totalReservations: totalReservations || 0,
         todayReservations: todayReservations || 0,
         pendingReservations: pendingReservations || 0,
         confirmedReservations: confirmedReservations || 0,
       };
-    } catch {
-      return { totalReservations: 0, todayReservations: 0, pendingReservations: 0, confirmedReservations: 0 };
+    } catch (error) {
+      console.error('Erreur getStats:', error);
+      return {
+        totalReservations: 0,
+        todayReservations: 0,
+        pendingReservations: 0,
+        confirmedReservations: 0,
+      };
     }
   }
 }

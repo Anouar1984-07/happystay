@@ -197,49 +197,57 @@ class AdminDashboard {
         }).join('');
     }
 
-    renderPlanningSlot(slot) {
-        const statusConfig = {
-            'available': { label: 'LIBRE', class: 'available', color: 'green' },
-            'reserved': { label: 'RÉSERVÉ', class: 'reserved', color: 'blue' },
-            'blocked': { label: 'BLOQUÉ', class: 'blocked', color: 'red' }
-        };
+renderPlanningSlot(slot) {
+    const statusConfig = {
+        'available': { label: 'LIBRE', class: 'available', color: 'green' },
+        'reserved' : { label: 'RÉSERVÉ', class: 'reserved', color: 'blue' },
+        'blocked'  : { label: 'BLOQUÉ', class: 'blocked', color: 'red' }
+    };
 
-        const config = statusConfig[slot.status] || statusConfig.available;
-        
-        let subtitle = '';
-        let actionButton = '';
-        
-        if (slot.status === 'reserved' && slot.reservation) {
-            subtitle = `<div class="slot-subtitle">Réservé par ${slot.reservation.customerName} — ${slot.reservation.service}</div>`;
-            actionButton = `<button class="slot-action-btn view-reservation" onclick="scrollToReservation('${slot.reservationId}')">
-                <i class="fas fa-eye"></i>
-                Voir la réservation
-            </button>`;
-        } else if (slot.status === 'available') {
-            actionButton = `<button class="slot-action-btn block" onclick="toggleSlotStatus('${slot.id}', 'blocked')">
-                <i class="fas fa-lock"></i>
-                Bloquer
-            </button>`;
-        } else if (slot.status === 'blocked') {
-            actionButton = `<button class="slot-action-btn unblock" onclick="toggleSlotStatus('${slot.id}', 'available')">
-                <i class="fas fa-unlock"></i>
-                Débloquer
-            </button>`;
-        }
+    // 🔧 Normalisation des statuts (accepte FREE/BOOKED/BLOCKED ou available/reserved/blocked)
+    const normalize = (s) => String(s || 'available')
+        .toLowerCase()
+        .replace('free', 'available')
+        .replace('booked', 'reserved');
 
-        return `
-            <div class="planning-slot ${config.class}" id="slot-${slot.id}">
-                <div class="slot-header">
-                    <div class="slot-time">${slot.time}</div>
-                    <div class="slot-status ${config.class}">${config.label}</div>
-                </div>
-                ${subtitle}
-                <div class="slot-actions">
-                    ${actionButton}
-                </div>
-            </div>
-        `;
+    const nstatus = normalize(slot.status);
+    const config = statusConfig[nstatus] || statusConfig.available;
+
+    let subtitle = '';
+    let actionButton = '';
+
+    if (nstatus === 'reserved' && slot.reservation) {
+        subtitle = `<div class="slot-subtitle">Réservé par ${slot.reservation.customerName} — ${slot.reservation.service}</div>`;
+        actionButton = `<button class="slot-action-btn view-reservation" onclick="scrollToReservation('${slot.reservationId}')">
+            <i class="fas fa-eye"></i>
+            Voir la réservation
+        </button>`;
+    } else if (nstatus === 'available') {
+        actionButton = `<button class="slot-action-btn block" onclick="toggleSlotStatus('${slot.id}', 'blocked')">
+            <i class="fas fa-lock"></i>
+            Bloquer
+        </button>`;
+    } else if (nstatus === 'blocked') {
+        actionButton = `<button class="slot-action-btn unblock" onclick="toggleSlotStatus('${slot.id}', 'available')">
+            <i class="fas fa-unlock"></i>
+            Débloquer
+        </button>`;
     }
+
+    return `
+        <div class="planning-slot ${config.class}" id="slot-${slot.id}">
+            <div class="slot-header">
+                <div class="slot-time">${slot.time}</div>
+                <div class="slot-status ${config.class}">${config.label}</div>
+            </div>
+            ${subtitle}
+            <div class="slot-actions">
+                ${actionButton}
+            </div>
+        </div>
+    `;
+}
+
 
     async loadReservations() {
         const dateStr = this.formatDate(this.currentDate);
@@ -280,12 +288,17 @@ class AdminDashboard {
 
     renderReservationCard(reservation) {
         const statusConfig = {
-            'pending': { label: 'En attente', class: 'pending' },
+            'pending':   { label: 'En attente', class: 'pending' },
             'confirmed': { label: 'Confirmée', class: 'confirmed' },
-            'canceled': { label: 'Annulée', class: 'canceled' }
+            'canceled':  { label: 'Annulée',   class: 'canceled' },
+            // tolérance orthographe UK si jamais :
+            'cancelled': { label: 'Annulée',   class: 'canceled' }
         };
 
-        const config = statusConfig[reservation.status] || statusConfig.pending;
+        // ✅ Normalise la valeur reçue du DataLayer (CONFIRMED, Pending, etc.)
+        const statusKey = (reservation.status || '').toString().trim().toLowerCase();
+        const config = statusConfig[statusKey] || statusConfig.pending;
+
         const hasPhotos = reservation.photos && reservation.photos.length > 0;
         
         // Tronquer les notes si trop longues
@@ -295,9 +308,10 @@ class AdminDashboard {
 
         // Générer l'affichage des services détaillés
         const servicesDisplay = this.generateServicesDisplay(reservation);
-        // Boutons d'action selon le statut
+
+        // Boutons d'action selon le statut (utiliser la version normalisée)
         let actionButtons = '';
-        if (reservation.status === 'pending') {
+        if (statusKey === 'pending') {
             actionButtons = `
                 <button class="reservation-btn confirm" onclick="confirmReservation('${reservation.id}')">
                     <i class="fas fa-check"></i>
@@ -310,7 +324,7 @@ class AdminDashboard {
             `;
         }
         
-        if (reservation.status !== 'canceled') {
+        if (statusKey !== 'canceled' && statusKey !== 'cancelled') {
             actionButtons += `
                 <button class="reservation-btn cancel" onclick="cancelReservation('${reservation.id}')">
                     <i class="fas fa-times"></i>
@@ -371,7 +385,7 @@ class AdminDashboard {
                             <i class="fas fa-images"></i>
                             Voir photos
                         </button>
-                ` : ''}
+                    ` : ''}
                 </div>
             </div>
         `;
@@ -462,7 +476,7 @@ class AdminDashboard {
         this.showLoading();
         
         try {
-            const result = await this.apiClient.updateReservationStatus(reservationId, 'canceled');
+            const result = await this.apiClient.updateReservationStatus(reservationId, 'cancelled');
             if (result.success) {
                 this.showToast('Réservation annulée', 'success');
                 await this.loadDashboardData();
@@ -909,7 +923,7 @@ class AdminDashboard {
     async logout() {
         try {
             await this.apiClient.logout();
-            console.log('🔐 Déconnexion effectuée');
+    console.log('🔐 Déconnexion effectuée');
         } catch (error) {
             console.error('❌ Erreur lors de la déconnexion:', error);
         }
@@ -978,6 +992,11 @@ window.logout = function() {
     if (window.adminDashboard) {
         window.adminDashboard.logout();
     }
+};
+
+// ✅ Binding manquant utilisé dans le planning
+window.scrollToReservation = function(reservationId) {
+    window.adminDashboard.scrollToReservation(reservationId);
 };
 
 // Initialize dashboard when DOM is loaded

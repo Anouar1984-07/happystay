@@ -3,7 +3,8 @@
 
 class AdminApiClient {
     constructor() {
-        this.fixedTimeSlots = ['10:00', '13:30', '15:00'];
+        // Les 3 créneaux affichés par l'UI
+        this.fixedTimeSlots = ['10:30', '13:30', '15:30'];
         this.dataLayer = null;
         this.initializeDataLayer();
     }
@@ -103,46 +104,54 @@ class AdminApiClient {
             
             const supabaseSlots = await this.dataLayer.getSlotsByDate(date);
             console.log('📊 Créneaux Supabase reçus:', supabaseSlots);
-            
-            // Transformer le format Supabase vers le format attendu par l'admin
-            const slots = this.fixedTimeSlots.map(time => {
-                const supabaseSlot = supabaseSlots.find(s => s.time === time || s.slot_time === time);
-                let status = 'available';
-                
-                if (supabaseSlot) {
-                    if (supabaseSlot.blocked || supabaseSlot.status === 'BLOCKED') {
-                        status = 'blocked';
-                    } else if (supabaseSlot.available <= 0 || supabaseSlot.status === 'BOOKED') {
-                        status = 'reserved';
-                    } else {
-                        status = 'available';
-                    }
-                }
-                
-                return {
-                    id: `${date}-${time}`,
-                    date: date,
-                    time: time,
-                    status: status,
-                    reservationId: null, // TODO: Récupérer l'ID de réservation si nécessaire
-                    updatedAt: new Date().toISOString()
-                };
+
+            // --- Normalisation & mapping des statuts pour l'UI ---
+            const normTime = (t) => (t || '').slice(0, 5); // "HH:MM"
+            const toUiStatus = (s) => {
+                const up = (s || '').toUpperCase();
+                if (up === 'BOOKED') return 'reserved';
+                if (up === 'BLOCKED') return 'blocked';
+                return 'available'; // FREE ou défaut
+            };
+
+            // Indexer le statut par heure "HH:MM"
+            const byTime = {};
+            (supabaseSlots || []).forEach(s => {
+                const t = normTime(s.time || s.slot_time);
+                if (t) byTime[t] = toUiStatus(s.status);
             });
-            
-            // Enrichir avec les données de réservation
+
+            // Construire toujours 3 cartes "fixes"
+            const baseSlots = this.fixedTimeSlots.map(time => ({
+                id: `${date}-${time}`,
+                date,
+                time,
+                status: byTime[time] || 'available',
+                reservationId: null,
+                updatedAt: new Date().toISOString()
+            }));
+
+            // Enrichir avec les réservations
             const reservations = await this.dataLayer.getReservationsOfDate(date);
             console.log('📊 Réservations pour enrichissement:', reservations);
-            
-            return slots.map(slot => {
+
+            // Indexer les réservations par heure "HH:MM"
+            const resByTime = {};
+            (reservations || []).forEach(r => {
+                const hm = r.time_hm || (r.time ? r.time.slice(0, 5) : null);
+                if (hm) resByTime[hm] = r;
+            });
+
+            return baseSlots.map(slot => {
                 if (slot.status === 'reserved') {
-                    const reservation = reservations.find(r => r.time === slot.time);
-                    if (reservation) {
+                    const r = resByTime[slot.time];
+                    if (r) {
                         return {
                             ...slot,
-                            reservationId: reservation.id,
+                            reservationId: r.id,
                             reservation: {
-                                customerName: reservation.customerName,
-                                service: reservation.service
+                                customerName: r.customerName,
+                                service: r.service
                             }
                         };
                     }
@@ -187,8 +196,11 @@ class AdminApiClient {
         
         try {
             console.log('🔄 Mise à jour statut créneau:', slotId, newStatus);
-            
-            const [date, time] = slotId.split('-');
+
+            // slotId = `${date}-${time}` → attention aux tirets dans la date
+            const lastDash = slotId.lastIndexOf('-');
+            const date = slotId.slice(0, lastDash);
+            const time = slotId.slice(lastDash + 1);
             
             let result;
             switch (newStatus) {
