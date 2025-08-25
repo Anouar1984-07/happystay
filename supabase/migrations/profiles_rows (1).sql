@@ -1,0 +1,1 @@
+INSERT INTO "public"."profiles" ("id", "email", "role", "created_at", "updated_at") VALUES ('c373dd12-d611-4803-9214-a4a95d787a7f', 'happystayservices4@gmail.com', 'admin', '2025-08-20 13:43:11.40048+00', '2025-08-20 13:43:11.40048+00'), ('c9fc4b3e-6f01-4e57-8582-6694b968949f', 'admin@happystay.com', 'admin', '2025-08-21 13:21:04.856955+00', '2025-08-21 13:21:04.856955+00');
