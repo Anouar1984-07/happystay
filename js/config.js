@@ -17,12 +17,16 @@ window.HS_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJz
 window.HS_USE_N8N_UPLOAD = false;
 window.HS_N8N_UPLOAD_WEBHOOK = "";
 
+// n8n Quote (envoi WhatsApp du devis)
+window.HS_N8N_QUOTE_WEBHOOK = "https://n8n.srv772899.hstgr.cloud/webhook/quote-whatsapp";  
+
+
 // =================================
 // CONFIGURATION MÉTIER
 // =================================
 
 // Créneaux horaires fixes
-window.HS_TIME_SLOTS = ['10:00', '13:30', '15:00'];
+window.HS_TIME_SLOTS = ['10:30', '13:30', '15:30'];
 
 // Limites photos
 window.HS_MIN_PHOTOS = 2;
@@ -36,7 +40,7 @@ window.HS_ALLOWED_SERVICES = [
 ];
 
 // Capacité par créneau
-window.HS_SLOT_CAPACITY = 2;
+window.HS_SLOT_CAPACITY = 1;
 
 // =================================
 // UTILITAIRES

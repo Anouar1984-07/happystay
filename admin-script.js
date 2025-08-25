@@ -12,10 +12,10 @@ class AdminDashboard {
     async init() {
         this.setupEventListeners();
         this.updateCurrentDate();
-        
+
         // Attendre que l'API client soit initialisé
         await this.waitForApiClient();
-        
+
         // Check authentication
         if (await this.apiClient.isAuthenticated()) {
             this.showDashboard();
@@ -59,6 +59,14 @@ class AdminDashboard {
                 this.calculateQuoteTotal();
             }
         });
+
+        // Fermer les modals avec ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closePhotoModal();
+                this.closeQuoteModal();
+            }
+        });
     }
 
     formatDate(date) {
@@ -80,11 +88,11 @@ class AdminDashboard {
         const currentDateElement = document.getElementById('current-date');
         const selectedDateElement = document.getElementById('selected-date-text');
         const datePicker = document.getElementById('date-picker');
-        
+
         if (currentDateElement) {
             currentDateElement.textContent = this.formatDisplayDate(new Date());
         }
-        
+
         if (selectedDateElement) {
             selectedDateElement.textContent = this.formatDisplayDate(this.currentDate);
         }
@@ -97,7 +105,7 @@ class AdminDashboard {
     showAuthModal() {
         const authModal = document.getElementById('auth-modal');
         const dashboard = document.getElementById('admin-dashboard');
-        
+
         if (authModal) authModal.classList.add('show');
         if (dashboard) dashboard.style.display = 'none';
     }
@@ -105,16 +113,16 @@ class AdminDashboard {
     showDashboard() {
         const authModal = document.getElementById('auth-modal');
         const dashboard = document.getElementById('admin-dashboard');
-        
+
         if (authModal) authModal.classList.remove('show');
         if (dashboard) dashboard.style.display = 'block';
-        
+
         console.log('📺 Dashboard affiché');
-        
+
         // Vérifier que les éléments sont bien visibles
         const planningSlots = document.getElementById('planning-slots');
         const reservationsList = document.getElementById('reservations-list');
-        
+
         console.log('🔍 Éléments trouvés:', {
             planningSlots: !!planningSlots,
             reservationsList: !!reservationsList
@@ -123,20 +131,20 @@ class AdminDashboard {
 
     async handleAuth(e) {
         e.preventDefault();
-        
+
         const formData = new FormData(e.target);
         const token = formData.get('adminToken');
-        
+
         const submitBtn = e.target.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
-        
+
         // Show loading state
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vérification...';
         submitBtn.disabled = true;
-        
+
         try {
             const result = await this.apiClient.authenticate(token);
-            
+
             if (result.success) {
                 console.log('✅ Authentification réussie, affichage du dashboard');
                 this.showDashboard();
@@ -180,10 +188,10 @@ class AdminDashboard {
         console.log('🔄 Chargement planning pour:', dateStr);
         const slots = await this.apiClient.getSlots(dateStr);
         console.log('📊 Créneaux reçus:', slots);
-        
+
         const planningSlots = document.getElementById('planning-slots');
         if (!planningSlots) return;
-        
+
         // Toujours afficher les 3 créneaux fixes
         planningSlots.innerHTML = this.fixedTimeSlots.map(time => {
             const slot = slots.find(s => s.time === time) || {
@@ -197,73 +205,72 @@ class AdminDashboard {
         }).join('');
     }
 
-renderPlanningSlot(slot) {
-    const statusConfig = {
-        'available': { label: 'LIBRE', class: 'available', color: 'green' },
-        'reserved' : { label: 'RÉSERVÉ', class: 'reserved', color: 'blue' },
-        'blocked'  : { label: 'BLOQUÉ', class: 'blocked', color: 'red' }
-    };
+    renderPlanningSlot(slot) {
+        const statusConfig = {
+            'available': { label: 'LIBRE', class: 'available', color: 'green' },
+            'reserved' : { label: 'RÉSERVÉ', class: 'reserved', color: 'blue' },
+            'blocked'  : { label: 'BLOQUÉ', class: 'blocked', color: 'red' }
+        };
 
-    // 🔧 Normalisation des statuts (accepte FREE/BOOKED/BLOCKED ou available/reserved/blocked)
-    const normalize = (s) => String(s || 'available')
-        .toLowerCase()
-        .replace('free', 'available')
-        .replace('booked', 'reserved');
+        // 🔧 Normalisation des statuts
+        const normalize = (s) => String(s || 'available')
+            .toLowerCase()
+            .replace('free', 'available')
+            .replace('booked', 'reserved');
 
-    const nstatus = normalize(slot.status);
-    const config = statusConfig[nstatus] || statusConfig.available;
+        const nstatus = normalize(slot.status);
+        const config = statusConfig[nstatus] || statusConfig.available;
 
-    let subtitle = '';
-    let actionButton = '';
+        let subtitle = '';
+        let actionButton = '';
 
-    if (nstatus === 'reserved' && slot.reservation) {
-        subtitle = `<div class="slot-subtitle">Réservé par ${slot.reservation.customerName} — ${slot.reservation.service}</div>`;
-        actionButton = `<button class="slot-action-btn view-reservation" onclick="scrollToReservation('${slot.reservationId}')">
-            <i class="fas fa-eye"></i>
-            Voir la réservation
-        </button>`;
-    } else if (nstatus === 'available') {
-        actionButton = `<button class="slot-action-btn block" onclick="toggleSlotStatus('${slot.id}', 'blocked')">
-            <i class="fas fa-lock"></i>
-            Bloquer
-        </button>`;
-    } else if (nstatus === 'blocked') {
-        actionButton = `<button class="slot-action-btn unblock" onclick="toggleSlotStatus('${slot.id}', 'available')">
-            <i class="fas fa-unlock"></i>
-            Débloquer
-        </button>`;
+        if (nstatus === 'reserved' && slot.reservation) {
+            subtitle = `<div class="slot-subtitle">Réservé par ${slot.reservation.customerName} — ${slot.reservation.service}</div>`;
+            actionButton = `<button class="slot-action-btn view-reservation" onclick="scrollToReservation('${slot.reservationId}')">
+                <i class="fas fa-eye"></i>
+                Voir la réservation
+            </button>`;
+        } else if (nstatus === 'available') {
+            actionButton = `<button class="slot-action-btn block" onclick="toggleSlotStatus('${slot.id}', 'blocked')">
+                <i class="fas fa-lock"></i>
+                Bloquer
+            </button>`;
+        } else if (nstatus === 'blocked') {
+            actionButton = `<button class="slot-action-btn unblock" onclick="toggleSlotStatus('${slot.id}', 'available')">
+                <i class="fas fa-unlock"></i>
+                Débloquer
+            </button>`;
+        }
+
+        return `
+            <div class="planning-slot ${config.class}" id="slot-${slot.id}">
+                <div class="slot-header">
+                    <div class="slot-time">${slot.time}</div>
+                    <div class="slot-status ${config.class}">${config.label}</div>
+                </div>
+                ${subtitle}
+                <div class="slot-actions">
+                    ${actionButton}
+                </div>
+            </div>
+        `;
     }
-
-    return `
-        <div class="planning-slot ${config.class}" id="slot-${slot.id}">
-            <div class="slot-header">
-                <div class="slot-time">${slot.time}</div>
-                <div class="slot-status ${config.class}">${config.label}</div>
-            </div>
-            ${subtitle}
-            <div class="slot-actions">
-                ${actionButton}
-            </div>
-        </div>
-    `;
-}
-
 
     async loadReservations() {
         const dateStr = this.formatDate(this.currentDate);
         console.log('🔄 Chargement réservations pour:', dateStr);
         const reservations = await this.apiClient.getReservations(dateStr);
         console.log('📊 Réservations reçues:', reservations);
-        
+
         const reservationsList = document.getElementById('reservations-list');
         const reservationsCount = document.getElementById('reservations-count');
-        
+
         if (reservationsCount) {
             reservationsCount.textContent = reservations.length;
         }
-        
+
         if (!reservationsList) return;
-        
+
         if (reservations.length === 0) {
             reservationsList.innerHTML = `
                 <div class="empty-state">
@@ -275,14 +282,14 @@ renderPlanningSlot(slot) {
             console.log('📝 Affichage état vide pour les réservations');
             return;
         }
-        
+
         // Trier par horaire
         const sortedReservations = reservations.sort((a, b) => a.time.localeCompare(b.time));
-        
-        reservationsList.innerHTML = sortedReservations.map(reservation => 
+
+        reservationsList.innerHTML = sortedReservations.map(reservation =>
             this.renderReservationCard(reservation)
         ).join('');
-        
+
         console.log('📝 Réservations affichées:', sortedReservations.length);
     }
 
@@ -291,25 +298,20 @@ renderPlanningSlot(slot) {
             'pending':   { label: 'En attente', class: 'pending' },
             'confirmed': { label: 'Confirmée', class: 'confirmed' },
             'canceled':  { label: 'Annulée',   class: 'canceled' },
-            // tolérance orthographe UK si jamais :
             'cancelled': { label: 'Annulée',   class: 'canceled' }
         };
 
-        // ✅ Normalise la valeur reçue du DataLayer (CONFIRMED, Pending, etc.)
         const statusKey = (reservation.status || '').toString().trim().toLowerCase();
         const config = statusConfig[statusKey] || statusConfig.pending;
 
         const hasPhotos = reservation.photos && reservation.photos.length > 0;
-        
-        // Tronquer les notes si trop longues
-        const truncatedNotes = reservation.notes && reservation.notes.length > 100 
-            ? reservation.notes.substring(0, 100) + '...' 
+
+        const truncatedNotes = reservation.notes && reservation.notes.length > 100
+            ? reservation.notes.substring(0, 100) + '...'
             : reservation.notes;
 
-        // Générer l'affichage des services détaillés
         const servicesDisplay = this.generateServicesDisplay(reservation);
 
-        // Boutons d'action selon le statut (utiliser la version normalisée)
         let actionButtons = '';
         if (statusKey === 'pending') {
             actionButtons = `
@@ -323,7 +325,7 @@ renderPlanningSlot(slot) {
                 </button>
             `;
         }
-        
+
         if (statusKey !== 'canceled' && statusKey !== 'cancelled') {
             actionButtons += `
                 <button class="reservation-btn cancel" onclick="cancelReservation('${reservation.id}')">
@@ -333,15 +335,16 @@ renderPlanningSlot(slot) {
             `;
         }
 
-        // Badge devis si existant
         let quoteBadge = '';
         if (reservation.quote) {
             const quoteClass = reservation.quote.status === 'sent' ? 'sent' : 'draft';
-            const quoteLabel = reservation.quote.status === 'sent' 
-                ? `Devis : Envoyé (${reservation.quote.total} DH)` 
+            const quoteLabel = reservation.quote.status === 'sent'
+                ? `Devis : Envoyé (${reservation.quote.total} DH)`
                 : 'Devis : Brouillon';
             quoteBadge = `<div class="quote-badge ${quoteClass}">${quoteLabel}</div>`;
         }
+
+        const phoneForWa = (reservation.customerPhone || '').replace(/[^\d+]/g, '');
 
         return `
             <div class="reservation-card" id="reservation-${reservation.id}">
@@ -355,7 +358,7 @@ renderPlanningSlot(slot) {
                 <div class="reservation-details">
                     <div class="reservation-customer">
                         <strong>${reservation.customerName}</strong>
-                        <a href="https://wa.me/${reservation.customerPhone.replace(/\s/g, '')}" target="_blank" class="phone-link">
+                        <a href="https://wa.me/${phoneForWa}" target="_blank" class="phone-link">
                             <i class="fab fa-whatsapp"></i>
                             ${reservation.customerPhone}
                         </a>
@@ -400,7 +403,7 @@ renderPlanningSlot(slot) {
     async blockAllSlots() {
         const dateStr = this.formatDate(this.currentDate);
         this.showLoading();
-        
+
         try {
             const result = await this.apiClient.blockAllSlots(dateStr);
             if (result.success) {
@@ -419,7 +422,7 @@ renderPlanningSlot(slot) {
     async unblockAllSlots() {
         const dateStr = this.formatDate(this.currentDate);
         this.showLoading();
-        
+
         try {
             const result = await this.apiClient.unblockAllSlots(dateStr);
             if (result.success) {
@@ -437,7 +440,7 @@ renderPlanningSlot(slot) {
 
     async toggleSlotStatus(slotId, newStatus) {
         this.showLoading();
-        
+
         try {
             const result = await this.apiClient.updateSlotStatus(slotId, newStatus);
             if (result.success) {
@@ -456,7 +459,7 @@ renderPlanningSlot(slot) {
 
     async confirmReservation(reservationId) {
         this.showLoading();
-        
+
         try {
             const result = await this.apiClient.updateReservationStatus(reservationId, 'confirmed');
             if (result.success) {
@@ -474,7 +477,7 @@ renderPlanningSlot(slot) {
 
     async cancelReservation(reservationId) {
         this.showLoading();
-        
+
         try {
             const result = await this.apiClient.updateReservationStatus(reservationId, 'cancelled');
             if (result.success) {
@@ -495,17 +498,17 @@ renderPlanningSlot(slot) {
             const dateStr = this.formatDate(this.currentDate);
             const reservations = await this.apiClient.getReservations(dateStr);
             const reservation = reservations.find(r => r.id === reservationId);
-            
+
             if (!reservation || !reservation.photos || reservation.photos.length === 0) {
                 this.showToast('Aucune photo disponible', 'warning');
                 return;
             }
-            
+
             const modal = document.getElementById('photo-modal');
             const content = document.getElementById('photo-modal-content');
-            
+
             if (!modal || !content) return;
-            
+
             content.innerHTML = `
                 <div class="photo-grid">
                     ${reservation.photos.map((photo, index) => `
@@ -515,7 +518,7 @@ renderPlanningSlot(slot) {
                     `).join('')}
                 </div>
             `;
-            
+
             modal.classList.add('show');
         } catch (error) {
             this.showToast('Erreur lors du chargement des photos', 'error');
@@ -524,27 +527,35 @@ renderPlanningSlot(slot) {
 
     async openQuoteModal(reservationId) {
         this.currentQuoteReservationId = reservationId;
-        
+
         try {
             const dateStr = this.formatDate(this.currentDate);
             const reservations = await this.apiClient.getReservations(dateStr);
             const reservation = reservations.find(r => r.id === reservationId);
-            
-            if (!reservation) return;
-            
+
+            if (!reservation) {
+                this.showToast('Réservation introuvable', 'error');
+                return;
+            }
+
             const modal = document.getElementById('quote-modal');
             const itemsContainer = document.getElementById('quote-items');
-            
-            // Préremplir selon le service
-            const serviceItems = this.getServiceQuoteItems(reservation.service);
-            
-            itemsContainer.innerHTML = serviceItems.map((item, index) => 
+            if (!modal || !itemsContainer) {
+                console.warn('⛔ Éléments du modal devis manquants');
+                return;
+            }
+
+            // Préremplir les lignes de devis en fonction de la réservation réelle
+            const serviceItems = this.getServiceQuoteItems(reservation);
+
+            itemsContainer.innerHTML = serviceItems.map((item, index) =>
                 this.renderQuoteItem(item, index)
             ).join('');
-            
+
             this.calculateQuoteTotal();
             modal.classList.add('show');
         } catch (error) {
+            console.error('❌ Erreur openQuoteModal:', error);
             this.showToast('Erreur lors de l\'ouverture du devis', 'error');
         }
     }
@@ -578,23 +589,23 @@ renderPlanningSlot(slot) {
         const itemsContainer = document.getElementById('quote-items');
         const currentItems = itemsContainer.querySelectorAll('.quote-item');
         const newIndex = currentItems.length;
-        
+
         const newItem = {
             label: '',
             quantity: 1,
             price: 0
         };
-        
+
         const newItemHtml = this.renderQuoteItem(newItem, newIndex);
         itemsContainer.insertAdjacentHTML('beforeend', newItemHtml);
-        
+
         // Focus sur le nouveau champ libellé
         const newItemElement = itemsContainer.lastElementChild;
         const labelInput = newItemElement.querySelector('.quote-label');
         if (labelInput) {
             labelInput.focus();
         }
-        
+
         this.updateQuoteItemIndices();
         this.calculateQuoteTotal();
     }
@@ -602,13 +613,13 @@ renderPlanningSlot(slot) {
     removeQuoteItem(index) {
         const itemsContainer = document.getElementById('quote-items');
         const items = itemsContainer.querySelectorAll('.quote-item');
-        
+
         // Ne pas permettre de supprimer s'il n'y a qu'une seule ligne
         if (items.length <= 1) {
             this.showToast('Au moins une ligne est requise', 'warning');
             return;
         }
-        
+
         const itemToRemove = itemsContainer.querySelector(`[data-index="${index}"]`);
         if (itemToRemove) {
             itemToRemove.remove();
@@ -620,7 +631,7 @@ renderPlanningSlot(slot) {
     updateQuoteItemIndices() {
         const itemsContainer = document.getElementById('quote-items');
         const items = itemsContainer.querySelectorAll('.quote-item');
-        
+
         items.forEach((item, newIndex) => {
             item.setAttribute('data-index', newIndex);
             const removeBtn = item.querySelector('.quote-item-remove');
@@ -630,66 +641,62 @@ renderPlanningSlot(slot) {
         });
     }
 
-    getServiceQuoteItems(service) {
-        // Nouvelle logique basée sur les détails de services
-        const dateStr = this.formatDate(this.currentDate);
-        const reservations = this.apiClient.mockData.reservations;
-        const reservation = reservations.find(r => r.id === this.currentQuoteReservationId);
-        
-        if (!reservation || !reservation.serviceDetails) {
-            // Fallback pour les anciennes données
-            const serviceMap = {
-                'Nettoyage Canapés': [{ label: 'Nettoyage canapé', quantity: 1, price: 150 }],
-                'Nettoyage Fauteuils': [{ label: 'Nettoyage fauteuil', quantity: 1, price: 100 }],
-                'Nettoyage Matelas': [{ label: 'Nettoyage matelas', quantity: 1, price: 120 }],
-                'Ménage Standard': [{ label: 'Ménage standard', quantity: 1, price: 200 }],
-                'Grand Ménage': [{ label: 'Grand ménage', quantity: 1, price: 350 }]
-            };
-            return serviceMap[service] || [{ label: service, quantity: 1, price: 0 }];
+    // Génère les lignes par défaut du devis à partir de la réservation
+    getServiceQuoteItems(reservation) {
+        if (reservation && Array.isArray(reservation.serviceDetails) && reservation.serviceDetails.length > 0) {
+            return reservation.serviceDetails.map(serviceDetail => {
+                const data = serviceDetail.data || {};
+                let basePrice = 0;
+                let label = '';
+                let quantity = 1;
+
+                switch (serviceDetail.type) {
+                    case 'Canapé/Fauteuil':
+                        basePrice = this.getSofaPrice(data.size);
+                        if (data.options && data.options.includes('anti-acariens')) basePrice += 20;
+                        if (data.options && data.options.includes('protection-anti-taches')) basePrice += 30;
+                        label = `${serviceDetail.type} ${data.size || ''} ${data.material || ''}`.trim();
+                        if (data.options && data.options.length > 0) {
+                            label += ` + ${data.options.join(', ')}`;
+                        }
+                        quantity = data.quantity || 1;
+                        break;
+
+                    case 'Chaises':
+                        basePrice = 25; // Prix par chaise
+                        label = `Chaise ${data.material || ''}`.trim();
+                        if (data.removableCushion) label += ' (coussin amovible)';
+                        quantity = data.quantity || 1;
+                        break;
+
+                    case 'Matelas':
+                        basePrice = this.getMattressPrice(data.format, data.faces);
+                        label = `Matelas ${data.format || ''} (${data.faces || 1} face${(data.faces || 1) > 1 ? 's' : ''})`;
+                        quantity = 1;
+                        break;
+
+                    default:
+                        basePrice = 100;
+                        label = serviceDetail.type;
+                        quantity = data.quantity || 1;
+                }
+
+                return { label: label.trim(), quantity, price: basePrice };
+            });
         }
-        
-        // Générer les items de devis basés sur les détails de services
-        return reservation.serviceDetails.map(serviceDetail => {
-            const data = serviceDetail.data;
-            let basePrice = 0;
-            let label = '';
-            let quantity = 1;
-            
-            switch (serviceDetail.type) {
-                case 'Canapé/Fauteuil':
-                    basePrice = this.getSofaPrice(data.size);
-                    if (data.options && data.options.includes('anti-acariens')) basePrice += 20;
-                    if (data.options && data.options.includes('protection-anti-taches')) basePrice += 30;
-                    label = `${serviceDetail.type} ${data.size || ''} ${data.material || ''}`.trim();
-                    if (data.options && data.options.length > 0) {
-                        label += ` + ${data.options.join(', ')}`;
-                    }
-                    quantity = data.quantity || 1;
-                    break;
-                    
-                case 'Chaises':
-                    basePrice = 25; // Prix par chaise
-                    label = `Chaise ${data.material || ''}`;
-                    if (data.removableCushion) label += ' (coussin amovible)';
-                    quantity = data.quantity || 1;
-                    break;
-                    
-                case 'Matelas':
-                    basePrice = this.getMattressPrice(data.format, data.faces);
-                    label = `Matelas ${data.format || ''} (${data.faces || 1} face${(data.faces || 1) > 1 ? 's' : ''})`;
-                    quantity = 1;
-                    break;
-                    
-                default:
-                    basePrice = 100;
-                    label = serviceDetail.type;
-                    quantity = data.quantity || 1;
-            }
-            
-            return { label: label.trim(), quantity, price: basePrice };
-        });
+
+        // Fallback pour anciennes données
+        const serviceName = (reservation && reservation.service) ? reservation.service : 'Service';
+        const serviceMap = {
+            'Nettoyage Canapés': [{ label: 'Nettoyage canapé', quantity: 1, price: 150 }],
+            'Nettoyage Fauteuils': [{ label: 'Nettoyage fauteuil', quantity: 1, price: 100 }],
+            'Nettoyage Matelas': [{ label: 'Nettoyage matelas', quantity: 1, price: 120 }],
+            'Ménage Standard': [{ label: 'Ménage standard', quantity: 1, price: 200 }],
+            'Grand Ménage': [{ label: 'Grand ménage', quantity: 1, price: 350 }]
+        };
+        return serviceMap[serviceName] || [{ label: serviceName, quantity: 1, price: 0 }];
     }
-    
+
     getSofaPrice(size) {
         const priceMap = {
             '1 place': 100,
@@ -701,7 +708,7 @@ renderPlanningSlot(slot) {
         };
         return priceMap[size] || 120;
     }
-    
+
     getMattressPrice(format, faces) {
         const basePrice = {
             '90': 80,
@@ -710,34 +717,35 @@ renderPlanningSlot(slot) {
             '180': 140,
             'King': 160
         }[format] || 100;
-        
+
         return faces === 2 ? basePrice + 40 : basePrice;
     }
 
     calculateQuoteTotal() {
         const items = document.querySelectorAll('.quote-item');
         let total = 0;
-        
+
         items.forEach(item => {
             const quantity = parseFloat(item.querySelector('.quote-quantity').value) || 0;
             const price = parseFloat(item.querySelector('.quote-price').value) || 0;
             const itemTotal = quantity * price;
-            
+
             item.querySelector('.item-total').textContent = `${itemTotal.toFixed(2)} DH`;
             total += itemTotal;
         });
-        
-        document.getElementById('quote-total').textContent = `${total.toFixed(2)}`;
+
+        const totalEl = document.getElementById('quote-total');
+        if (totalEl) totalEl.textContent = `${total.toFixed(2)}`;
     }
 
     async saveQuoteDraft() {
         if (!this.currentQuoteReservationId) return;
-        
+
         const items = this.getQuoteItems();
         const notes = document.getElementById('quote-notes').value;
-        
+
         this.showLoading();
-        
+
         try {
             const result = await this.apiClient.createQuote(this.currentQuoteReservationId, items, notes);
             if (result.success) {
@@ -756,12 +764,12 @@ renderPlanningSlot(slot) {
 
     async sendQuoteWhatsApp() {
         if (!this.currentQuoteReservationId) return;
-        
+
         const items = this.getQuoteItems();
         const notes = document.getElementById('quote-notes').value;
-        
+
         this.showLoading();
-        
+
         try {
             const result = await this.apiClient.sendQuote(this.currentQuoteReservationId, items, notes);
             if (result.success) {
@@ -778,13 +786,46 @@ renderPlanningSlot(slot) {
         }
     }
 
+    async saveAndSendQuote() {
+        if (!this.currentQuoteReservationId) return;
+
+        const items = this.getQuoteItems();
+        const notes = document.getElementById('quote-notes')?.value || '';
+
+        if (!items.length) {
+            this.showToast('Ajoutez au moins une ligne au devis', 'warning');
+            return;
+        }
+
+        this.showLoading();
+        try {
+            const result = await this.apiClient.saveAndSendQuote(this.currentQuoteReservationId, items, notes);
+            if (result.success) {
+                const parts = [];
+                parts.push(result.saved ? 'enregistré' : 'non enregistré');
+                parts.push(result.notified ? 'envoyé au client' : 'non envoyé');
+                this.showToast(`Devis ${parts.join(' & ')}`, result.saved || result.notified ? 'success' : 'warning');
+
+                this.closeQuoteModal();
+                await this.loadReservations();
+            } else {
+                this.showToast(result.message || 'Erreur lors de la création/envoi du devis', 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            this.showToast('Erreur inattendue lors de l’enregistrement/envoi du devis', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
     getQuoteItems() {
         const items = [];
         document.querySelectorAll('.quote-item').forEach(item => {
             const label = item.querySelector('.quote-label').value;
             const quantity = parseFloat(item.querySelector('.quote-quantity').value) || 0;
             const price = parseFloat(item.querySelector('.quote-price').value) || 0;
-            
+
             if (label && quantity > 0) {
                 items.push({ label, quantity, price });
             }
@@ -794,7 +835,6 @@ renderPlanningSlot(slot) {
 
     generateServicesDisplay(reservation) {
         if (!reservation.serviceDetails || reservation.serviceDetails.length === 0) {
-            // Fallback pour les anciennes données
             return `<div class="reservation-service">${reservation.service}</div>`;
         }
 
@@ -819,7 +859,7 @@ renderPlanningSlot(slot) {
 
     formatServiceLabel(service) {
         const data = service.data;
-        
+
         switch (service.type) {
             case 'Canapé/Fauteuil':
                 let label = `${data.quantity || 1}x ${service.type}`;
@@ -837,19 +877,19 @@ renderPlanningSlot(slot) {
                     label += ` + ${optionsText}`;
                 }
                 return label;
-                
+
             case 'Chaises':
                 let chairLabel = `${data.quantity || 1}x Chaises`;
                 if (data.material) chairLabel += ` ${data.material}`;
                 if (data.removableCushion) chairLabel += ' (coussins amovibles)';
                 return chairLabel;
-                
+
             case 'Matelas':
                 let mattressLabel = `Matelas ${data.format || 'standard'}`;
                 if (data.faces) mattressLabel += ` (${data.faces} face${data.faces > 1 ? 's' : ''})`;
                 if (data.note) mattressLabel += ` - ${data.note}`;
                 return mattressLabel;
-                
+
             default:
                 return service.type;
         }
@@ -880,7 +920,6 @@ renderPlanningSlot(slot) {
     }
 
     showLoading() {
-        // Simple loading implementation - could be enhanced
         document.body.style.cursor = 'wait';
     }
 
@@ -891,17 +930,17 @@ renderPlanningSlot(slot) {
     showToast(message, type = 'info') {
         const container = document.getElementById('toast-container');
         if (!container) return;
-        
+
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
-        
+
         const icon = {
             success: 'fas fa-check-circle',
             error: 'fas fa-exclamation-circle',
             warning: 'fas fa-exclamation-triangle',
             info: 'fas fa-info-circle'
         }[type] || 'fas fa-info-circle';
-        
+
         toast.innerHTML = `
             <i class="${icon}"></i>
             <span>${message}</span>
@@ -909,10 +948,9 @@ renderPlanningSlot(slot) {
                 <i class="fas fa-times"></i>
             </button>
         `;
-        
+
         container.appendChild(toast);
-        
-        // Auto remove after 5 seconds
+
         setTimeout(() => {
             if (toast.parentElement) {
                 toast.remove();
@@ -923,7 +961,7 @@ renderPlanningSlot(slot) {
     async logout() {
         try {
             await this.apiClient.logout();
-    console.log('🔐 Déconnexion effectuée');
+            console.log('🔐 Déconnexion effectuée');
         } catch (error) {
             console.error('❌ Erreur lors de la déconnexion:', error);
         }
@@ -997,6 +1035,11 @@ window.logout = function() {
 // ✅ Binding manquant utilisé dans le planning
 window.scrollToReservation = function(reservationId) {
     window.adminDashboard.scrollToReservation(reservationId);
+};
+
+// ✅ Binding global pour le bouton "Enregistrer et envoyer le Devis au client"
+window.saveAndSendQuote = function () {
+    window.adminDashboard.saveAndSendQuote();
 };
 
 // Initialize dashboard when DOM is loaded

@@ -1315,11 +1315,11 @@
 
 .time-slot:disabled,
 .time-slot.unavailable {
-    background: #f8f9fa !important;
-    border-color: #e9ecef !important;
-    color: #6c757d !important;
+    background: #f8d7da !important;   /* Rouge clair */
+    border-color: #dc3545 !important; /* Rouge vif */
+    color: #721c24 !important;        /* Texte rouge sombre */
     cursor: not-allowed !important;
-    opacity: 0.6 !important;
+    opacity: 1 !important;            /* On garde l’opacité normale pour bien voir */
 }
 
 @media (max-width: 480px) {

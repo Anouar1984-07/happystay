@@ -588,10 +588,17 @@ const translations = {
     }
 };
 
+
+
 // Initialisation au chargement de la page
+
+
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
+
+
+
 
 function initializeApp() {
     // Initialiser les composants
@@ -910,19 +917,40 @@ function initializeNewBookingComponents() {
         console.log('FormValidation créé');
     }
     
-    // Configurer la date minimum
-    const dateInput = document.getElementById('date');
-    if (dateInput) {
-        const today = new Date().toISOString().split('T')[0];
-        dateInput.min = today;
-        
-        // Écouter les changements de date pour mettre à jour les créneaux
-        dateInput.addEventListener('change', function() {
-            if (window.formValidation) {
-                window.formValidation.updateAvailableSlots();
-            }
-        });
+    
+    
+    
+    
+    
+// Configurer la date (min + valeur par défaut)
+const dateInput = document.getElementById('date');
+if (dateInput) {
+  const today = new Date().toISOString().split('T')[0];
+  dateInput.min = today;
+
+  // 👉 Définir la valeur par défaut si vide
+  if (!dateInput.value) {
+    dateInput.value = today;
+  }
+
+  // Mettre à jour les créneaux quand la date change
+  dateInput.addEventListener('change', function () {
+    if (window.formValidation && typeof window.formValidation.updateAvailableSlots === 'function') {
+      window.formValidation.updateAvailableSlots();
     }
+  });
+
+  // 👉 Déclencher un premier calcul des créneaux si nécessaire
+  if (window.formValidation && typeof window.formValidation.updateAvailableSlots === 'function') {
+    window.formValidation.updateAvailableSlots();
+  }
+}
+    
+    
+    
+    
+    
+    
     
     // Configurer le téléphone avec +212 par défaut
     const phoneInput = document.getElementById('phone');
@@ -1043,7 +1071,10 @@ function setupCommentsCounter() {
     }
 }
 
-function handleBookingSubmission(event) {
+
+
+
+async function handleBookingSubmission(event) {
     event.preventDefault();
     
     console.log('Soumission du formulaire déclenchée');
@@ -1065,23 +1096,29 @@ function handleBookingSubmission(event) {
     
     console.log('Payload généré:', payload);
     
-    // Envoyer via MockDataLayer
-    if (window.mockDataLayer) {
-        const result = window.mockDataLayer.createReservation(payload);
-        
-        if (result.success) {
+    try {
+        // 👉 Envoi direct vers Supabase via dataLayer
+        const result = await dataLayer.createReservation(payload);
+
+        if (result && result.success) {
             showBookingSuccess();
-            console.log('Réservation créée:', result);
+            console.log('Réservation créée en DB:', result);
         } else {
-            console.error('Erreur lors de la création de la réservation:', result);
-            showBookingError('Erreur lors de l\'enregistrement de la réservation');
+            console.error('Erreur lors de la création en DB:', result);
+            showBookingError('Erreur lors de l\'enregistrement en base');
         }
-    } else {
-        // Fallback: afficher le succès même sans MockDataLayer
-        showBookingSuccess();
-        console.log('Payload généré:', payload);
+    } catch (err) {
+        console.error('Exception lors de la création de la réservation:', err);
+        showBookingError('Erreur de communication avec la base');
     }
 }
+
+
+
+
+
+
+
 
 function generateBookingPayload() {
     try {
@@ -1452,3 +1489,79 @@ document.addEventListener('click', function(event) {
         dropdown.classList.remove('show');
     }
 });
+
+// --- Dispo des créneaux : grisage automatique ---
+import { dataLayer } from './js/data-layer/index.js';
+
+(function initSlotAvailability() {
+  const dateInput = document.querySelector('#date');          // <input type="date" id="date">
+  const slotsWrap = document.querySelector('.time-slots');    // conteneur des 3 boutons
+  if (!dateInput || !slotsWrap) return;
+
+  const buttons = [...slotsWrap.querySelectorAll('.time-slot')]; // 3 boutons
+  const mapBtn  = Object.fromEntries(buttons.map(b => [b.dataset.time, b]));
+  const hidden  = document.querySelector('#selectedTime');        // <input type="hidden" id="selectedTime">
+
+  // Rafraîchir quand on ouvre le modal (ton bouton .hero-cta ouvre le modal)
+  document.querySelector('.hero-cta')?.addEventListener('click', refreshSlots);
+
+  // Rafraîchir quand la date change
+  dateInput.addEventListener('change', refreshSlots);
+
+  // Premier passage si la date est déjà remplie
+  if (dateInput.value) refreshSlots();
+
+  async function refreshSlots() {
+    const ymd = dateInput.value;
+    if (!ymd) return;
+
+    // Dimanche => tout grisé
+    if (new Date(ymd).getDay() === 0) {
+      setAll(true, 'Dimanche (fermé)');
+      clearSelectedIfDisabled();
+      return;
+    }
+
+    try {
+      const slots  = await dataLayer.getSlotsForDate(ymd);
+      const byTime = Object.fromEntries(slots.map(s => [s.time, s]));
+
+      setDisabled('10:30', isNotFree(byTime['10:30']), reason(byTime['10:30']));
+      setDisabled('13:30', isNotFree(byTime['13:30']), reason(byTime['13:30']));
+      setDisabled('15:30', isNotFree(byTime['15:30']), reason(byTime['15:30']));
+
+      clearSelectedIfDisabled();
+    } catch (e) {
+      console.error('refreshSlots', e);
+      setAll(true, 'Indisponible pour le moment');
+      clearSelectedIfDisabled();
+    }
+  }
+
+  function isNotFree(slot) {
+    return !slot || slot.blocked || (slot.available ?? 0) <= 0;
+  }
+  function reason(slot) {
+    if (!slot) return 'Indisponible';
+    if (slot.blocked) return 'Créneau bloqué';
+    if ((slot.available ?? 0) <= 0) return 'Déjà réservé';
+    return '';
+  }
+
+  function setAll(disabled, title='') { buttons.forEach(b => toggle(b, disabled, title)); }
+  function setDisabled(hhmm, disabled, title='') { const b = mapBtn[hhmm]; if (b) toggle(b, disabled, title); }
+  function toggle(btn, disabled, title) {
+    btn.toggleAttribute('disabled', disabled);
+    btn.classList.toggle('unavailable', disabled); // ta CSS gère déjà .time-slot.unavailable
+    btn.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+    btn.title = disabled ? title : '';
+  }
+  function clearSelectedIfDisabled() {
+    const selected = buttons.find(b => b.classList.contains('selected'));
+    if (selected && selected.hasAttribute('disabled')) {
+      selected.classList.remove('selected');
+      if (hidden?.value === selected.dataset.time) hidden.value = '';
+    }
+  }
+})();
+

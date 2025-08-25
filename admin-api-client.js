@@ -1,4 +1,4 @@
-// Admin API Client - Connecté à Supabase via DataLayer
+// Admin API Client - Connecté à Supabase via DataLayer 
 // Refactorisé pour utiliser le DataLayer global au lieu des données mock
 
 class AdminApiClient {
@@ -6,6 +6,11 @@ class AdminApiClient {
         // Les 3 créneaux affichés par l'UI
         this.fixedTimeSlots = ['10:30', '13:30', '15:30'];
         this.dataLayer = null;
+
+        // ✅ Cache pour compatibilité avec admin-script.js (getServiceQuoteItems)
+        // admin-script lit this.apiClient.mockData.reservations
+        this.mockData = { reservations: [] };
+
         this.initializeDataLayer();
     }
 
@@ -24,29 +29,24 @@ class AdminApiClient {
         return date.toISOString().split('T')[0];
     }
 
-    // Simulate API delay
+    // Petite attente simulée
     async delay(ms = 300) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    // Authentication (garde la logique mock pour la démo)
+    // =========================
+    // Authentification (admin)
+    // =========================
     async authenticate(token) {
         await this.delay();
-        
         if (!this.dataLayer) {
-            console.error('❌ DataLayer non initialisé pour l\'authentification');
+            console.error('❌ DataLayer non initialisé pour l’authentification');
             return { success: false, message: 'Système non initialisé' };
         }
-
         try {
-            console.log('🔐 Tentative d\'authentification admin avec token');
-            
-            // Utiliser l'email admin défini dans les migrations
-            const adminEmail = 'admin@happystay.com';
-            
-            // Le token saisi devient le mot de passe
-            const result = await this.dataLayer.signIn(adminEmail, token);
-            
+            console.log('🔐 Tentative d’authentification admin avec token');
+            const adminEmail = 'admin@happystay.com'; // email défini côté DB
+            const result = await this.dataLayer.signIn(adminEmail, token); // token = mot de passe
             if (result.success) {
                 localStorage.setItem('admin_token', token);
                 localStorage.setItem('admin_session', JSON.stringify(result.session));
@@ -56,7 +56,6 @@ class AdminApiClient {
                 console.error('❌ Échec authentification:', result.error);
                 return { success: false, message: result.error || 'Identifiants invalides' };
             }
-            
         } catch (error) {
             console.error('❌ Erreur authentification:', error);
             return { success: false, message: 'Erreur de connexion' };
@@ -64,13 +63,10 @@ class AdminApiClient {
     }
 
     async isAuthenticated() {
-        if (!this.dataLayer) {
-            return false;
-        }
-        
+        if (!this.dataLayer) return false;
         try {
             const isAuth = await this.dataLayer.isAuthenticated();
-            const hasLocalToken = localStorage.getItem('admin_token') !== null;
+            const hasLocalToken = !!localStorage.getItem('admin_token');
             return isAuth && hasLocalToken;
         } catch (error) {
             console.error('❌ Erreur vérification authentification:', error);
@@ -79,72 +75,52 @@ class AdminApiClient {
     }
 
     async logout() {
-        if (this.dataLayer) {
-            try {
-                await this.dataLayer.signOut();
-            } catch (error) {
-                console.error('❌ Erreur déconnexion Supabase:', error);
-            }
-        }
-        
+        try { await this.dataLayer?.signOut(); } catch (e) { console.error(e); }
         localStorage.removeItem('admin_token');
         localStorage.removeItem('admin_session');
         console.log('🔐 Déconnexion locale effectuée');
     }
 
-    // Get slots for a specific date - CONNECTÉ À SUPABASE
+    // =========================
+    // Créneaux (planning)
+    // =========================
+    // Retourne un tableau [{ time:'HH:MM', status:'available|blocked|reserved', reservationId?, reservation? }, ...]
     async getSlots(date) {
         if (!this.dataLayer) {
             console.error('❌ DataLayer non initialisé');
             return [];
         }
-        
         try {
-            console.log('🔄 Récupération créneaux Supabase pour:', date);
-            
-            const supabaseSlots = await this.dataLayer.getSlotsByDate(date);
-            console.log('📊 Créneaux Supabase reçus:', supabaseSlots);
+            const ymd = typeof date === 'string' ? date : this.formatDate(date);
+            console.log('🗓️ Récupération créneaux Supabase pour:', ymd);
 
-            // --- Normalisation & mapping des statuts pour l'UI ---
-            const normTime = (t) => (t || '').slice(0, 5); // "HH:MM"
-            const toUiStatus = (s) => {
-                const up = (s || '').toUpperCase();
-                if (up === 'BOOKED') return 'reserved';
-                if (up === 'BLOCKED') return 'blocked';
-                return 'available'; // FREE ou défaut
-            };
+            // 1) Disponibilités brutes (bloqué/disponible + capacité)
+            const dlSlots = await this.dataLayer.getSlotsForDate(ymd);
 
-            // Indexer le statut par heure "HH:MM"
-            const byTime = {};
-            (supabaseSlots || []).forEach(s => {
-                const t = normTime(s.time || s.slot_time);
-                if (t) byTime[t] = toUiStatus(s.status);
+            // Normalise sur les 3 créneaux fixes
+            const baseSlots = this.fixedTimeSlots.map(t => {
+                const s = dlSlots.find(x => x.time === t);
+                if (!s) {
+                    return { id: `${ymd}-${t}`, date: ymd, time: t, status: 'available' };
+                }
+                let status = 'available';
+                if (s.blocked) status = 'blocked';
+                else if ((s.available ?? 0) <= 0) status = 'reserved';
+                return { id: `${ymd}-${t}`, date: ymd, time: t, status };
             });
 
-            // Construire toujours 3 cartes "fixes"
-            const baseSlots = this.fixedTimeSlots.map(time => ({
-                id: `${date}-${time}`,
-                date,
-                time,
-                status: byTime[time] || 'available',
-                reservationId: null,
-                updatedAt: new Date().toISOString()
-            }));
-
-            // Enrichir avec les réservations
-            const reservations = await this.dataLayer.getReservationsOfDate(date);
-            console.log('📊 Réservations pour enrichissement:', reservations);
-
-            // Indexer les réservations par heure "HH:MM"
-            const resByTime = {};
+            // 2) Réservations du jour pour enrichir les créneaux marqués "reserved"
+            const reservations = await this.getReservations(ymd);
+            const byTime = {};
             (reservations || []).forEach(r => {
                 const hm = r.time_hm || (r.time ? r.time.slice(0, 5) : null);
-                if (hm) resByTime[hm] = r;
+                if (hm) byTime[hm] = r;
             });
 
+            // 3) Enrichissement (client + service) sur les créneaux réservés
             return baseSlots.map(slot => {
                 if (slot.status === 'reserved') {
-                    const r = resByTime[slot.time];
+                    const r = byTime[slot.time];
                     if (r) {
                         return {
                             ...slot,
@@ -158,263 +134,244 @@ class AdminApiClient {
                 }
                 return slot;
             });
-            
         } catch (error) {
             console.error('❌ Erreur récupération créneaux:', error);
             return [];
         }
     }
 
-    // Get reservations for a specific date - CONNECTÉ À SUPABASE
+    // Réservations du jour (déjà normalisées par le DataLayer)
     async getReservations(date) {
         if (!this.dataLayer) {
             console.error('❌ DataLayer non initialisé');
             return [];
         }
-        
         try {
-            console.log('🔄 Récupération réservations Supabase pour:', date);
-            
-            const supabaseReservations = await this.dataLayer.getReservationsOfDate(date);
-            console.log('📊 Réservations Supabase reçues:', supabaseReservations);
-            
-            // Les données sont déjà dans le bon format depuis SupabaseDataLayer
-            return supabaseReservations;
-            
+            const ymd = typeof date === 'string' ? date : this.formatDate(date);
+            console.log('🔄 Récupération réservations Supabase pour:', ymd);
+            const res = await this.dataLayer.getReservationsOfDate(ymd) || [];
+
+            // ✅ Alimente le cache pour admin-script.js (préremplissage devis)
+            this.mockData.reservations = res;
+
+            return res;
         } catch (error) {
             console.error('❌ Erreur récupération réservations:', error);
             return [];
         }
     }
 
-    // Update slot status - CONNECTÉ À SUPABASE
+    // Changer l’état d’un créneau
     async updateSlotStatus(slotId, newStatus) {
         if (!this.dataLayer) {
             console.error('❌ DataLayer non initialisé');
             return { success: false, error: 'DataLayer non initialisé' };
         }
-        
         try {
-            console.log('🔄 Mise à jour statut créneau:', slotId, newStatus);
-
-            // slotId = `${date}-${time}` → attention aux tirets dans la date
+            // slotId = `${YYYY-MM-DD}-${HH:MM}` (la date contient des tirets)
             const lastDash = slotId.lastIndexOf('-');
             const date = slotId.slice(0, lastDash);
             const time = slotId.slice(lastDash + 1);
-            
+
             let result;
-            switch (newStatus) {
-                case 'blocked':
-                    result = await this.dataLayer.markSlotBlocked(date, time);
-                    break;
-                case 'available':
-                    result = await this.dataLayer.markSlotFree(date, time);
-                    break;
-                default:
-                    return { success: false, message: 'Statut non supporté' };
-            }
-            
-            if (result.success) {
-                console.log('✅ Créneau mis à jour avec succès');
-                return { success: true };
+            if (newStatus === 'blocked') {
+                result = await this.dataLayer.markSlotBlocked(date, time);
+            } else if (newStatus === 'available') {
+                result = await this.dataLayer.markSlotFree(date, time);
             } else {
-                return { success: false, message: result.error || 'Erreur inconnue' };
+                return { success: false, message: 'Statut non supporté' };
             }
-            
+
+            return result.success ? { success: true } : { success: false, message: result.error || 'Erreur inconnue' };
         } catch (error) {
             console.error('❌ Erreur mise à jour créneau:', error);
             return { success: false, message: error.message };
         }
     }
 
-    // Block all slots for a day - CONNECTÉ À SUPABASE
+    // Bloquer tous les créneaux d’une journée
     async blockAllSlots(date) {
-        if (!this.dataLayer) {
-            console.error('❌ DataLayer non initialisé');
-            return { success: false, error: 'DataLayer non initialisé' };
-        }
-        
+        if (!this.dataLayer) return { success: false, error: 'DataLayer non initialisé' };
         try {
-            console.log('🔄 Blocage de tous les créneaux pour:', date);
-            
-            let blockedCount = 0;
-            let skippedCount = 0;
-            
-            for (const time of this.fixedTimeSlots) {
+            const ymd = typeof date === 'string' ? date : this.formatDate(date);
+            let ok = 0, ko = 0;
+            for (const t of this.fixedTimeSlots) {
                 try {
-                    const result = await this.dataLayer.markSlotBlocked(date, time);
-                    if (result.success) {
-                        blockedCount++;
-                    } else {
-                        skippedCount++;
-                    }
-                } catch (error) {
-                    console.warn(`Impossible de bloquer ${time}:`, error);
-                    skippedCount++;
-                }
+                    const r = await this.dataLayer.markSlotBlocked(ymd, t);
+                    r.success ? ok++ : ko++;
+                } catch { ko++; }
             }
-            
-            let message = `${blockedCount} créneau(x) bloqué(s)`;
-            if (skippedCount > 0) {
-                message += `, ${skippedCount} créneau(x) ignoré(s)`;
-            }
-            
+            let message = `${ok} créneau(x) bloqué(s)`;
+            if (ko) message += `, ${ko} ignoré(s)`;
             return { success: true, message };
-            
-        } catch (error) {
-            console.error('❌ Erreur blocage créneaux:', error);
-            return { success: false, message: error.message };
+        } catch (e) {
+            console.error('❌ Erreur blocage créneaux:', e);
+            return { success: false, message: e.message };
         }
     }
 
-    // Unblock all slots for a day - CONNECTÉ À SUPABASE
+    // Débloquer tous les créneaux d’une journée
     async unblockAllSlots(date) {
-        if (!this.dataLayer) {
-            console.error('❌ DataLayer non initialisé');
-            return { success: false, error: 'DataLayer non initialisé' };
-        }
-        
+        if (!this.dataLayer) return { success: false, error: 'DataLayer non initialisé' };
         try {
-            console.log('🔄 Déblocage de tous les créneaux pour:', date);
-            
-            let unblockedCount = 0;
-            let skippedCount = 0;
-            
-            for (const time of this.fixedTimeSlots) {
+            const ymd = typeof date === 'string' ? date : this.formatDate(date);
+            let ok = 0, ko = 0;
+            for (const t of this.fixedTimeSlots) {
                 try {
-                    const result = await this.dataLayer.markSlotFree(date, time);
-                    if (result.success) {
-                        unblockedCount++;
-                    } else {
-                        skippedCount++;
-                    }
-                } catch (error) {
-                    console.warn(`Impossible de débloquer ${time}:`, error);
-                    skippedCount++;
-                }
+                    const r = await this.dataLayer.markSlotFree(ymd, t);
+                    r.success ? ok++ : ko++;
+                } catch { ko++; }
             }
-            
-            let message = `${unblockedCount} créneau(x) débloqué(s)`;
-            if (skippedCount > 0) {
-                message += `, ${skippedCount} créneau(x) ignoré(s)`;
-            }
-            
+            let message = `${ok} créneau(x) débloqué(s)`;
+            if (ko) message += `, ${ko} ignoré(s)`;
             return { success: true, message };
-            
-        } catch (error) {
-            console.error('❌ Erreur déblocage créneaux:', error);
-            return { success: false, message: error.message };
+        } catch (e) {
+            console.error('❌ Erreur déblocage créneaux:', e);
+            return { success: false, message: e.message };
         }
     }
 
-    // Update reservation status - CONNECTÉ À SUPABASE
+    // =========================
+    // Réservations
+    // =========================
     async updateReservationStatus(reservationId, newStatus) {
-        if (!this.dataLayer) {
-            console.error('❌ DataLayer non initialisé');
-            return { success: false, error: 'DataLayer non initialisé' };
-        }
-        
+        if (!this.dataLayer) return { success: false, error: 'DataLayer non initialisé' };
         try {
-            console.log('🔄 Mise à jour statut réservation:', reservationId, newStatus);
-            
-            const result = await this.dataLayer.updateReservationStatus(reservationId, newStatus.toUpperCase());
-            
-            if (result.success) {
-                console.log('✅ Statut réservation mis à jour');
-                return { success: true, reservation: result.reservation };
-            } else {
-                return { success: false, message: result.error || 'Erreur inconnue' };
-            }
-            
+            // Le DataLayer normalise en interne (minuscule + 'cancelled')
+            const result = await this.dataLayer.updateReservationStatus(reservationId, newStatus);
+            return result.success
+                ? { success: true, reservation: result.reservation }
+                : { success: false, message: result.error || 'Erreur inconnue' };
         } catch (error) {
             console.error('❌ Erreur mise à jour statut réservation:', error);
             return { success: false, message: error.message };
         }
     }
 
-    // Create quote - STUB (à implémenter plus tard)
+    // =========================
+    // Devis (stubs)
+    // =========================
     async createQuote(reservationId, items, notes) {
         await this.delay();
-        
-        console.log('🔄 TODO: Créer devis dans Supabase', { reservationId, items, notes });
-        
-        // Pour l'instant, simuler la création d'un devis
-        const total = items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-        
-        const quote = {
-            id: `quote_${Date.now()}`,
-            status: 'draft',
-            total: total,
-            items: items,
-            notes: notes,
-            createdAt: new Date().toISOString()
+        // TODO: implémentation Supabase (table quotes + quote_items)
+        const total = items.reduce((s, it) => s + (it.quantity * it.price), 0);
+        return {
+            success: true,
+            quote: {
+                id: `quote_${Date.now()}`,
+                status: 'draft',
+                total,
+                items,
+                notes,
+                createdAt: new Date().toISOString()
+            }
         };
-        
-        // TODO: Sauvegarder dans Supabase
-        console.log('📝 Devis créé (stub):', quote);
-        
-        return { success: true, quote };
     }
 
-    // Send quote via WhatsApp - STUB (à implémenter plus tard)
     async sendQuote(reservationId, items, notes) {
         await this.delay();
-        
-        console.log('🔄 TODO: Envoyer devis via n8n webhook', { reservationId, items, notes });
-        
-        const total = items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-        
-        const quote = {
-            id: `quote_${Date.now()}`,
-            status: 'sent',
-            total: total,
-            items: items,
-            notes: notes,
-            sentAt: new Date().toISOString()
+        // TODO: webhook n8n + mise à jour statut du devis
+        const total = items.reduce((s, it) => s + (it.quantity * it.price), 0);
+        return {
+            success: true,
+            quote: {
+                id: `quote_${Date.now()}`,
+                status: 'sent',
+                total,
+                items,
+                notes,
+                sentAt: new Date().toISOString()
+            }
         };
-        
-        // TODO: Appeler webhook n8n pour envoyer sur WhatsApp
-        console.log('📤 Devis envoyé (stub):', quote);
-        
-        return { success: true, quote };
+    }
+    
+    // =========================
+    // Devis : sauvegarder en DB + envoyer au webhook n8n
+    // =========================
+    async saveAndSendQuote(reservationId, items, notes) {
+        if (!reservationId) return { success: false, message: 'Reservation manquante' };
+
+        // 0) Calcule total
+        const total = (items || []).reduce((s, it) => s + (Number(it.quantity || 0) * Number(it.price || 0)), 0);
+
+        // 1) Sauvegarde le devis en DB et récupère quoteId
+        let saved = false;
+        let quoteId = null;
+        try {
+            if (this.dataLayer?.saveQuote) {
+                const r = await this.dataLayer.saveQuote(reservationId, items, notes, 'sent');
+                saved = !!r?.success;
+                quoteId = r?.quoteId || null;
+            } else if (this.dataLayer?.createQuote) {
+                const r = await this.dataLayer.createQuote(reservationId, items, notes, 'sent');
+                saved = !!r?.success;
+                quoteId = r?.quoteId || null;
+            } else {
+                console.warn('ℹ️ DataLayer ne propose pas saveQuote/createQuote — on continue quand même vers le webhook.');
+            }
+        } catch (e) {
+            console.error('Erreur sauvegarde devis:', e);
+        }
+
+        // 2) Récupère la réservation (pour infos client)
+        let res = null;
+        try {
+            // d'abord le cache (rapide)…
+            res = (this.mockData?.reservations || []).find(r => r.id === reservationId) || null;
+            // …sinon on interroge la DB
+            if (!res && this.dataLayer?.getReservationById) {
+                res = await this.dataLayer.getReservationById(reservationId);
+            }
+        } catch (e) {
+            console.warn('Impossible de charger la réservation pour le webhook:', e);
+        }
+
+        const name     = res?.customerName || 'Client';
+        const phone    = res?.customerPhone || '';
+        const service  = res?.service || 'Service';
+        const date     = res?.date || null;
+        const time     = res?.time_hm || (res?.time ? String(res.time).slice(0,5) : null);
+        const district = res?.district || null;
+        const address  = res?.address || null;
+
+        // 3) Appel du webhook n8n
+        let notified = false;
+        try {
+            const url = window.HS_N8N_QUOTE_WEBHOOK; // défini dans config.js
+            if (url) {
+                const payload = {
+                    action: 'QUOTE_SENT',
+                    source: 'admin',
+                    reservationId,
+                    quoteId,
+                    name,
+                    phone,
+                    service,
+                    total,
+                    notes,
+                    items,
+                    date,
+                    time,
+                    district,
+                    address
+                };
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                notified = resp.ok;
+                if (!resp.ok) console.warn('Webhook non OK:', resp.status, await resp.text());
+            } else {
+                console.warn('HS_N8N_QUOTE_WEBHOOK non défini — envoi WhatsApp ignoré.');
+            }
+        } catch (e) {
+            console.error('Erreur webhook n8n:', e);
+        }
+
+        return { success: (saved || notified), saved, notified, quoteId };
     }
 
-    // Get dashboard stats - CONNECTÉ À SUPABASE
-    async getDashboardStats() {
-        if (!this.dataLayer) {
-            console.error('❌ DataLayer non initialisé');
-            return {
-                todayReservations: 0,
-                pendingReservations: 0,
-                confirmedReservations: 0,
-                totalSlots: 0
-            };
-        }
-        
-        try {
-            console.log('🔄 Récupération statistiques Supabase');
-            
-            const stats = await this.dataLayer.getStats();
-            console.log('📊 Statistiques reçues:', stats);
-            
-            return {
-                todayReservations: stats.todayReservations,
-                pendingReservations: stats.pendingReservations,
-                confirmedReservations: stats.confirmedReservations,
-                totalSlots: this.fixedTimeSlots.length
-            };
-            
-        } catch (error) {
-            console.error('❌ Erreur récupération statistiques:', error);
-            return {
-                todayReservations: 0,
-                pendingReservations: 0,
-                confirmedReservations: 0,
-                totalSlots: 0
-            };
-        }
-    }
 }
 
-// Export for use in admin-script.js
 window.AdminApiClient = AdminApiClient;

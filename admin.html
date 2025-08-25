@@ -166,13 +166,10 @@
                         <textarea id="quote-notes" name="notes" rows="3" placeholder="Notes additionnelles pour le devis..."></textarea>
                     </div>
                     <div class="quote-actions">
-                        <button type="button" class="quote-btn secondary" onclick="saveQuoteDraft()">
-                            <i class="fas fa-save"></i>
-                            Enregistrer (Brouillon)
-                        </button>
-                        <button type="button" class="quote-btn primary" onclick="sendQuoteWhatsApp()">
+                        <!-- Bouton unique -->
+                        <button type="button" class="quote-btn primary" onclick="saveAndSendQuote()">
                             <i class="fab fa-whatsapp"></i>
-                            Envoyer sur WhatsApp
+                            Enregistrer et envoyer le Devis au client
                         </button>
                     </div>
                 </form>

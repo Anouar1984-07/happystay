@@ -464,7 +464,7 @@ class FormValidation {
             return;
         }
 
-        const availableSlots = window.mockDataLayer.getAvailableSlots(dateField.value);
+        const availableSlots = window.mockDataLayer.getSlotsForDate(dateField.value);
         const slotButtons = slotsContainer.querySelectorAll('.time-slot');
 
         slotButtons.forEach(button => {
