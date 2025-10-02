@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendrier Éditorial - PuyDeCom Production</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'puy-orange': '#FF7F50',
+                        'puy-pink': '#DB2777',
+                        'puy-dark': '#1F2937'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50">
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="flex items-center">
+                    <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="PuyDeCom" class="w-8 h-8 rounded-full mr-3">
+                    <div>
+                        <h2 class="text-white font-bold text-lg">PuyDeCom</h2>
+                        <p class="text-gray-300 text-xs">Production</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                    </svg>
+                    Dashboard
+                </a>
+                
+                <a href="clients.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    Clients
+                </a>
+                
+                <a href="create-post.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Créer un Post
+                </a>
+                
+                <a href="calendar.html" class="nav-item active">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Calendrier
+                </a>
+                
+                <a href="analytics.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    Analytics
+                </a>
+                
+                <a href="settings.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Paramètres
+                </a>
+                
+                <div class="mt-8 border-t border-white/10 pt-4">
+                    <button class="nav-item" data-logout>
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        Déconnexion
+                    </button>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button id="toggleSidebar" class="lg:hidden p-2 rounded-lg hover:bg-gray-100">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                    <h1 class="text-2xl font-bold text-gray-900 ml-4">Calendrier Éditorial</h1>
+                </div>
+                
+                <div class="header-right">
+                    <button class="btn btn-primary" onclick="window.location.href='create-post.html'">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Nouveau Post
+                    </button>
+                    
+                    <div class="flex items-center space-x-3">
+                        <div class="text-right">
+                            <p class="text-sm font-medium text-gray-900" data-user-name>Utilisateur</p>
+                            <p class="text-xs text-gray-500" data-user-email>email@domain.com</p>
+                        </div>
+                        <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="Avatar" class="w-8 h-8 rounded-full">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="content">
+                <!-- Calendar Controls -->
+                <div class="card mb-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                        <div class="flex items-center space-x-4">
+                            <button id="prevMonth" class="p-2 rounded-lg hover:bg-gray-100">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            
+                            <h2 id="currentMonth" class="text-xl font-semibold text-gray-900">
+                                Janvier 2024
+                            </h2>
+                            
+                            <button id="nextMonth" class="p-2 rounded-lg hover:bg-gray-100">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                            
+                            <button id="todayBtn" class="btn btn-secondary">
+                                Aujourd'hui
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4">
+                            <select id="clientFilter" class="form-select w-48">
+                                <option value="">Tous les clients</option>
+                                <option value="1">☕ Café Central</option>
+                                <option value="2">🍝 Restaurant Italia</option>
+                                <option value="3">👗 Boutique Mode</option>
+                                <option value="4">💄 Salon Beauté</option>
+                            </select>
+                            
+                            <select id="statusFilter" class="form-select w-32">
+                                <option value="">Tous</option>
+                                <option value="published">Publié</option>
+                                <option value="scheduled">Programmé</option>
+                                <option value="draft">Brouillon</option>
+                                <option value="pending">En attente</option>
+                            </select>
+                            
+                            <div class="flex items-center space-x-2">
+                                <button id="monthView" class="p-2 rounded-lg hover:bg-gray-100 active">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                                    </svg>
+                                </button>
+                                <button id="weekView" class="p-2 rounded-lg hover:bg-gray-100">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                                    </svg>
+                                </button>
+                                <button id="dayView" class="p-2 rounded-lg hover:bg-gray-100">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="card mb-6">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-3">Légende</h3>
+                    <div class="flex flex-wrap gap-6">
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 bg-green-500 rounded mr-2"></div>
+                            <span class="text-sm text-gray-600">Publié</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 bg-blue-500 rounded mr-2"></div>
+                            <span class="text-sm text-gray-600">Programmé</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 bg-yellow-500 rounded mr-2"></div>
+                            <span class="text-sm text-gray-600">En attente</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 bg-gray-400 rounded mr-2"></div>
+                            <span class="text-sm text-gray-600">Brouillon</span>
+                        </div>
+                        <div class="flex items-center space-x-4 ml-6">
+                            <div class="flex items-center">
+                                <span class="text-lg mr-1">📷</span>
+                                <span class="text-sm text-gray-600">Instagram</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-lg mr-1">📘</span>
+                                <span class="text-sm text-gray-600">Facebook</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-lg mr-1">💼</span>
+                                <span class="text-sm text-gray-600">LinkedIn</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar Grid -->
+                <div class="card">
+                    <div id="calendarContainer">
+                        <!-- Month View -->
+                        <div id="monthViewContent" class="">
+                            <div class="grid grid-cols-7 gap-1 mb-4">
+                                <div class="p-3 text-center font-semibold text-gray-500 text-sm">Lun</div>
+                                <div class="p-3 text-center font-semibold text-gray-500 text-sm">Mar</div>
+                                <div class="p-3 text-center font-semibold text-gray-500 text-sm">Mer</div>
+                                <div class="p-3 text-center font-semibold text-gray-500 text-sm">Jeu</div>
+                                <div class="p-3 text-center font-semibold text-gray-500 text-sm">Ven</div>
+                                <div class="p-3 text-center font-semibold text-gray-500 text-sm">Sam</div>
+                                <div class="p-3 text-center font-semibold text-gray-500 text-sm">Dim</div>
+                            </div>
+                            
+                            <div id="calendarDays" class="grid grid-cols-7 gap-1">
+                                <!-- Calendar days will be generated here -->
+                            </div>
+                        </div>
+                        
+                        <!-- Week View -->
+                        <div id="weekViewContent" class="hidden">
+                            <div class="grid grid-cols-8 gap-1">
+                                <div class="p-2"></div> <!-- Empty cell for time column -->
+                                <div class="p-3 text-center font-semibold text-gray-500 text-sm" id="weekDay1">Lun</div>
+                                <div class="p-3 text-center font-semibold text-gray-500 text-sm" id="weekDay2">Mar</div>
+                                <div class="p-3 text-center font-semibold text-gray-500 text-sm" id="weekDay3">Mer</div>
+                                <div class="p-3 text-center font-semibold text-gray-500 text-sm" id="weekDay4">Jeu</div>
+                                <div class="p-3 text-center font-semibold text-gray-500 text-sm" id="weekDay5">Ven</div>
+                                <div class="p-3 text-center font-semibold text-gray-500 text-sm" id="weekDay6">Sam</div>
+                                <div class="p-3 text-center font-semibold text-gray-500 text-sm" id="weekDay7">Dim</div>
+                            </div>
+                            
+                            <div id="weekGrid" class="space-y-1">
+                                <!-- Week grid will be generated here -->
+                            </div>
+                        </div>
+                        
+                        <!-- Day View -->
+                        <div id="dayViewContent" class="hidden">
+                            <div class="space-y-2" id="daySchedule">
+                                <!-- Day schedule will be generated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Post Detail Modal -->
+    <div id="postModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-lg mx-4 max-h-screen overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Détails du Post</h3>
+                <button onclick="closePostModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="postModalContent">
+                <!-- Post details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/supabase.js"></script>
+    <script>
+        let currentDate = new Date();
+        let currentView = 'month';
+        let posts = [];
+
+        // Mock post data
+        const mockPosts = [
+            {
+                id: 1,
+                client_id: 1,
+                client_name: 'Café Central',
+                client_avatar: '☕',
+                title: 'Nouveau menu automne',
+                content: 'Découvrez nos nouvelles saveurs automnales ! 🍂',
+                platforms: ['instagram', 'facebook'],
+                status: 'scheduled',
+                scheduled_date: '2024-01-15',
+                scheduled_time: '14:30',
+                type: 'image'
+            },
+            {
+                id: 2,
+                client_id: 2,
+                client_name: 'Restaurant Italia',
+                client_avatar: '🍝',
+                title: 'Soirée dégustation',
+                content: 'Rejoignez-nous pour une soirée dégustation exceptionnelle ! 🍷',
+                platforms: ['instagram', 'facebook', 'linkedin'],
+                status: 'published',
+                scheduled_date: '2024-01-12',
+                scheduled_time: '18:00',
+                type: 'video'
+            },
+            {
+                id: 3,
+                client_id: 3,
+                client_name: 'Boutique Mode',
+                client_avatar: '👗',
+                title: 'Collection Printemps',
+                content: 'La nouvelle collection printemps est arrivée ! ✨',
+                platforms: ['instagram', 'tiktok'],
+                status: 'pending',
+                scheduled_date: '2024-01-18',
+                scheduled_time: '16:00',
+                type: 'carousel'
+            },
+            {
+                id: 4,
+                client_id: 4,
+                client_name: 'Salon Beauté',
+                client_avatar: '💄',
+                title: 'Promotion janvier',
+                content: 'Profitez de nos offres spéciales du mois ! 💫',
+                platforms: ['instagram'],
+                status: 'draft',
+                scheduled_date: '2024-01-20',
+                scheduled_time: '10:00',
+                type: 'story'
+            }
+        ];
+
+        // Initialize calendar
+        function initCalendar() {
+            posts = mockPosts;
+            renderCurrentView();
+            setupEventListeners();
+            updateMonthHeader();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Mobile sidebar toggle
+            document.getElementById('toggleSidebar').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('show');
+            });
+
+            // Month navigation
+            document.getElementById('prevMonth').addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                renderCurrentView();
+                updateMonthHeader();
+            });
+
+            document.getElementById('nextMonth').addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                renderCurrentView();
+                updateMonthHeader();
+            });
+
+            document.getElementById('todayBtn').addEventListener('click', () => {
+                currentDate = new Date();
+                renderCurrentView();
+                updateMonthHeader();
+            });
+
+            // View switches
+            document.getElementById('monthView').addEventListener('click', () => setView('month'));
+            document.getElementById('weekView').addEventListener('click', () => setView('week'));
+            document.getElementById('dayView').addEventListener('click', () => setView('day'));
+
+            // Filters
+            document.getElementById('clientFilter').addEventListener('change', renderCurrentView);
+            document.getElementById('statusFilter').addEventListener('change', renderCurrentView);
+        }
+
+        // Set calendar view
+        function setView(view) {
+            currentView = view;
+            
+            // Update active button
+            document.querySelectorAll('#monthView, #weekView, #dayView').forEach(btn => {
+                btn.classList.remove('active', 'bg-gray-200');
+            });
+            document.getElementById(`${view}View`).classList.add('active', 'bg-gray-200');
+            
+            renderCurrentView();
+        }
+
+        // Update month header
+        function updateMonthHeader() {
+            const months = [
+                'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+                'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+            ];
+            
+            document.getElementById('currentMonth').textContent = 
+                `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+        }
+
+        // Render current view
+        function renderCurrentView() {
+            // Hide all views
+            document.getElementById('monthViewContent').classList.add('hidden');
+            document.getElementById('weekViewContent').classList.add('hidden');
+            document.getElementById('dayViewContent').classList.add('hidden');
+            
+            // Show current view
+            document.getElementById(`${currentView}ViewContent`).classList.remove('hidden');
+            
+            // Render based on view
+            switch (currentView) {
+                case 'month':
+                    renderMonthView();
+                    break;
+                case 'week':
+                    renderWeekView();
+                    break;
+                case 'day':
+                    renderDayView();
+                    break;
+            }
+        }
+
+        // Render month view
+        function renderMonthView() {
+            const container = document.getElementById('calendarDays');
+            container.innerHTML = '';
+            
+            const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - ((firstDay.getDay() + 6) % 7)); // Start from Monday
+            
+            const clientFilter = document.getElementById('clientFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            for (let i = 0; i < 42; i++) { // 6 weeks × 7 days
+                const cellDate = new Date(startDate);
+                cellDate.setDate(startDate.getDate() + i);
+                
+                const isCurrentMonth = cellDate.getMonth() === currentDate.getMonth();
+                const isToday = cellDate.toDateString() === new Date().toDateString();
+                
+                const dayPosts = getPostsForDate(cellDate, clientFilter, statusFilter);
+                
+                const cell = document.createElement('div');
+                cell.className = `min-h-[120px] p-2 border border-gray-200 ${
+                    !isCurrentMonth ? 'bg-gray-50 text-gray-400' : 'bg-white hover:bg-gray-50'
+                } ${isToday ? 'ring-2 ring-puy-orange' : ''}`;
+                
+                cell.innerHTML = `
+                    <div class="font-semibold text-sm mb-2 ${isToday ? 'text-puy-orange' : ''}">${cellDate.getDate()}</div>
+                    <div class="space-y-1">
+                        ${dayPosts.map(post => createPostChip(post)).join('')}
+                    </div>
+                `;
+                
+                container.appendChild(cell);
+            }
+        }
+
+        // Render week view
+        function renderWeekView() {
+            const weekGrid = document.getElementById('weekGrid');
+            weekGrid.innerHTML = '';
+            
+            // Get start of week (Monday)
+            const startOfWeek = new Date(currentDate);
+            const day = startOfWeek.getDay();
+            const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+            startOfWeek.setDate(diff);
+            
+            // Update week headers
+            for (let i = 0; i < 7; i++) {
+                const weekDate = new Date(startOfWeek);
+                weekDate.setDate(startOfWeek.getDate() + i);
+                const headerElement = document.getElementById(`weekDay${i + 1}`);
+                headerElement.innerHTML = `
+                    <div>${['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'][i]}</div>
+                    <div class="text-lg font-bold">${weekDate.getDate()}</div>
+                `;
+            }
+            
+            // Create time slots
+            const timeSlots = [
+                '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00',
+                '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'
+            ];
+            
+            timeSlots.forEach(time => {
+                const row = document.createElement('div');
+                row.className = 'grid grid-cols-8 gap-1 border-b border-gray-100';
+                
+                // Time column
+                row.innerHTML = `<div class="p-2 text-sm text-gray-500 text-right">${time}</div>`;
+                
+                // Day columns
+                for (let i = 0; i < 7; i++) {
+                    const weekDate = new Date(startOfWeek);
+                    weekDate.setDate(startOfWeek.getDate() + i);
+                    
+                    const dayPosts = getPostsForDateTime(weekDate, time);
+                    const cell = document.createElement('div');
+                    cell.className = 'p-1 min-h-[60px] hover:bg-gray-50';
+                    cell.innerHTML = dayPosts.map(post => createPostChip(post, true)).join('');
+                    row.appendChild(cell);
+                }
+                
+                weekGrid.appendChild(row);
+            });
+        }
+
+        // Render day view
+        function renderDayView() {
+            const container = document.getElementById('daySchedule');
+            container.innerHTML = '';
+            
+            const clientFilter = document.getElementById('clientFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            const dayPosts = getPostsForDate(currentDate, clientFilter, statusFilter)
+                .sort((a, b) => (a.scheduled_time || '00:00').localeCompare(b.scheduled_time || '00:00'));
+            
+            if (dayPosts.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">Aucun post prévu</h3>
+                        <p class="mt-1 text-sm text-gray-500">Planifiez votre premier post pour cette journée.</p>
+                        <div class="mt-6">
+                            <button onclick="window.location.href='create-post.html'" class="btn btn-primary">
+                                Créer un post
+                            </button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            dayPosts.forEach(post => {
+                const postCard = document.createElement('div');
+                postCard.className = 'card hover:shadow-md transition-shadow cursor-pointer';
+                postCard.innerHTML = createPostCard(post);
+                postCard.addEventListener('click', () => openPostModal(post));
+                container.appendChild(postCard);
+            });
+        }
+
+        // Get posts for a specific date
+        function getPostsForDate(date, clientFilter = '', statusFilter = '') {
+            const dateStr = date.toISOString().split('T')[0];
+            return posts.filter(post => {
+                const matchesDate = post.scheduled_date === dateStr;
+                const matchesClient = !clientFilter || post.client_id == clientFilter;
+                const matchesStatus = !statusFilter || post.status === statusFilter;
+                return matchesDate && matchesClient && matchesStatus;
+            });
+        }
+
+        // Get posts for a specific date and time
+        function getPostsForDateTime(date, time) {
+            const dateStr = date.toISOString().split('T')[0];
+            return posts.filter(post => {
+                return post.scheduled_date === dateStr && 
+                       post.scheduled_time && 
+                       post.scheduled_time.startsWith(time.substring(0, 2));
+            });
+        }
+
+        // Create post chip for calendar
+        function createPostChip(post, showTime = false) {
+            const statusColors = {
+                'published': 'bg-green-500',
+                'scheduled': 'bg-blue-500',
+                'pending': 'bg-yellow-500',
+                'draft': 'bg-gray-400'
+            };
+            
+            const platformIcons = {
+                'instagram': '📷',
+                'facebook': '📘',
+                'linkedin': '💼',
+                'twitter': '🐦',
+                'tiktok': '🎵',
+                'youtube': '📺'
+            };
+            
+            const platforms = post.platforms.map(p => platformIcons[p] || '📱').join('');
+            
+            return `
+                <div class="text-xs p-1 rounded ${statusColors[post.status]} text-white truncate cursor-pointer hover:opacity-80"
+                     onclick="openPostModal(${JSON.stringify(post).replace(/"/g, '&quot;')})">
+                    ${post.client_avatar} ${showTime && post.scheduled_time ? post.scheduled_time + ' - ' : ''}${post.title}
+                    <div class="text-xs opacity-75">${platforms}</div>
+                </div>
+            `;
+        }
+
+        // Create full post card
+        function createPostCard(post) {
+            const statusColors = {
+                'published': 'bg-green-100 text-green-800',
+                'scheduled': 'bg-blue-100 text-blue-800',
+                'pending': 'bg-yellow-100 text-yellow-800',
+                'draft': 'bg-gray-100 text-gray-800'
+            };
+            
+            const statusLabels = {
+                'published': 'Publié',
+                'scheduled': 'Programmé',
+                'pending': 'En attente',
+                'draft': 'Brouillon'
+            };
+            
+            return `
+                <div class="flex items-start justify-between">
+                    <div class="flex items-start space-x-3">
+                        <div class="text-2xl">${post.client_avatar}</div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900">${post.title}</h4>
+                            <p class="text-sm text-gray-600">${post.client_name}</p>
+                            <p class="text-sm text-gray-500 mt-1">${post.content.substring(0, 80)}...</p>
+                            <div class="flex items-center space-x-2 mt-2">
+                                <span class="text-sm text-gray-500">${post.scheduled_time}</span>
+                                <div class="flex space-x-1">
+                                    ${post.platforms.map(platform => {
+                                        const icons = {
+                                            'instagram': '📷',
+                                            'facebook': '📘',
+                                            'linkedin': '💼',
+                                            'twitter': '🐦'
+                                        };
+                                        return icons[platform] || '📱';
+                                    }).join(' ')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[post.status]}">
+                        ${statusLabels[post.status]}
+                    </span>
+                </div>
+            `;
+        }
+
+        // Open post modal
+        function openPostModal(post) {
+            const modal = document.getElementById('postModal');
+            const content = document.getElementById('postModalContent');
+            
+            const statusColors = {
+                'published': 'bg-green-100 text-green-800',
+                'scheduled': 'bg-blue-100 text-blue-800',
+                'pending': 'bg-yellow-100 text-yellow-800',
+                'draft': 'bg-gray-100 text-gray-800'
+            };
+            
+            const statusLabels = {
+                'published': 'Publié',
+                'scheduled': 'Programmé',
+                'pending': 'En attente',
+                'draft': 'Brouillon'
+            };
+            
+            content.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="text-3xl">${post.client_avatar}</div>
+                            <div>
+                                <h4 class="text-lg font-semibold">${post.title}</h4>
+                                <p class="text-sm text-gray-500">${post.client_name}</p>
+                            </div>
+                        </div>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusColors[post.status]}">
+                            ${statusLabels[post.status]}
+                        </span>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm">${post.content}</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <strong>Date:</strong> ${new Date(post.scheduled_date).toLocaleDateString('fr-FR')}
+                        </div>
+                        <div>
+                            <strong>Heure:</strong> ${post.scheduled_time || 'Non définie'}
+                        </div>
+                        <div>
+                            <strong>Type:</strong> ${post.type}
+                        </div>
+                        <div>
+                            <strong>Plateformes:</strong> ${post.platforms.length}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h5 class="font-medium mb-2">Plateformes</h5>
+                        <div class="flex space-x-2">
+                            ${post.platforms.map(platform => `
+                                <span class="px-3 py-1 bg-puy-orange/10 text-puy-orange rounded-full text-sm capitalize">
+                                    ${platform}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-3 pt-4 border-t">
+                        <button onclick="editPost(${post.id})" class="btn btn-primary flex-1">
+                            Modifier
+                        </button>
+                        <button onclick="duplicatePost(${post.id})" class="btn btn-outline flex-1">
+                            Dupliquer
+                        </button>
+                        <button onclick="deletePost(${post.id})" class="btn btn-secondary flex-1 text-red-600">
+                            Supprimer
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+        }
+
+        // Close post modal
+        function closePostModal() {
+            document.getElementById('postModal').classList.add('hidden');
+        }
+
+        // Post actions
+        function editPost(postId) {
+            window.location.href = `create-post.html?edit=${postId}`;
+        }
+
+        function duplicatePost(postId) {
+            window.location.href = `create-post.html?duplicate=${postId}`;
+        }
+
+        function deletePost(postId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce post ?')) {
+                posts = posts.filter(p => p.id !== postId);
+                renderCurrentView();
+                closePostModal();
+                window.PuyDeComAuth.showNotification('Post supprimé avec succès', 'success');
+            }
+        }
+
+        // Initialize calendar on page load
+        document.addEventListener('DOMContentLoaded', initCalendar);
+    </script>
+</body>
+</html>

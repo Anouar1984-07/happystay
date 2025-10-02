@@ -1,0 +1,23 @@
+{
+  "name": "PuyDeCom - Marketing Digital",
+  "short_name": "PuyDeCom",
+  "description": "Des réseaux qui convertissent, des sites qui donnent envie, des process qui travaillent pour vous.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#EF4444",
+  "icons": [
+    {
+      "src": "https://puydecom.fr/images/Logo-Puy-De-Com.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://puydecom.fr/images/Logo-Puy-De-Com.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

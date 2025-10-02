@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agents IA - PuyDeCom Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="icon" href="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'puy-orange': '#FF7F50',
+                        'puy-red': '#DC2626',
+                        'puy-blue': '#1E40AF'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --puy-orange: #FF7F50;
+            --puy-red: #DC2626;
+            --puy-dark: #1F2937;
+            --puy-light: #F97316;
+        }
+
+        .gradient-card {
+            background: linear-gradient(135deg, var(--puy-orange) 0%, #FF6B35 100%);
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .agent-status-active {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        }
+
+        .agent-status-development {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        }
+
+        .agent-status-planned {
+            background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);
+        }
+
+        .pulse-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 via-white to-gray-100 font-inter min-h-screen">
+    <!-- Navigation moderne -->
+    <nav class="bg-white/80 backdrop-blur-md shadow-lg border-b border-gray-200/50 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center space-x-3">
+                        <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="PuyDeCom" class="w-10 h-10 rounded-lg shadow-sm">
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-900">PuyDeCom</h1>
+                            <p class="text-xs text-gray-500">Admin Dashboard</p>
+                        </div>
+                    </div>
+
+                    <!-- Menu desktop moderne -->
+                    <div class="hidden md:ml-10 md:flex md:space-x-1">
+                        <a href="./dashboard.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="./clients.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                            </svg>
+                            <span>Clients</span>
+                        </a>
+                        <a href="./projets.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                            <span>Projets</span>
+                        </a>
+                        <a href="./leads.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
+                            </svg>
+                            <span>Leads</span>
+                        </a>
+                        <a href="./calendrier.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Calendrier</span>
+                        </a>
+                        <a href="./analyse360.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>Analyse 360°</span>
+                        </a>
+                        <a href="./agents-ia.html" class="bg-puy-orange text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 shadow-lg">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Agents IA</span>
+                        </a>
+                        <a href="https://mail.hostinger.com/" target="_blank" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Emails</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Actions utilisateur -->
+                <div class="flex items-center space-x-4">
+                    <button id="logoutButton" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        Déconnexion
+                    </button>
+
+                    <!-- Menu mobile -->
+                    <div class="md:hidden">
+                        <button id="mobile-menu-button" type="button" class="bg-gray-100 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-200">
+                            <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu mobile -->
+        <div id="mobile-menu" class="md:hidden hidden border-t border-gray-200">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white">
+                <a href="./dashboard.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    📊 Dashboard
+                </a>
+                <a href="./clients.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    👥 Clients
+                </a>
+                <a href="./projets.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    📁 Projets
+                </a>
+                <a href="./leads.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    🎯 Leads
+                </a>
+                <a href="./calendrier.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    📅 Calendrier
+                </a>
+                <a href="./analyse360.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    📊 Analyse 360°
+                </a>
+                <a href="./agents-ia.html" class="bg-puy-orange text-white block px-3 py-2 rounded-md text-base font-medium">
+                    🤖 Agents IA
+                </a>
+                <a href="https://mail.hostinger.com/" target="_blank" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    📧 Emails
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <!-- Header avec actions -->
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
+                <div class="mb-4 lg:mb-0">
+                    <h1 class="text-3xl font-bold bg-gradient-to-r from-puy-orange to-puy-red bg-clip-text text-transparent">
+                        🤖 Agents IA
+                    </h1>
+                    <p class="mt-2 text-lg text-gray-600 font-medium">
+                        Gestion et monitoring des agents d'intelligence artificielle
+                    </p>
+                </div>
+
+                <!-- Barre d'actions -->
+                <div class="flex space-x-3">
+                    <button id="refreshAgents" class="bg-puy-orange text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span>Actualiser</span>
+                    </button>
+                    <button id="addAgent" class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition-colors flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        <span>Nouvel Agent</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats globales -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Actifs</p>
+                            <p id="activeAgents" class="text-2xl font-semibold text-gray-900">3</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-yellow-100">
+                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">En développement</p>
+                            <p id="devAgents" class="text-2xl font-semibold text-gray-900">4</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-gray-100">
+                            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Planifiés</p>
+                            <p id="plannedAgents" class="text-2xl font-semibold text-gray-900">5</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Gain productivité</p>
+                            <p id="productivityGain" class="text-2xl font-semibold text-gray-900">75%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section CM (Community Management) -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-purple-100 rounded-lg">
+                            <span class="text-2xl">💬</span>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900">Community Management</h2>
+                            <p class="text-sm text-gray-600">Agents dédiés à la gestion des réseaux sociaux</p>
+                        </div>
+                    </div>
+                    <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">3 agents</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Agent Veille Concurrentielle -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer" onclick="openVeilleAgent()">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2 bg-green-100 rounded-lg">
+                                    <span class="text-xl">🔍</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900">Veille Concurrentielle</h3>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <span class="agent-status-active px-2 py-1 rounded-full text-white text-xs font-medium">Actif</span>
+                                        <div class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">Surveillance automatique des concurrents locaux et génération de rapports hebdomadaires.</p>
+                        <div class="space-y-2 text-xs text-gray-500 mb-4">
+                            <div class="flex justify-between">
+                                <span>Dernière exécution:</span>
+                                <span class="text-green-600 font-medium">Il y a 2h</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Prochaine exécution:</span>
+                                <span>Dans 6h</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Taux de réussite:</span>
+                                <span class="text-green-600 font-medium">98%</span>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-medium transition-colors" onclick="event.stopPropagation(); openVeilleAgent()">
+                                🚀 Ouvrir
+                            </button>
+                            <button class="border border-gray-300 text-gray-700 hover:bg-gray-50 px-3 py-1 rounded text-xs font-medium transition-colors" onclick="event.stopPropagation(); generateVeilleReport()">
+                                📊 Rapport
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Agent Générateur de Contenu -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2 bg-yellow-100 rounded-lg">
+                                    <span class="text-xl">✍️</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900">Générateur de Contenu</h3>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <span class="agent-status-development px-2 py-1 rounded-full text-white text-xs font-medium">Développement</span>
+                                        <div class="w-2 h-2 bg-yellow-500 rounded-full pulse-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">Création automatisée de posts pour réseaux sociaux avec optimisation SEO.</p>
+                        <div class="space-y-2 text-xs text-gray-500">
+                            <div class="flex justify-between">
+                                <span>Progression:</span>
+                                <span class="text-yellow-600 font-medium">65%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>ETA:</span>
+                                <span>2 semaines</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Tests unitaires:</span>
+                                <span class="text-green-600 font-medium">Passés</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agent Analyste Social -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2 bg-gray-100 rounded-lg">
+                                    <span class="text-xl">📊</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900">Analyste Social</h3>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <span class="agent-status-planned px-2 py-1 rounded-full text-white text-xs font-medium">Planifié</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">Analyse avancée des performances sociales et recommandations stratégiques.</p>
+                        <div class="space-y-2 text-xs text-gray-500">
+                            <div class="flex justify-between">
+                                <span>Priorité:</span>
+                                <span class="text-blue-600 font-medium">Moyenne</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Début prévu:</span>
+                                <span>Q4 2024</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Durée estimée:</span>
+                                <span>6 semaines</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Site Web -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-blue-100 rounded-lg">
+                            <span class="text-2xl">🌐</span>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900">Site Web</h2>
+                            <p class="text-sm text-gray-600">Agents dédiés à l'optimisation et la gestion du site web</p>
+                        </div>
+                    </div>
+                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">3 agents</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Agent SEO Optimizer -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2 bg-green-100 rounded-lg">
+                                    <span class="text-xl">🎯</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900">SEO Optimizer</h3>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <span class="agent-status-active px-2 py-1 rounded-full text-white text-xs font-medium">Actif</span>
+                                        <div class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">Optimisation automatique du référencement et audit SEO continu du site web.</p>
+                        <div class="space-y-2 text-xs text-gray-500">
+                            <div class="flex justify-between">
+                                <span>Dernière analyse:</span>
+                                <span class="text-green-600 font-medium">Il y a 1h</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Score SEO:</span>
+                                <span class="text-green-600 font-medium">92/100</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Mots-clés suivis:</span>
+                                <span class="text-blue-600 font-medium">47</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agent Performance Monitor -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2 bg-yellow-100 rounded-lg">
+                                    <span class="text-xl">⚡</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900">Performance Monitor</h3>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <span class="agent-status-development px-2 py-1 rounded-full text-white text-xs font-medium">Développement</span>
+                                        <div class="w-2 h-2 bg-yellow-500 rounded-full pulse-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">Surveillance des performances du site et optimisation automatique de la vitesse.</p>
+                        <div class="space-y-2 text-xs text-gray-500">
+                            <div class="flex justify-between">
+                                <span>Progression:</span>
+                                <span class="text-yellow-600 font-medium">80%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Tests performance:</span>
+                                <span class="text-green-600 font-medium">Passés</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Déploiement:</span>
+                                <span>1 semaine</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agent Content Updater -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2 bg-gray-100 rounded-lg">
+                                    <span class="text-xl">📝</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900">Content Updater</h3>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <span class="agent-status-planned px-2 py-1 rounded-full text-white text-xs font-medium">Planifié</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">Mise à jour automatique du contenu web et synchronisation avec les données CRM.</p>
+                        <div class="space-y-2 text-xs text-gray-500">
+                            <div class="flex justify-between">
+                                <span>Priorité:</span>
+                                <span class="text-green-600 font-medium">Haute</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Début prévu:</span>
+                                <span>Q1 2025</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Durée estimée:</span>
+                                <span>4 semaines</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Automatisation & IA -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-indigo-100 rounded-lg">
+                            <span class="text-2xl">🤖</span>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900">Automatisation & IA</h2>
+                            <p class="text-sm text-gray-600">Agents d'automatisation avancée et d'intelligence artificielle</p>
+                        </div>
+                    </div>
+                    <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-medium">3 agents</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Agent Email Marketing -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2 bg-yellow-100 rounded-lg">
+                                    <span class="text-xl">📧</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900">Email Marketing</h3>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <span class="agent-status-development px-2 py-1 rounded-full text-white text-xs font-medium">Développement</span>
+                                        <div class="w-2 h-2 bg-yellow-500 rounded-full pulse-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">Automatisation complète des campagnes email avec personnalisation IA.</p>
+                        <div class="space-y-2 text-xs text-gray-500">
+                            <div class="flex justify-between">
+                                <span>Progression:</span>
+                                <span class="text-yellow-600 font-medium">45%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Templates créés:</span>
+                                <span class="text-blue-600 font-medium">12</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>ETA:</span>
+                                <span>3 semaines</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agent Lead Qualifier -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2 bg-gray-100 rounded-lg">
+                                    <span class="text-xl">🎯</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900">Lead Qualifier</h3>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <span class="agent-status-planned px-2 py-1 rounded-full text-white text-xs font-medium">Planifié</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">Qualification automatique des prospects avec scoring IA et routage intelligent.</p>
+                        <div class="space-y-2 text-xs text-gray-500">
+                            <div class="flex justify-between">
+                                <span>Priorité:</span>
+                                <span class="text-red-600 font-medium">Très haute</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Début prévu:</span>
+                                <span>Q4 2024</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Durée estimée:</span>
+                                <span>8 semaines</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agent Data Analyst -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2 bg-gray-100 rounded-lg">
+                                    <span class="text-xl">📊</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900">Data Analyst</h3>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <span class="agent-status-planned px-2 py-1 rounded-full text-white text-xs font-medium">Planifié</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">Analyse prédictive des données business et génération de insights automatiques.</p>
+                        <div class="space-y-2 text-xs text-gray-500">
+                            <div class="flex justify-between">
+                                <span>Priorité:</span>
+                                <span class="text-blue-600 font-medium">Moyenne</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Début prévu:</span>
+                                <span>Q2 2025</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Durée estimée:</span>
+                                <span>10 semaines</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section de logs récents -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900">Activité Récente</h3>
+                    <button id="viewAllLogs" class="text-puy-orange hover:text-puy-red text-sm font-medium">Voir tout →</button>
+                </div>
+                <div id="agentLogs" class="space-y-3">
+                    <!-- Les logs seront injectés ici par JavaScript -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Configuration Supabase
+        const SUPABASE_URL = 'https://ltqkbtfdjvslqktjtbod.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cWtidGZkanZzbHFrdGp0Ym9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjE1NzgsImV4cCI6MjA3MjM5NzU3OH0.RnZQZ3QmYrcedLK-IefXCQhTeNFJOUNmU7O0f5HGkLg';
+
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Vérification de l'authentification
+        async function checkAuth() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = './index.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Déconnexion
+        document.getElementById('logoutButton').addEventListener('click', async () => {
+            await supabaseClient.auth.signOut();
+            window.location.href = './index.html';
+        });
+
+        // Gestion du menu mobile
+        document.getElementById('mobile-menu-button').addEventListener('click', () => {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Génération des logs d'activité simulés
+        function generateAgentLogs() {
+            const logs = [
+                {
+                    time: 'Il y a 15 min',
+                    agent: 'Veille Concurrentielle',
+                    action: 'Rapport hebdomadaire généré avec succès',
+                    status: 'success',
+                    icon: '🔍'
+                },
+                {
+                    time: 'Il y a 1h',
+                    agent: 'SEO Optimizer',
+                    action: 'Analyse de 23 pages terminée',
+                    status: 'success',
+                    icon: '🎯'
+                },
+                {
+                    time: 'Il y a 2h',
+                    agent: 'Générateur de Contenu',
+                    action: 'Test beta: 5 posts générés',
+                    status: 'info',
+                    icon: '✍️'
+                },
+                {
+                    time: 'Il y a 3h',
+                    agent: 'Analyste Social',
+                    action: 'Planification des sprints Q4',
+                    status: 'info',
+                    icon: '📊'
+                }
+            ];
+
+            const logsContainer = document.getElementById('agentLogs');
+            logsContainer.innerHTML = logs.map(log => {
+                const statusColors = {
+                    success: 'text-green-600 bg-green-50',
+                    error: 'text-red-600 bg-red-50',
+                    info: 'text-blue-600 bg-blue-50'
+                };
+
+                return `
+                    <div class="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-lg">${log.icon}</span>
+                            <div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-medium text-gray-900">${log.agent}</span>
+                                    <span class="${statusColors[log.status]} px-2 py-1 rounded-full text-xs font-medium">
+                                        ${log.status === 'success' ? 'Succès' : log.status === 'error' ? 'Erreur' : 'Info'}
+                                    </span>
+                                </div>
+                                <p class="text-sm text-gray-600">${log.action}</p>
+                            </div>
+                        </div>
+                        <span class="text-xs text-gray-500">${log.time}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Gestion des événements
+        function setupEventListeners() {
+            // Actualiser les agents
+            document.getElementById('refreshAgents').addEventListener('click', () => {
+                location.reload();
+            });
+
+            // Ajouter un nouvel agent (placeholder)
+            document.getElementById('addAgent').addEventListener('click', () => {
+                alert('Fonctionnalité en développement - Interface de création d\'agents à venir');
+            });
+
+            // Voir tous les logs (placeholder)
+            document.getElementById('viewAllLogs').addEventListener('click', () => {
+                alert('Interface de logs détaillés en développement');
+            });
+        }
+
+        // Fonctions pour l'agent de Veille Concurrentielle
+        function openVeilleAgent() {
+            // Redirection vers l'interface de l'agent
+            window.open('agents_ia/community_management/veille_concurrentielle/interface-web.html', '_blank');
+        }
+
+        function generateVeilleReport() {
+            // Simulation de génération de rapport rapide
+            alert('🔍 Génération d\'un rapport de veille en cours...\n\nVous serez notifié une fois terminé.');
+
+            // Simulation d'un délai puis succès
+            setTimeout(() => {
+                alert('✅ Rapport de veille généré avec succès !\n\nConsultez l\'interface de l\'agent pour voir les résultats.');
+            }, 2000);
+        }
+
+        // Initialisation de la page
+        checkAuth().then(isAuthenticated => {
+            if (isAuthenticated) {
+                generateAgentLogs();
+                setupEventListeners();
+                console.log('✅ Page Agents IA initialisée');
+            }
+        });
+    </script>
+</body>
+</html>

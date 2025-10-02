@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - PuyDeCom Production</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'puy-orange': '#FF7F50',
+                        'puy-pink': '#DB2777',
+                        'puy-dark': '#1F2937'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50">
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="flex items-center">
+                    <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="PuyDeCom" class="w-8 h-8 rounded-full mr-3">
+                    <div>
+                        <h2 class="text-white font-bold text-lg">PuyDeCom</h2>
+                        <p class="text-gray-300 text-xs">Production</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                    </svg>
+                    Dashboard
+                </a>
+                
+                <a href="clients.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    Clients
+                </a>
+                
+                <a href="create-post.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Créer un Post
+                </a>
+                
+                <a href="calendar.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Calendrier
+                </a>
+                
+                <a href="analytics.html" class="nav-item active">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    Analytics
+                </a>
+                
+                <a href="settings.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Paramètres
+                </a>
+                
+                <div class="mt-8 border-t border-white/10 pt-4">
+                    <button class="nav-item" data-logout>
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        Déconnexion
+                    </button>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button id="toggleSidebar" class="lg:hidden p-2 rounded-lg hover:bg-gray-100">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                    <h1 class="text-2xl font-bold text-gray-900 ml-4">Analytics</h1>
+                </div>
+                
+                <div class="header-right">
+                    <button class="btn btn-outline" id="exportBtn">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Exporter
+                    </button>
+                    
+                    <div class="flex items-center space-x-3">
+                        <div class="text-right">
+                            <p class="text-sm font-medium text-gray-900" data-user-name>Utilisateur</p>
+                            <p class="text-xs text-gray-500" data-user-email>email@domain.com</p>
+                        </div>
+                        <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="Avatar" class="w-8 h-8 rounded-full">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="content">
+                <!-- Filters -->
+                <div class="card mb-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                        <div class="flex items-center space-x-4">
+                            <select id="periodFilter" class="form-select w-48">
+                                <option value="7">7 derniers jours</option>
+                                <option value="30" selected>30 derniers jours</option>
+                                <option value="90">3 derniers mois</option>
+                                <option value="365">12 derniers mois</option>
+                            </select>
+                            
+                            <select id="clientFilter" class="form-select w-48">
+                                <option value="">Tous les clients</option>
+                                <option value="1">☕ Café Central</option>
+                                <option value="2">🍝 Restaurant Italia</option>
+                                <option value="3">👗 Boutique Mode</option>
+                                <option value="4">💄 Salon Beauté</option>
+                            </select>
+                            
+                            <select id="platformFilter" class="form-select w-48">
+                                <option value="">Toutes les plateformes</option>
+                                <option value="instagram">Instagram</option>
+                                <option value="facebook">Facebook</option>
+                                <option value="linkedin">LinkedIn</option>
+                                <option value="twitter">Twitter</option>
+                            </select>
+                        </div>
+                        
+                        <button id="refreshBtn" class="btn btn-secondary">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            Actualiser
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPIs Grid -->
+                <div class="stats-grid mb-8">
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="stat-value" id="totalPosts">0</p>
+                                <p class="stat-label">Posts Publiés</p>
+                                <div class="stat-change positive" id="postsChange">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                    </svg>
+                                    +0% vs période précédente
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="stat-value" id="totalReach">0</p>
+                                <p class="stat-label">Portée Totale</p>
+                                <div class="stat-change positive" id="reachChange">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                    </svg>
+                                    +0% vs période précédente
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="stat-value" id="totalEngagement">0</p>
+                                <p class="stat-label">Interactions Totales</p>
+                                <div class="stat-change positive" id="engagementChange">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                    </svg>
+                                    +0% vs période précédente
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 bg-gradient-to-br from-puy-orange to-puy-pink rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="stat-value" id="avgEngagement">0%</p>
+                                <p class="stat-label">Taux d'Engagement Moyen</p>
+                                <div class="stat-change positive" id="avgEngagementChange">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                    </svg>
+                                    +0% vs période précédente
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- Engagement Over Time -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Évolution de l'Engagement</h3>
+                            <select id="engagementChartPeriod" class="form-select w-32">
+                                <option value="daily">Journalier</option>
+                                <option value="weekly" selected>Hebdomadaire</option>
+                                <option value="monthly">Mensuel</option>
+                            </select>
+                        </div>
+                        <canvas id="engagementChart" width="400" height="200"></canvas>
+                    </div>
+
+                    <!-- Platform Performance -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Performance par Plateforme</h3>
+                            <select id="platformMetric" class="form-select w-32">
+                                <option value="posts">Posts</option>
+                                <option value="reach">Portée</option>
+                                <option value="engagement" selected>Engagement</option>
+                            </select>
+                        </div>
+                        <canvas id="platformChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Client Performance & Content Types -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- Top Clients -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Performance des Clients</h3>
+                            <button class="btn btn-outline" onclick="window.location.href='clients.html'">
+                                Voir détails
+                            </button>
+                        </div>
+                        <div class="space-y-4" id="clientPerformance">
+                            <!-- Client performance will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Content Type Performance -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Types de Contenu</h3>
+                        </div>
+                        <canvas id="contentTypeChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Best Performing Posts -->
+                <div class="card mb-8">
+                    <div class="card-header">
+                        <h3 class="card-title">Meilleurs Posts de la Période</h3>
+                        <select id="bestPostsMetric" class="form-select w-32">
+                            <option value="engagement" selected>Engagement</option>
+                            <option value="reach">Portée</option>
+                            <option value="clicks">Clics</option>
+                        </select>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Post</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plateforme</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Portée</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Engagement</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Taux</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bestPostsTable" class="bg-white divide-y divide-gray-200">
+                                <!-- Best posts will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Insights & Recommendations -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- AI Insights -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title flex items-center">
+                                🤖 Insights IA
+                            </h3>
+                        </div>
+                        
+                        <div class="space-y-4" id="aiInsights">
+                            <div class="p-4 bg-blue-50 rounded-lg">
+                                <h4 class="font-semibold text-blue-900 mb-2">📈 Tendances Détectées</h4>
+                                <p class="text-sm text-blue-800">Les posts avec emojis génèrent 23% d'engagement en plus que la moyenne.</p>
+                            </div>
+                            
+                            <div class="p-4 bg-green-50 rounded-lg">
+                                <h4 class="font-semibold text-green-900 mb-2">⏰ Meilleur Moment</h4>
+                                <p class="text-sm text-green-800">Vos posts performent mieux le mardi et jeudi entre 14h et 16h.</p>
+                            </div>
+                            
+                            <div class="p-4 bg-yellow-50 rounded-lg">
+                                <h4 class="font-semibold text-yellow-900 mb-2">🎯 Opportunité</h4>
+                                <p class="text-sm text-yellow-800">Les vidéos courtes (moins de 30s) ont un taux d'engagement 40% supérieur.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Recommandations</h3>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-puy-orange rounded-full mt-2"></div>
+                                <div>
+                                    <h4 class="font-medium text-gray-900">Augmenter la fréquence Instagram</h4>
+                                    <p class="text-sm text-gray-500">Publier 2-3 posts par semaine au lieu d'1 pour améliorer l'engagement.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-puy-pink rounded-full mt-2"></div>
+                                <div>
+                                    <h4 class="font-medium text-gray-900">Diversifier le contenu vidéo</h4>
+                                    <p class="text-sm text-gray-500">Intégrer plus de Reels et Stories pour toucher une audience plus large.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                                <div>
+                                    <h4 class="font-medium text-gray-900">Optimiser les heures de publication</h4>
+                                    <p class="text-sm text-gray-500">Programmer plus de posts entre 14h-16h pour maximiser la portée.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                                <div>
+                                    <h4 class="font-medium text-gray-900">Encourager l'interaction</h4>
+                                    <p class="text-sm text-gray-500">Utiliser plus de call-to-action et de questions pour stimuler les commentaires.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script type="module" src="js/supabase.js"></script>
+    <script>
+        // Mock analytics data
+        const mockAnalytics = {
+            totalPosts: 127,
+            totalReach: 45678,
+            totalEngagement: 5432,
+            avgEngagement: 8.7,
+            postsChange: 15.2,
+            reachChange: 23.1,
+            engagementChange: 12.8,
+            avgEngagementChange: -2.1,
+            
+            engagementOverTime: {
+                labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
+                data: [420, 580, 650, 720]
+            },
+            
+            platformPerformance: {
+                instagram: { posts: 45, reach: 18500, engagement: 2340 },
+                facebook: { posts: 32, reach: 15200, engagement: 1890 },
+                linkedin: { posts: 28, reach: 8900, engagement: 890 },
+                twitter: { posts: 22, reach: 3078, engagement: 312 }
+            },
+            
+            clientPerformance: [
+                { name: 'Café Central', avatar: '☕', posts: 35, engagement: 1850, rate: 9.2 },
+                { name: 'Restaurant Italia', avatar: '🍝', posts: 28, engagement: 1560, rate: 8.8 },
+                { name: 'Boutique Mode', avatar: '👗', posts: 32, engagement: 1420, rate: 8.1 },
+                { name: 'Salon Beauté', avatar: '💄', posts: 24, engagement: 1180, rate: 7.9 }
+            ],
+            
+            contentTypes: {
+                labels: ['Image', 'Vidéo', 'Carrousel', 'Story'],
+                data: [45, 28, 32, 22]
+            },
+            
+            bestPosts: [
+                {
+                    title: 'Menu automne - Café Central',
+                    client: 'Café Central',
+                    platform: 'Instagram',
+                    date: '2024-01-12',
+                    reach: 3200,
+                    engagement: 425,
+                    rate: 13.3
+                },
+                {
+                    title: 'Collection printemps - Boutique Mode',
+                    client: 'Boutique Mode',
+                    platform: 'Instagram',
+                    date: '2024-01-10',
+                    reach: 2850,
+                    engagement: 380,
+                    rate: 13.1
+                },
+                {
+                    title: 'Soirée dégustation - Restaurant Italia',
+                    client: 'Restaurant Italia',
+                    platform: 'Facebook',
+                    date: '2024-01-08',
+                    reach: 2400,
+                    engagement: 290,
+                    rate: 12.1
+                }
+            ]
+        };
+
+        let engagementChart, platformChart, contentTypeChart;
+
+        // Initialize analytics
+        function initAnalytics() {
+            loadKPIs();
+            loadClientPerformance();
+            loadBestPosts();
+            initCharts();
+            setupEventListeners();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Mobile sidebar toggle
+            document.getElementById('toggleSidebar').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('show');
+            });
+
+            // Filters
+            document.getElementById('periodFilter').addEventListener('change', refreshAnalytics);
+            document.getElementById('clientFilter').addEventListener('change', refreshAnalytics);
+            document.getElementById('platformFilter').addEventListener('change', refreshAnalytics);
+            document.getElementById('refreshBtn').addEventListener('click', refreshAnalytics);
+
+            // Chart controls
+            document.getElementById('engagementChartPeriod').addEventListener('change', updateEngagementChart);
+            document.getElementById('platformMetric').addEventListener('change', updatePlatformChart);
+            document.getElementById('bestPostsMetric').addEventListener('change', loadBestPosts);
+
+            // Export
+            document.getElementById('exportBtn').addEventListener('click', exportAnalytics);
+        }
+
+        // Load KPIs
+        function loadKPIs() {
+            document.getElementById('totalPosts').textContent = mockAnalytics.totalPosts.toLocaleString();
+            document.getElementById('totalReach').textContent = mockAnalytics.totalReach.toLocaleString();
+            document.getElementById('totalEngagement').textContent = mockAnalytics.totalEngagement.toLocaleString();
+            document.getElementById('avgEngagement').textContent = mockAnalytics.avgEngagement + '%';
+
+            // Update change indicators
+            updateChangeIndicator('postsChange', mockAnalytics.postsChange);
+            updateChangeIndicator('reachChange', mockAnalytics.reachChange);
+            updateChangeIndicator('engagementChange', mockAnalytics.engagementChange);
+            updateChangeIndicator('avgEngagementChange', mockAnalytics.avgEngagementChange);
+        }
+
+        // Update change indicator
+        function updateChangeIndicator(elementId, value) {
+            const element = document.getElementById(elementId);
+            const isPositive = value >= 0;
+            const icon = isPositive ? 
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>' :
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/>';
+            
+            element.className = `stat-change ${isPositive ? 'positive' : 'negative'}`;
+            element.innerHTML = `
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    ${icon}
+                </svg>
+                ${isPositive ? '+' : ''}${value}% vs période précédente
+            `;
+        }
+
+        // Load client performance
+        function loadClientPerformance() {
+            const container = document.getElementById('clientPerformance');
+            container.innerHTML = mockAnalytics.clientPerformance.map(client => `
+                <div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-puy-orange to-puy-pink rounded-full flex items-center justify-center text-white font-bold">
+                            ${client.avatar}
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">${client.name}</p>
+                            <p class="text-sm text-gray-500">${client.posts} posts</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold text-gray-900">${client.engagement.toLocaleString()}</p>
+                        <p class="text-sm ${client.rate >= 8 ? 'text-green-600' : 'text-yellow-600'}">${client.rate}% engagement</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load best posts
+        function loadBestPosts() {
+            const container = document.getElementById('bestPostsTable');
+            const metric = document.getElementById('bestPostsMetric').value;
+            
+            // Sort posts by selected metric
+            const sortedPosts = [...mockAnalytics.bestPosts].sort((a, b) => {
+                if (metric === 'engagement') return b.engagement - a.engagement;
+                if (metric === 'reach') return b.reach - a.reach;
+                return b.rate - a.rate;
+            });
+            
+            container.innerHTML = sortedPosts.map(post => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-medium text-gray-900">${post.title}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">${post.client}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            ${post.platform}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-500">
+                        ${new Date(post.date).toLocaleDateString('fr-FR')}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                        ${post.reach.toLocaleString()}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                        ${post.engagement.toLocaleString()}
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${post.rate >= 10 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                            ${post.rate}%
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Initialize charts
+        function initCharts() {
+            initEngagementChart();
+            initPlatformChart();
+            initContentTypeChart();
+        }
+
+        // Initialize engagement chart
+        function initEngagementChart() {
+            const ctx = document.getElementById('engagementChart').getContext('2d');
+            
+            engagementChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: mockAnalytics.engagementOverTime.labels,
+                    datasets: [{
+                        label: 'Engagement',
+                        data: mockAnalytics.engagementOverTime.data,
+                        borderColor: '#FF7F50',
+                        backgroundColor: 'rgba(255, 127, 80, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize platform chart
+        function initPlatformChart() {
+            const ctx = document.getElementById('platformChart').getContext('2d');
+            
+            const platforms = Object.keys(mockAnalytics.platformPerformance);
+            const data = platforms.map(platform => mockAnalytics.platformPerformance[platform].engagement);
+            
+            platformChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: platforms.map(p => p.charAt(0).toUpperCase() + p.slice(1)),
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            '#FF7F50',
+                            '#DB2777',
+                            '#3B82F6',
+                            '#10B981'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        // Initialize content type chart
+        function initContentTypeChart() {
+            const ctx = document.getElementById('contentTypeChart').getContext('2d');
+            
+            contentTypeChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: mockAnalytics.contentTypes.labels,
+                    datasets: [{
+                        label: 'Nombre de posts',
+                        data: mockAnalytics.contentTypes.data,
+                        backgroundColor: [
+                            '#FF7F50',
+                            '#DB2777',
+                            '#3B82F6',
+                            '#10B981'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update engagement chart
+        function updateEngagementChart() {
+            const period = document.getElementById('engagementChartPeriod').value;
+            
+            // Mock different data based on period
+            let newData = mockAnalytics.engagementOverTime;
+            if (period === 'daily') {
+                newData = {
+                    labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                    data: [120, 180, 150, 220, 200, 160, 140]
+                };
+            } else if (period === 'monthly') {
+                newData = {
+                    labels: ['Jan', 'Fév', 'Mar', 'Avr'],
+                    data: [1800, 2200, 2100, 2400]
+                };
+            }
+            
+            engagementChart.data.labels = newData.labels;
+            engagementChart.data.datasets[0].data = newData.data;
+            engagementChart.update();
+        }
+
+        // Update platform chart
+        function updatePlatformChart() {
+            const metric = document.getElementById('platformMetric').value;
+            
+            const platforms = Object.keys(mockAnalytics.platformPerformance);
+            const data = platforms.map(platform => mockAnalytics.platformPerformance[platform][metric]);
+            
+            platformChart.data.datasets[0].data = data;
+            platformChart.update();
+        }
+
+        // Refresh analytics
+        async function refreshAnalytics() {
+            // Show loading state
+            const refreshBtn = document.getElementById('refreshBtn');
+            const originalText = refreshBtn.innerHTML;
+            refreshBtn.innerHTML = `
+                <div class="inline-block w-5 h-5 mr-2 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+                Actualisation...
+            `;
+            refreshBtn.disabled = true;
+            
+            try {
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // Reload all data
+                loadKPIs();
+                loadClientPerformance();
+                loadBestPosts();
+                updateEngagementChart();
+                updatePlatformChart();
+                
+                window.PuyDeComAuth.showNotification('Analytics mis à jour !', 'success');
+                
+            } catch (error) {
+                console.error('Error refreshing analytics:', error);
+                window.PuyDeComAuth.showNotification('Erreur lors de la mise à jour', 'error');
+            } finally {
+                refreshBtn.innerHTML = originalText;
+                refreshBtn.disabled = false;
+            }
+        }
+
+        // Export analytics
+        function exportAnalytics() {
+            // Create CSV content
+            const csvContent = [
+                ['Métrique', 'Valeur'],
+                ['Posts Total', mockAnalytics.totalPosts],
+                ['Portée Totale', mockAnalytics.totalReach],
+                ['Engagement Total', mockAnalytics.totalEngagement],
+                ['Taux d\'Engagement Moyen', mockAnalytics.avgEngagement + '%'],
+                [],
+                ['Performance par Client'],
+                ['Client', 'Posts', 'Engagement', 'Taux'],
+                ...mockAnalytics.clientPerformance.map(client => [
+                    client.name, client.posts, client.engagement, client.rate + '%'
+                ])
+            ].map(row => row.join(',')).join('\n');
+            
+            // Create and download file
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `analytics-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            
+            window.PuyDeComAuth.showNotification('Rapport exporté avec succès !', 'success');
+        }
+
+        // Initialize analytics on page load
+        document.addEventListener('DOMContentLoaded', initAnalytics);
+    </script>
+</body>
+</html>

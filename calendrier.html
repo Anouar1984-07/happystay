@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendrier - PuyDeCom Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- FullCalendar CSS et JS -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales/fr.global.min.js'></script>
+    
+    <link rel="icon" href="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'puy-orange': '#FF7F50',
+                        'puy-red': '#DC2626',
+                        'puy-blue': '#1E40AF'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Personnalisation FullCalendar pour PuyDeCom */
+        .fc {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .fc-toolbar-title {
+            color: #1F2937;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .fc-button-primary {
+            background-color: #FF7F50;
+            border-color: #FF7F50;
+            font-weight: 600;
+        }
+        
+        .fc-button-primary:hover {
+            background-color: #DC2626;
+            border-color: #DC2626;
+        }
+        
+        .fc-daygrid-day-top {
+            flex-direction: row;
+            justify-content: center;
+        }
+        
+        .fc-day-today {
+            background-color: rgba(255, 127, 80, 0.1) !important;
+        }
+        
+        .fc-event {
+            border-radius: 6px;
+            border: none;
+            padding: 2px 4px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            z-index: 1;
+            position: relative;
+        }
+        
+        .fc-event:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+        }
+        
+        .fc-event-main {
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        /* Amélioration pour les événements empilés */
+        .fc-event.fc-event-mirror {
+            opacity: 0.8;
+            transform: rotate(2deg);
+        }
+        
+        /* Styles pour différentes priorités avec bordures distinctives */
+        .fc-event.priority-urgent {
+            border-left: 4px solid #EF4444;
+            box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.3), 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .fc-event.priority-high {
+            border-left: 3px solid #F97316;
+            box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .fc-event.priority-medium {
+            border-left: 2px solid #6B7280;
+        }
+        
+        .fc-event.priority-low {
+            opacity: 0.8;
+            border-left: 2px solid #9CA3AF;
+        }
+        
+        /* Amélioration de l'affichage des événements qui se chevauchent */
+        .fc-daygrid-event {
+            margin-bottom: 1px !important;
+        }
+        
+        .fc-timegrid-event {
+            border-radius: 4px !important;
+            margin: 1px !important;
+        }
+        
+        /* Styles pour les tâches qui se chevauchent en vue semaine/jour */
+        .fc-timegrid-event.fc-event-start {
+            border-top-left-radius: 6px !important;
+            border-top-right-radius: 6px !important;
+        }
+        
+        .fc-timegrid-event.fc-event-end {
+            border-bottom-left-radius: 6px !important;
+            border-bottom-right-radius: 6px !important;
+        }
+        
+        /* Améliorer la visibilité du texte dans les événements étroits */
+        .fc-event-title {
+            font-size: 0.75rem;
+            line-height: 1.2;
+            padding: 0 2px;
+        }
+        
+        /* Styles pour les catégories avec patterns distinctifs */
+        .fc-event.category-marketing {
+            background: linear-gradient(135deg, #059669, #047857) !important;
+            border-right: 2px solid #10B981;
+        }
+        
+        .fc-event.category-commercial {
+            background: linear-gradient(135deg, #7C3AED, #6D28D9) !important;
+            border-right: 2px solid #8B5CF6;
+        }
+        
+        .fc-event.category-technique {
+            background: linear-gradient(135deg, #6B7280, #4B5563) !important;
+            border-right: 2px solid #9CA3AF;
+        }
+        
+        .fc-event.category-design {
+            background: linear-gradient(135deg, #EC4899, #DB2777) !important;
+            border-right: 2px solid #F472B6;
+        }
+        
+        .fc-event.category-admin {
+            background: linear-gradient(135deg, #F59E0B, #D97706) !important;
+            border-right: 2px solid #FBBF24;
+        }
+        
+        .fc-event.category-formation {
+            background: linear-gradient(135deg, #3B82F6, #2563EB) !important;
+            border-right: 2px solid #60A5FA;
+        }
+        
+        /* Types d'événements */
+        .fc-event.event-task {
+            background: linear-gradient(135deg, #FF7F50, #DC2626);
+            color: white;
+        }
+        
+        .fc-event.event-meeting {
+            background: linear-gradient(135deg, #059669, #065F46);
+            color: white;
+        }
+        
+        .fc-event.event-deadline {
+            background: linear-gradient(135deg, #DC2626, #991B1B);
+            color: white;
+            border-left: 4px solid #EF4444;
+        }
+        
+        .fc-event.event-reminder {
+            background: linear-gradient(135deg, #7C3AED, #5B21B6);
+            color: white;
+        }
+        
+        /* Amélioration de la vue liste pour les événements multiples */
+        .fc-list-event {
+            border-left: 4px solid transparent !important;
+        }
+        
+        .fc-list-event.priority-urgent {
+            border-left-color: #EF4444 !important;
+            background-color: rgba(239, 68, 68, 0.05) !important;
+        }
+        
+        .fc-list-event.priority-high {
+            border-left-color: #F97316 !important;
+            background-color: rgba(249, 115, 22, 0.05) !important;
+        }
+        
+        .fc-list-event-title {
+            font-weight: 600 !important;
+        }
+        
+        .fc-list-event-time {
+            color: #6B7280 !important;
+            font-size: 0.875rem !important;
+        }
+        
+        /* Amélioration de la vue mois pour les événements qui se chevauchent */
+        .fc-daygrid-event-harness {
+            margin-bottom: 1px !important;
+        }
+        
+        .fc-daygrid-more-link {
+            background: #F3F4F6 !important;
+            border: 1px solid #E5E7EB !important;
+            border-radius: 4px !important;
+            font-size: 0.75rem !important;
+            padding: 2px 6px !important;
+            margin-top: 1px !important;
+        }
+        
+        .fc-popover {
+            z-index: 1000 !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+            border: none !important;
+            border-radius: 8px !important;
+        }
+        
+        .fc-popover-header {
+            background: #F9FAFB !important;
+            border-bottom: 1px solid #E5E7EB !important;
+            padding: 12px 16px !important;
+            font-weight: 600 !important;
+        }
+        
+        .fc-popover-body {
+            padding: 8px !important;
+        }
+        
+        /* Vue responsive */
+        @media (max-width: 768px) {
+            .fc-toolbar {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .fc-toolbar-chunk {
+                display: flex;
+                justify-content: center;
+            }
+            
+            .fc-event {
+                font-size: 0.75rem !important;
+                padding: 1px 3px !important;
+            }
+            
+            .fc-event-title {
+                font-size: 0.7rem !important;
+            }
+            
+            /* Améliorer l'affichage mobile des événements qui se chevauchent */
+            .fc-timegrid-event {
+                margin: 0.5px !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 via-white to-gray-100 font-inter min-h-screen">
+    <!-- Navigation moderne -->
+    <nav class="bg-white/80 backdrop-blur-md shadow-lg border-b border-gray-200/50 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center space-x-3">
+                        <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="PuyDeCom" class="w-10 h-10 rounded-lg shadow-sm">
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-900">PuyDeCom</h1>
+                            <p class="text-xs text-gray-500">Admin Dashboard</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Menu desktop moderne -->
+                    <div class="hidden md:ml-10 md:flex md:space-x-1">
+                        <a href="./dashboard.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="./clients.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                            </svg>
+                            <span>Clients</span>
+                        </a>
+                        <a href="./projets.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                            <span>Projets</span>
+                        </a>
+                        <a href="./leads.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
+                            </svg>
+                            <span>Leads</span>
+                        </a>
+                        <a href="./calendrier.html" class="bg-puy-orange text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 shadow-lg">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Calendrier</span>
+                        </a>
+                        <a href="./analyse360.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>Analyse 360°</span>
+                        </a>
+                        <a href="https://mail.hostinger.com/" target="_blank" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Emails</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Actions utilisateur -->
+                <div class="flex items-center space-x-4">
+                    <button id="logoutButton" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        Déconnexion
+                    </button>
+                    
+                    <!-- Menu mobile -->
+                    <div class="md:hidden">
+                        <button id="mobile-menu-button" type="button" class="bg-gray-100 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-200">
+                            <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Menu mobile -->
+        <div id="mobile-menu" class="md:hidden hidden border-t border-gray-200">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white">
+                <a href="./dashboard.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    📊 Dashboard
+                </a>
+                <a href="./clients.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    👥 Clients
+                </a>
+                <a href="./projets.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    📁 Projets
+                </a>
+                <a href="./leads.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    🎯 Leads
+                </a>
+                <a href="./calendrier.html" class="bg-puy-orange text-white block px-3 py-2 rounded-md text-base font-medium">
+                    📅 Calendrier
+                </a>
+                <a href="./analyse360.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    📊 Analyse 360°
+                </a>
+                <a href="https://mail.hostinger.com/" target="_blank" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    📧 Emails
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <!-- En-tête avec actions -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold bg-gradient-to-r from-puy-orange to-puy-red bg-clip-text text-transparent">
+                        📅 Calendrier PuyDeCom
+                    </h1>
+                    <p class="mt-2 text-lg text-gray-600 font-medium">
+                        Planifiez et organisez vos tâches, rendez-vous et échéances
+                    </p>
+                </div>
+                <div class="mt-4 md:mt-0 flex space-x-3">
+                    <button id="addEventBtn" class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-puy-orange to-puy-red hover:from-puy-red hover:to-red-600 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Nouvel événement
+                    </button>
+                    <button id="addTaskBtn" class="inline-flex items-center px-6 py-3 border border-gray-300 text-sm font-semibold rounded-xl text-gray-700 bg-white hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                        </svg>
+                        Nouvelle tâche
+                    </button>
+                    <button id="refreshBtn" class="inline-flex items-center px-4 py-3 border border-gray-300 text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 transition-all">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Actualiser
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- Calendrier principal -->
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
+                <div id="calendar"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modal Nouvel Événement -->
+    <div id="eventModal" class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 backdrop-blur-sm">
+        <div class="relative top-4 sm:top-20 mx-auto p-6 border-0 w-full max-w-lg shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md">
+            <div class="text-center mb-6">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-r from-puy-orange to-puy-red mb-4">
+                    <span class="text-2xl text-white">📅</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">Nouvel Événement</h3>
+                <p class="text-gray-600 mt-2">Ajoutez un rendez-vous ou un événement</p>
+            </div>
+            
+            <form id="eventForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Titre *</label>
+                    <input type="text" id="eventTitle" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea id="eventDescription" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Date de début *</label>
+                        <input type="datetime-local" id="eventStartTime" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Date de fin</label>
+                        <input type="datetime-local" id="eventEndTime" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Type d'événement</label>
+                    <select id="eventType" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange">
+                        <option value="meeting">🤝 Rendez-vous client</option>
+                        <option value="deadline">⚠️ Échéance</option>
+                        <option value="reminder">🔔 Rappel</option>
+                        <option value="task">📋 Tâche</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Lieu</label>
+                    <input type="text" id="eventLocation" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange" placeholder="Bureaux PuyDeCom, Visioconférence...">
+                </div>
+                
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" id="cancelEvent" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-colors">
+                        Annuler
+                    </button>
+                    <button type="submit" class="px-6 py-3 bg-gradient-to-r from-puy-orange to-puy-red text-white rounded-xl font-semibold hover:from-puy-red hover:to-red-600 shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                        ✨ Créer l'événement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal d'édition/détails d'événement -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 backdrop-blur-sm">
+        <div class="relative top-4 sm:top-10 mx-auto p-6 border-0 w-full max-w-2xl shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md">
+            <div class="text-center mb-6">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-r from-purple-500 to-purple-700 mb-4">
+                    <span id="editModalIcon" class="text-2xl text-white">📋</span>
+                </div>
+                <h3 id="editModalTitle" class="text-2xl font-bold text-gray-900">Modifier l'élément</h3>
+                <p class="text-gray-600 mt-2">Modifiez ou supprimez cet élément</p>
+            </div>
+            
+            <div id="editContent">
+                <!-- Le contenu sera généré dynamiquement -->
+            </div>
+            
+            <div class="flex flex-col sm:flex-row justify-between space-y-3 sm:space-y-0 sm:space-x-3 pt-6 border-t border-gray-200">
+                <button id="deleteButton" class="w-full sm:w-auto px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Supprimer
+                </button>
+                <div class="flex space-x-3">
+                    <button id="cancelEdit" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-colors">
+                        Annuler
+                    </button>
+                    <button id="saveEdit" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                        ✨ Enregistrer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nouvelle Tâche -->
+    <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 backdrop-blur-sm">
+        <div class="relative top-4 sm:top-20 mx-auto p-6 border-0 w-full max-w-lg shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md">
+            <div class="text-center mb-6">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 mb-4">
+                    <span class="text-2xl text-white">📋</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">Nouvelle Tâche</h3>
+                <p class="text-gray-600 mt-2">Créez une tâche à accomplir</p>
+            </div>
+            
+            <form id="taskForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
+                    <input type="text" id="taskTitle" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: Appel client important">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea id="taskDescription" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Détails de la tâche..."></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Date d'échéance *</label>
+                        <input type="datetime-local" id="taskDueDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Temps estimé</label>
+                        <select id="taskEstimatedHours" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <option value="0.5">30 min</option>
+                            <option value="1" selected>1 heure</option>
+                            <option value="2">2 heures</option>
+                            <option value="4">4 heures</option>
+                            <option value="8">1 journée</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                        <select id="taskCategory" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <option value="general">📁 Général</option>
+                            <option value="marketing">📢 Marketing</option>
+                            <option value="commercial">💼 Commercial</option>
+                            <option value="technique">🔧 Technique</option>
+                            <option value="design">🎨 Design</option>
+                            <option value="admin">📄 Admin</option>
+                            <option value="formation">🎓 Formation</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Priorité</label>
+                        <select id="taskPriority" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <option value="low">🟢 Faible</option>
+                            <option value="medium" selected>📊 Moyenne</option>
+                            <option value="high">🔥 Haute</option>
+                            <option value="urgent">🚨 Urgente</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Client associé (optionnel)</label>
+                    <select id="taskClientName" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">-- Aucun client --</option>
+                        <!-- Options générées dynamiquement -->
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Projet associé (optionnel)</label>
+                    <select id="taskProjectName" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">-- Aucun projet --</option>
+                        <!-- Options générées dynamiquement -->
+                    </select>
+                </div>
+                
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" id="cancelTask" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-colors">
+                        Annuler
+                    </button>
+                    <button type="submit" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                        ✅ Créer la tâche
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Configuration Supabase
+        const SUPABASE_URL = 'https://ltqkbtfdjvslqktjtbod.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cWtidGZkanZzbHFrdGp0Ym9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjE1NzgsImV4cCI6MjA3MjM5NzU3OH0.RnZQZ3QmYrcedLK-IefXCQhTeNFJOUNmU7O0f5HGkLg';
+        
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let calendar;
+        let currentUser = null;
+        let clientsList = [];
+        let projectsList = [];
+        
+        // Désactiver les popups indésirables
+        const originalAlert = window.alert;
+        const originalConfirm = window.confirm;
+        
+        // Fonction pour filtrer les popups indésirables
+        function isAllowedPopup(message) {
+            // Autoriser seulement certains popups spécifiques
+            return message && (
+                message.includes('supprimer') || 
+                message.includes('Êtes-vous sûr') ||
+                message.includes('Cette action est irréversible')
+            );
+        }
+        
+        // Override des fonctions alert/confirm pour filtrer
+        window.alert = function(message) {
+            if (isAllowedPopup(message)) {
+                return originalAlert.call(this, message);
+            }
+            console.log('Popup bloqué:', message);
+            return undefined;
+        };
+        
+        window.confirm = function(message) {
+            if (isAllowedPopup(message)) {
+                return originalConfirm.call(this, message);
+            }
+            console.log('Popup confirm bloqué:', message);
+            return false;
+        };
+
+        // Vérifier l'authentification
+        async function checkAuth() {
+            try {
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
+                if (error) throw error;
+                
+                if (!session) {
+                    window.location.href = './index.html';
+                    return false;
+                }
+                
+                currentUser = session.user;
+                return true;
+            } catch (error) {
+                console.error('Erreur d\'authentification:', error);
+                window.location.href = './index.html';
+                return false;
+            }
+        }
+
+        // Déconnexion
+        document.getElementById('logoutButton').addEventListener('click', async () => {
+            // Nettoyage avant déconnexion
+            if (calendar) {
+                calendar.destroy();
+                calendar = null;
+            }
+            window.removeEventListener('resize', handleWindowResize);
+            
+            await supabaseClient.auth.signOut();
+            window.location.href = './index.html';
+        });
+
+        // Gestion du menu mobile
+        document.getElementById('mobile-menu-button').addEventListener('click', () => {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Charger les clients depuis Supabase
+        async function loadClients() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('clients')
+                    .select('id, nom, email, secteur')
+                    .eq('statut', 'actif')
+                    .order('nom', { ascending: true });
+                
+                if (error) throw error;
+                
+                clientsList = data || [];
+                console.log('Clients chargés:', clientsList.length);
+                
+            } catch (error) {
+                console.error('Erreur lors du chargement des clients:', error);
+                clientsList = [];
+            }
+        }
+
+        // Charger les projets depuis Supabase
+        async function loadProjects() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('projets')
+                    .select('id, nom, type, statut, clients(nom)')
+                    .in('statut', ['planifie', 'en_cours'])
+                    .order('nom', { ascending: true });
+                
+                if (error) throw error;
+                
+                projectsList = data || [];
+                console.log('Projets chargés:', projectsList.length);
+                
+            } catch (error) {
+                console.error('Erreur lors du chargement des projets:', error);
+                projectsList = [];
+            }
+        }
+
+        // Générer les options d'une datalist (conservé pour compatibilité)
+        function generateDatalistOptions(items, valueField, labelField) {
+            return items.map(item => 
+                `<option value="${item[valueField]}">${item[labelField] || item[valueField]}</option>`
+            ).join('');
+        }
+
+        // Générer les options d'un select
+        function generateSelectOptions(items, valueField, labelField) {
+            return items.map(item => 
+                `<option value="${item[valueField]}">${item[labelField] || item[valueField]}</option>`
+            ).join('');
+        }
+
+        // Fonctions pour la persistance de la vue du calendrier
+        function saveCalendarView(viewType) {
+            try {
+                localStorage.setItem('puydecom_calendar_view', viewType);
+                console.log('Vue calendrier sauvegardée:', viewType);
+            } catch (error) {
+                console.error('Erreur sauvegarde vue calendrier:', error);
+            }
+        }
+
+        function getSavedCalendarView() {
+            try {
+                const savedView = localStorage.getItem('puydecom_calendar_view');
+                console.log('Vue calendrier récupérée:', savedView);
+                return savedView;
+            } catch (error) {
+                console.error('Erreur récupération vue calendrier:', error);
+                return null;
+            }
+        }
+
+        function getInitialCalendarView() {
+            const savedView = getSavedCalendarView();
+            const isMobile = window.innerWidth < 768;
+            
+            // Si on a une vue sauvegardée, l'utiliser
+            if (savedView && ['dayGridMonth', 'timeGridWeek', 'timeGridDay', 'listWeek'].includes(savedView)) {
+                return savedView;
+            }
+            
+            // Sinon, vue par défaut selon la taille d'écran
+            return isMobile ? 'listWeek' : 'dayGridMonth';
+        }
+
+        // Initialiser le calendrier FullCalendar
+        function initCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: getInitialCalendarView(),
+                locale: 'fr',
+                firstDay: 1,
+                height: 'auto',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+                },
+                buttonText: {
+                    today: "Aujourd'hui",
+                    month: 'Mois',
+                    week: 'Semaine',
+                    day: 'Jour',
+                    list: 'Liste'
+                },
+                
+                // Options pour améliorer l'affichage des événements qui se chevauchent
+                slotMinTime: '06:00:00',
+                slotMaxTime: '22:00:00',
+                slotDuration: '00:30:00',
+                slotLabelInterval: '01:00:00',
+                
+                // Améliorer l'affichage en vue semaine/jour
+                dayMaxEventRows: false, // Permet l'affichage de tous les événements
+                dayMaxEvents: false,
+                moreLinkClick: 'popover', // Popover pour "plus d'événements"
+                
+                // Gestion avancée des événements superposés
+                eventOverlap: true,
+                selectOverlap: false,
+                eventConstraint: null,
+                selectable: false, // Désactiver la sélection de plages de temps
+                unselectAuto: false, // Pas de désélection automatique
+                selectHelper: false, // Pas d'helper pour la sélection
+                
+                // Améliorer l'espacement des événements
+                eventMinHeight: 20,
+                eventShortHeight: 15,
+                
+                // Fonctions de personnalisation de l'affichage
+                eventDidMount: function(info) {
+                    customizeEventDisplay(info);
+                },
+                
+                
+                // Charger les événements depuis Supabase
+                events: async function(info, successCallback, failureCallback) {
+                    try {
+                        console.log('Chargement des événements...');
+                        
+                        // Charger les tâches et événements séparément pour gérer la durée
+                        const [tasksResult, eventsResult] = await Promise.all([
+                            // Charger les tâches avec leur durée estimée
+                            supabaseClient
+                                .from('tasks')
+                                .select('id, title, description, category, priority, status, due_date, estimated_hours, client_name, project_name, created_at')
+                                .gte('due_date', info.start.toISOString())
+                                .lte('due_date', info.end.toISOString())
+                                .neq('status', 'completed'),
+                            
+                            // Charger les événements de calendrier
+                            supabaseClient
+                                .from('calendar_events')
+                                .select('id, title, description, start_time, end_time, event_type, color, location')
+                                .gte('start_time', info.start.toISOString())
+                                .lte('start_time', info.end.toISOString())
+                        ]);
+                        
+                        if (tasksResult.error || eventsResult.error) {
+                            console.error('Erreur lors du chargement:', tasksResult.error || eventsResult.error);
+                            failureCallback(tasksResult.error || eventsResult.error);
+                            return;
+                        }
+                        
+                        const tasks = tasksResult.data || [];
+                        const events = eventsResult.data || [];
+                        
+                        console.log('Données chargées:', { tasks: tasks.length, events: events.length });
+                        
+                        // Formater les tâches avec calcul de durée
+                        const formattedTasks = tasks.map(task => {
+                            const startDate = new Date(task.due_date);
+                            const endDate = new Date(startDate);
+                            
+                            // Ajouter la durée estimée si elle existe (convertir heures en millisecondes)
+                            if (task.estimated_hours && task.estimated_hours > 0) {
+                                endDate.setTime(startDate.getTime() + (task.estimated_hours * 60 * 60 * 1000));
+                            } else {
+                                // Durée par défaut de 1 heure si non spécifiée
+                                endDate.setTime(startDate.getTime() + (1 * 60 * 60 * 1000));
+                            }
+                            
+                            return {
+                                id: `task_${task.id}`,
+                                title: task.title,
+                                start: startDate.toISOString(),
+                                end: endDate.toISOString(),
+                                backgroundColor: getTaskColor(task.priority, task.category),
+                                borderColor: getTaskColor(task.priority, task.category),
+                                textColor: 'white',
+                                className: `event-task priority-${task.priority} category-${task.category}`,
+                                extendedProps: {
+                                    originalId: task.id,
+                                    type: 'task',
+                                    category: task.category,
+                                    priority: task.priority,
+                                    status: task.status,
+                                    description: task.description,
+                                    project_name: task.project_name,
+                                    client_name: task.client_name,
+                                    estimated_hours: task.estimated_hours
+                                }
+                            };
+                        });
+                        
+                        // Formater les événements de calendrier
+                        const formattedEvents = events.map(event => ({
+                            id: `event_${event.id}`,
+                            title: event.title,
+                            start: event.start_time,
+                            end: event.end_time,
+                            backgroundColor: event.color || '#6366F1',
+                            borderColor: event.color || '#6366F1',
+                            textColor: 'white',
+                            className: `event-${event.event_type}`,
+                            extendedProps: {
+                                originalId: event.id,
+                                type: event.event_type || 'meeting',
+                                category: event.event_type,
+                                priority: 'medium',
+                                status: 'scheduled',
+                                description: event.description,
+                                location: event.location
+                            }
+                        }));
+                        
+                        // Combiner tâches et événements
+                        const allEvents = [...formattedTasks, ...formattedEvents];
+                        
+                        successCallback(allEvents);
+                        
+                        
+                    } catch (error) {
+                        console.error('Erreur lors du chargement des événements:', error);
+                        failureCallback(error);
+                    }
+                },
+                
+                
+                // Clic sur un événement pour voir les détails
+                eventClick: function(info) {
+                    showEventDetails(info.event);
+                },
+                
+                // Drag & drop d'événements
+                editable: true,
+                eventDrop: async function(info) {
+                    await updateEventDate(info.event);
+                },
+                
+                eventResize: async function(info) {
+                    await updateEventDate(info.event);
+                },
+                
+                // Sauvegarder la vue quand elle change
+                viewDidMount: function(info) {
+                    saveCalendarView(info.view.type);
+                }
+            });
+            
+            calendar.render();
+            
+            // Gérer les changements de taille d'écran
+            window.addEventListener('resize', handleWindowResize);
+        }
+
+        // Gérer le redimensionnement de la fenêtre
+        function handleWindowResize() {
+            if (!calendar) return;
+            
+            // Débounce pour éviter trop d'appels
+            clearTimeout(window.resizeTimeout);
+            window.resizeTimeout = setTimeout(() => {
+                const currentView = calendar.view.type;
+                const isMobile = window.innerWidth < 768;
+                
+                // Si on passe en mobile et qu'on est en vue mois/semaine, basculer en liste
+                if (isMobile && (currentView === 'dayGridMonth' || currentView === 'timeGridWeek')) {
+                    calendar.changeView('listWeek');
+                }
+                // Si on passe en desktop et qu'on est en liste, basculer en mois
+                else if (!isMobile && currentView === 'listWeek') {
+                    const savedView = getSavedCalendarView();
+                    const targetView = (savedView && savedView !== 'listWeek') ? savedView : 'dayGridMonth';
+                    calendar.changeView(targetView);
+                }
+            }, 250);
+        }
+
+        // Personnaliser l'affichage des événements
+        function customizeEventDisplay(info) {
+            const event = info.event;
+            const element = info.el;
+            const props = event.extendedProps;
+            
+            // Ajouter des indicateurs visuels pour les priorités
+            if (props.priority === 'urgent') {
+                const urgentIndicator = document.createElement('span');
+                urgentIndicator.innerHTML = '🔥';
+                urgentIndicator.style.cssText = 'position: absolute; top: -2px; right: -2px; font-size: 10px;';
+                element.style.position = 'relative';
+                element.appendChild(urgentIndicator);
+            }
+            
+            // Améliorer l'affichage pour les événements courts
+            const duration = event.end ? (event.end.getTime() - event.start.getTime()) / (1000 * 60 * 60) : 1;
+            if (duration < 1) {
+                element.style.minHeight = '15px';
+                const titleEl = element.querySelector('.fc-event-title');
+                if (titleEl) {
+                    titleEl.style.fontSize = '11px';
+                    titleEl.style.fontWeight = '600';
+                }
+            }
+            
+            // Ajouter des informations contextuelles
+            if (props.client_name) {
+                element.setAttribute('data-client', props.client_name);
+            }
+            
+            if (props.estimated_hours) {
+                element.setAttribute('data-duration', `${props.estimated_hours}h`);
+            }
+        }
+
+
+
+        // Ouvrir le modal pour créer un événement
+        function openEventModal(selectedDate = null) {
+            const modal = document.getElementById('eventModal');
+            modal.classList.remove('hidden');
+            
+            if (selectedDate) {
+                const startInput = document.getElementById('eventStartTime');
+                const endInput = document.getElementById('eventEndTime');
+                
+                const start = new Date(selectedDate);
+                const end = new Date(selectedDate);
+                end.setHours(end.getHours() + 1);
+                
+                startInput.value = start.toISOString().slice(0, 16);
+                endInput.value = end.toISOString().slice(0, 16);
+            }
+        }
+
+        // Fermer le modal d'événement
+        document.getElementById('cancelEvent').addEventListener('click', () => {
+            document.getElementById('eventModal').classList.add('hidden');
+            document.getElementById('eventForm').reset();
+        });
+
+        // Créer un nouvel événement
+        document.getElementById('eventForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const title = document.getElementById('eventTitle').value;
+            const description = document.getElementById('eventDescription').value;
+            const startTime = document.getElementById('eventStartTime').value;
+            const endTime = document.getElementById('eventEndTime').value || startTime;
+            const eventType = document.getElementById('eventType').value;
+            const location = document.getElementById('eventLocation').value;
+            
+            try {
+                showNotification('Création de l\'événement...', 'info');
+                
+                const { data, error } = await supabaseClient
+                    .from('calendar_events')
+                    .insert([{
+                        title: title.trim(),
+                        description: description.trim(),
+                        start_time: new Date(startTime).toISOString(),
+                        end_time: new Date(endTime).toISOString(),
+                        event_type: eventType,
+                        location: location.trim() || null,
+                        color: getEventTypeColor(eventType),
+                        user_id: currentUser.id
+                    }])
+                    .select();
+                
+                if (error) throw error;
+                
+                // Fermer le modal
+                document.getElementById('eventModal').classList.add('hidden');
+                document.getElementById('eventForm').reset();
+                
+                // Rafraîchir le calendrier
+                calendar.refetchEvents();
+                
+                showNotification('✨ Événement créé avec succès !', 'success');
+                
+            } catch (error) {
+                console.error('Erreur lors de la création de l\'événement:', error);
+                showNotification('Erreur lors de la création: ' + error.message, 'error');
+            }
+        });
+
+        // Obtenir la couleur selon le type d'événement
+        function getEventTypeColor(eventType) {
+            switch (eventType) {
+                case 'task': return '#FF7F50';
+                case 'meeting': return '#059669';
+                case 'deadline': return '#DC2626';
+                case 'reminder': return '#7C3AED';
+                default: return '#6366F1';
+            }
+        }
+
+        // Obtenir la couleur d'une tâche selon sa priorité et catégorie
+        function getTaskColor(priority, category) {
+            // Priorité urgente override toujours
+            if (priority === 'urgent') return '#DC2626';
+            if (priority === 'high') return '#EA580C';
+            
+            // Couleurs par catégorie
+            switch (category) {
+                case 'marketing': return '#059669';
+                case 'commercial': return '#7C3AED';
+                case 'technique': return '#6B7280';
+                case 'design': return '#EC4899';
+                case 'admin': return '#F59E0B';
+                case 'formation': return '#3B82F6';
+                default: return '#FF7F50'; // Couleur PuyDeCom par défaut
+            }
+        }
+
+        // Variables globales pour l'édition
+        let currentEditEvent = null;
+        let currentEditType = null; // 'event' ou 'task'
+
+        // Ouvrir le modal d'édition pour un événement ou une tâche
+        function showEventDetails(event) {
+            const props = event.extendedProps;
+            const isTask = props.type === 'task';
+            
+            currentEditEvent = event;
+            currentEditType = isTask ? 'task' : 'event';
+            
+            const modal = document.getElementById('editModal');
+            const icon = document.getElementById('editModalIcon');
+            const title = document.getElementById('editModalTitle');
+            const content = document.getElementById('editContent');
+            
+            console.log('Ouverture modal édition:', {
+                eventId: event.id,
+                type: props.type,
+                isTask: isTask,
+                originalId: props.originalId
+            });
+            
+            // Définir l'icône et le titre selon le type
+            if (isTask) {
+                icon.textContent = '📋';
+                title.textContent = 'Modifier la tâche';
+            } else {
+                icon.textContent = getEventTypeIcon(props.type);
+                title.textContent = 'Modifier l\'événement';
+            }
+            
+            // Générer le formulaire d'édition
+            content.innerHTML = generateEditForm(event, isTask);
+            
+            // Populer les selects pour les tâches
+            if (isTask) {
+                setTimeout(() => {
+                    const editClientsSelect = document.getElementById('editTaskClientName');
+                    const editProjectsSelect = document.getElementById('editTaskProjectName');
+                    
+                    if (editClientsSelect) {
+                        editClientsSelect.innerHTML = '<option value="">-- Aucun client --</option>' + generateSelectOptions(clientsList, 'nom', 'nom');
+                        // Restaurer la valeur sélectionnée
+                        if (props.client_name) {
+                            editClientsSelect.value = props.client_name;
+                        }
+                    }
+                    
+                    if (editProjectsSelect) {
+                        editProjectsSelect.innerHTML = '<option value="">-- Aucun projet --</option>' + generateSelectOptions(projectsList, 'nom', 'nom');
+                        // Restaurer la valeur sélectionnée
+                        if (props.project_name) {
+                            editProjectsSelect.value = props.project_name;
+                        }
+                    }
+                }, 100);
+            }
+            
+            modal.classList.remove('hidden');
+        }
+
+        // Générer le formulaire d'édition selon le type
+        function generateEditForm(event, isTask) {
+            const props = event.extendedProps;
+            const startDate = new Date(event.start);
+            const endDate = event.end ? new Date(event.end) : startDate;
+            
+            if (isTask) {
+                return `
+                    <form id="editTaskForm" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
+                                <input type="text" id="editTaskTitle" value="${event.title}" required 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <textarea id="editTaskDescription" rows="3" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">${props.description || ''}</textarea>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Date d'échéance *</label>
+                                <input type="datetime-local" id="editTaskDueDate" value="${startDate.toISOString().slice(0, 16)}" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Temps estimé</label>
+                                <select id="editTaskEstimatedHours" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="0.5" ${props.estimated_hours == 0.5 ? 'selected' : ''}>30 min</option>
+                                    <option value="1" ${props.estimated_hours == 1 || !props.estimated_hours ? 'selected' : ''}>1 heure</option>
+                                    <option value="2" ${props.estimated_hours == 2 ? 'selected' : ''}>2 heures</option>
+                                    <option value="4" ${props.estimated_hours == 4 ? 'selected' : ''}>4 heures</option>
+                                    <option value="8" ${props.estimated_hours == 8 ? 'selected' : ''}>1 journée</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                                <select id="editTaskStatus" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="todo" ${props.status === 'todo' ? 'selected' : ''}>📋 À faire</option>
+                                    <option value="in_progress" ${props.status === 'in_progress' ? 'selected' : ''}>🔄 En cours</option>
+                                    <option value="completed" ${props.status === 'completed' ? 'selected' : ''}>✅ Terminée</option>
+                                    <option value="cancelled" ${props.status === 'cancelled' ? 'selected' : ''}>❌ Annulée</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                                <select id="editTaskCategory" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="general" ${props.category === 'general' ? 'selected' : ''}>📁 Général</option>
+                                    <option value="marketing" ${props.category === 'marketing' ? 'selected' : ''}>📢 Marketing</option>
+                                    <option value="commercial" ${props.category === 'commercial' ? 'selected' : ''}>💼 Commercial</option>
+                                    <option value="technique" ${props.category === 'technique' ? 'selected' : ''}>🔧 Technique</option>
+                                    <option value="design" ${props.category === 'design' ? 'selected' : ''}>🎨 Design</option>
+                                    <option value="admin" ${props.category === 'admin' ? 'selected' : ''}>📄 Admin</option>
+                                    <option value="formation" ${props.category === 'formation' ? 'selected' : ''}>🎓 Formation</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Priorité</label>
+                                <select id="editTaskPriority" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="low" ${props.priority === 'low' ? 'selected' : ''}>🟢 Faible</option>
+                                    <option value="medium" ${props.priority === 'medium' ? 'selected' : ''}>📊 Moyenne</option>
+                                    <option value="high" ${props.priority === 'high' ? 'selected' : ''}>🔥 Haute</option>
+                                    <option value="urgent" ${props.priority === 'urgent' ? 'selected' : ''}>🚨 Urgente</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Client associé</label>
+                                <select id="editTaskClientName" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">-- Aucun client --</option>
+                                    <!-- Options générées après ouverture du modal -->
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Projet associé</label>
+                                <select id="editTaskProjectName" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">-- Aucun projet --</option>
+                                    <!-- Options générées après ouverture du modal -->
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                `;
+            } else {
+                return `
+                    <form id="editEventForm" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
+                                <input type="text" id="editEventTitle" value="${event.title}" required 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange">
+                            </div>
+                            
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <textarea id="editEventDescription" rows="3" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange">${props.description || ''}</textarea>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Date de début *</label>
+                                <input type="datetime-local" id="editEventStartTime" value="${startDate.toISOString().slice(0, 16)}" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Date de fin</label>
+                                <input type="datetime-local" id="editEventEndTime" value="${endDate.toISOString().slice(0, 16)}"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Type d'événement</label>
+                                <select id="editEventType" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange">
+                                    <option value="meeting" ${props.type === 'meeting' ? 'selected' : ''}>🤝 Rendez-vous client</option>
+                                    <option value="deadline" ${props.type === 'deadline' ? 'selected' : ''}>⚠️ Échéance</option>
+                                    <option value="reminder" ${props.type === 'reminder' ? 'selected' : ''}>🔔 Rappel</option>
+                                    <option value="task" ${props.type === 'task' ? 'selected' : ''}>📋 Tâche</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Lieu</label>
+                                <input type="text" id="editEventLocation" value="${props.location || ''}"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange">
+                            </div>
+                        </div>
+                    </form>
+                `;
+            }
+        }
+
+        // Obtenir l'icône selon le type d'événement
+        function getEventTypeIcon(eventType) {
+            switch (eventType) {
+                case 'meeting': return '🤝';
+                case 'deadline': return '⚠️';
+                case 'reminder': return '🔔';
+                case 'task': return '📋';
+                default: return '📅';
+            }
+        }
+
+        // Mettre à jour la date d'un événement (drag & drop)
+        async function updateEventDate(event) {
+            try {
+                const eventId = event.extendedProps.originalId;
+                const isTask = event.extendedProps.type === 'task';
+                
+                const tableName = isTask ? 'tasks' : 'calendar_events';
+                const startField = isTask ? 'due_date' : 'start_time';
+                const endField = isTask ? 'due_date' : 'end_time';
+                
+                console.log('Drag & drop:', { eventId, isTask, tableName });
+                
+                const updateData = {
+                    [startField]: event.start.toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+                
+                if (!isTask && event.end) {
+                    updateData[endField] = event.end.toISOString();
+                } else if (!isTask) {
+                    updateData[endField] = event.start.toISOString();
+                }
+                
+                const { error } = await supabaseClient
+                    .from(tableName)
+                    .update(updateData)
+                    .eq('id', eventId);
+                
+                if (error) throw error;
+                
+                showNotification('📅 Élément déplacé !', 'success');
+                
+            } catch (error) {
+                console.error('Erreur lors de la mise à jour:', error);
+                showNotification('Erreur lors du déplacement: ' + error.message, 'error');
+                calendar.refetchEvents();
+            }
+        }
+
+        // Ouvrir le modal de nouvelle tâche
+        function openTaskModal(selectedDate = null) {
+            const modal = document.getElementById('taskModal');
+            modal.classList.remove('hidden');
+            
+            // Populer les datalists avec les données actuelles
+            populateTaskDataLists();
+            
+            if (selectedDate) {
+                const dueDateInput = document.getElementById('taskDueDate');
+                const dueDate = new Date(selectedDate);
+                dueDate.setHours(12, 0, 0, 0); // Midi par défaut
+                dueDateInput.value = dueDate.toISOString().slice(0, 16);
+            } else {
+                // Défaut : demain à midi
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(12, 0, 0, 0);
+                document.getElementById('taskDueDate').value = tomorrow.toISOString().slice(0, 16);
+            }
+        }
+
+        // Populer les selects du formulaire de nouvelle tâche
+        function populateTaskDataLists() {
+            const clientsSelect = document.getElementById('taskClientName');
+            const projectsSelect = document.getElementById('taskProjectName');
+            
+            if (clientsSelect) {
+                clientsSelect.innerHTML = '<option value="">-- Aucun client --</option>' + generateSelectOptions(clientsList, 'nom', 'nom');
+            }
+            
+            if (projectsSelect) {
+                projectsSelect.innerHTML = '<option value="">-- Aucun projet --</option>' + generateSelectOptions(projectsList, 'nom', 'nom');
+            }
+        }
+
+        // Ouvrir le modal pour créer une tâche
+        document.getElementById('addTaskBtn').addEventListener('click', () => {
+            openTaskModal();
+        });
+
+        // Fermer le modal de tâche
+        document.getElementById('cancelTask').addEventListener('click', () => {
+            document.getElementById('taskModal').classList.add('hidden');
+            document.getElementById('taskForm').reset();
+        });
+
+        // Créer une nouvelle tâche
+        document.getElementById('taskForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const title = document.getElementById('taskTitle').value;
+            const description = document.getElementById('taskDescription').value;
+            const dueDate = document.getElementById('taskDueDate').value;
+            const estimatedHours = document.getElementById('taskEstimatedHours').value;
+            const category = document.getElementById('taskCategory').value;
+            const priority = document.getElementById('taskPriority').value;
+            const clientName = document.getElementById('taskClientName').value;
+            const projectName = document.getElementById('taskProjectName').value;
+            
+            try {
+                showNotification('Création de la tâche...', 'info');
+                
+                const { data, error } = await supabaseClient
+                    .from('tasks')
+                    .insert([{
+                        title: title.trim(),
+                        description: description.trim() || 'Tâche créée depuis le calendrier',
+                        category: category,
+                        priority: priority,
+                        status: 'todo',
+                        progress: 0,
+                        due_date: new Date(dueDate).toISOString(),
+                        estimated_hours: parseFloat(estimatedHours),
+                        client_name: (clientName && clientName !== "") ? clientName.trim() : null,
+                        project_name: (projectName && projectName !== "") ? projectName.trim() : null,
+                        user_id: currentUser.id
+                    }])
+                    .select();
+                
+                if (error) throw error;
+                
+                // Fermer le modal
+                document.getElementById('taskModal').classList.add('hidden');
+                document.getElementById('taskForm').reset();
+                
+                // Rafraîchir le calendrier
+                calendar.refetchEvents();
+                
+                showNotification('✅ Tâche créée avec succès !', 'success');
+                
+            } catch (error) {
+                console.error('Erreur lors de la création de la tâche:', error);
+                showNotification('Erreur lors de la création: ' + error.message, 'error');
+            }
+        });
+
+        // Ouvrir le modal d'événement
+        document.getElementById('addEventBtn').addEventListener('click', () => {
+            openEventModal();
+        });
+
+        // Actualiser le calendrier
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            if (calendar) {
+                showNotification('Actualisation...', 'info');
+                calendar.refetchEvents();
+                setTimeout(() => {
+                    showNotification('✅ Calendrier mis à jour !', 'success');
+                }, 1000);
+            }
+        });
+
+        // Fonction pour afficher les notifications
+        function showNotification(message, type = 'info') {
+            // Supprimer les anciennes notifications
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(n => n.remove());
+            
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+            notification.className += ` fixed top-6 right-6 ${bgColor} text-white px-6 py-4 rounded-xl shadow-2xl z-50 transform transition-transform duration-300`;
+            notification.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="text-2xl">${type === 'success' ? '✨' : type === 'error' ? '⚠️' : 'ℹ️'}</div>
+                    <div class="font-semibold">${message}</div>
+                </div>
+            `;
+            notification.style.transform = 'translateX(100%)';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 300);
+            }, 4000);
+        }
+
+        // Gestion des événements du modal d'édition
+        document.getElementById('cancelEdit').addEventListener('click', () => {
+            document.getElementById('editModal').classList.add('hidden');
+            currentEditEvent = null;
+            currentEditType = null;
+        });
+
+        // Enregistrer les modifications
+        document.getElementById('saveEdit').addEventListener('click', async () => {
+            if (!currentEditEvent || !currentEditType) return;
+            
+            try {
+                showNotification('Enregistrement des modifications...', 'info');
+                
+                const eventId = currentEditEvent.extendedProps.originalId;
+                console.log('Sauvegarde:', { eventId, type: currentEditType });
+                
+                if (currentEditType === 'task') {
+                    await updateTask(eventId);
+                } else {
+                    await updateEvent(eventId);
+                }
+                
+                document.getElementById('editModal').classList.add('hidden');
+                calendar.refetchEvents();
+                showNotification('✨ Modifications enregistrées !', 'success');
+                
+                currentEditEvent = null;
+                currentEditType = null;
+                
+            } catch (error) {
+                console.error('Erreur lors de l\'enregistrement:', error);
+                showNotification('Erreur lors de l\'enregistrement: ' + error.message, 'error');
+            }
+        });
+
+        // Supprimer l'élément
+        document.getElementById('deleteButton').addEventListener('click', async () => {
+            if (!currentEditEvent || !currentEditType) return;
+            
+            const confirmDelete = confirm(`Êtes-vous sûr de vouloir supprimer cette ${currentEditType === 'task' ? 'tâche' : 'événement'} ?\n\nCette action est irréversible.`);
+            
+            if (!confirmDelete) return;
+            
+            try {
+                showNotification('Suppression en cours...', 'info');
+                
+                const eventId = currentEditEvent.extendedProps.originalId;
+                const tableName = currentEditType === 'task' ? 'tasks' : 'calendar_events';
+                
+                console.log('Suppression:', { eventId, tableName, type: currentEditType });
+                
+                const { error } = await supabaseClient
+                    .from(tableName)
+                    .delete()
+                    .eq('id', eventId);
+                
+                if (error) throw error;
+                
+                document.getElementById('editModal').classList.add('hidden');
+                calendar.refetchEvents();
+                showNotification('🗑️ Élément supprimé !', 'success');
+                
+                currentEditEvent = null;
+                currentEditType = null;
+                
+            } catch (error) {
+                console.error('Erreur lors de la suppression:', error);
+                showNotification('Erreur lors de la suppression: ' + error.message, 'error');
+            }
+        });
+
+        // Fonction pour mettre à jour une tâche
+        async function updateTask(taskId) {
+            const { error } = await supabaseClient
+                .from('tasks')
+                .update({
+                    title: document.getElementById('editTaskTitle').value.trim(),
+                    description: document.getElementById('editTaskDescription').value.trim(),
+                    due_date: new Date(document.getElementById('editTaskDueDate').value).toISOString(),
+                    estimated_hours: parseFloat(document.getElementById('editTaskEstimatedHours').value),
+                    status: document.getElementById('editTaskStatus').value,
+                    category: document.getElementById('editTaskCategory').value,
+                    priority: document.getElementById('editTaskPriority').value,
+                    client_name: (() => {
+                        const value = document.getElementById('editTaskClientName').value;
+                        return (value && value !== "") ? value.trim() : null;
+                    })(),
+                    project_name: (() => {
+                        const value = document.getElementById('editTaskProjectName').value;
+                        return (value && value !== "") ? value.trim() : null;
+                    })(),
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', taskId);
+                
+            if (error) throw error;
+        }
+
+        // Fonction pour mettre à jour un événement
+        async function updateEvent(eventId) {
+            const startTime = document.getElementById('editEventStartTime').value;
+            const endTime = document.getElementById('editEventEndTime').value;
+            const eventType = document.getElementById('editEventType').value;
+            
+            const { error } = await supabaseClient
+                .from('calendar_events')
+                .update({
+                    title: document.getElementById('editEventTitle').value.trim(),
+                    description: document.getElementById('editEventDescription').value.trim(),
+                    start_time: new Date(startTime).toISOString(),
+                    end_time: endTime ? new Date(endTime).toISOString() : new Date(startTime).toISOString(),
+                    event_type: eventType,
+                    location: document.getElementById('editEventLocation').value.trim() || null,
+                    color: getEventTypeColor(eventType),
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', eventId);
+                
+            if (error) throw error;
+        }
+
+        // Fermer le modal en cliquant à l'extérieur
+        document.getElementById('editModal').addEventListener('click', (e) => {
+            if (e.target.id === 'editModal') {
+                document.getElementById('editModal').classList.add('hidden');
+                currentEditEvent = null;
+                currentEditType = null;
+            }
+        });
+
+        // Initialisation
+        checkAuth().then(async (isAuthenticated) => {
+            if (isAuthenticated) {
+                // Charger les données de base
+                await Promise.all([
+                    loadClients(),
+                    loadProjects()
+                ]);
+                
+                // Initialiser le calendrier
+                initCalendar();
+                
+                // Auto-actualisation toutes les 5 minutes
+                setInterval(() => {
+                    if (calendar) {
+                        calendar.refetchEvents();
+                    }
+                    // Recharger les clients et projets toutes les 5 minutes
+                    loadClients();
+                    loadProjects();
+                }, 5 * 60 * 1000);
+            }
+        });
+    </script>
+</body>
+</html>

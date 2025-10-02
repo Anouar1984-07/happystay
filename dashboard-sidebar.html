@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - PuyDeCom Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="./shared-sidebar.js"></script>
+    <link rel="icon" href="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'puy-orange': '#FF7F50',
+                        'puy-red': '#DC2626',
+                        'puy-blue': '#1E40AF'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+
+        :root {
+            --puy-orange: #FF7F50;
+            --puy-red: #DC2626;
+            --puy-dark: #1F2937;
+            --puy-light: #F97316;
+        }
+
+        .gradient-card {
+            background: linear-gradient(135deg, var(--puy-orange) 0%, #FF6B35 100%);
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .animate-bounce-slow {
+            animation: bounce 3s infinite;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Custom Tailwind classes */
+        .bg-puy-orange { background-color: var(--puy-orange); }
+        .text-puy-orange { color: var(--puy-orange); }
+        .border-puy-orange { border-color: var(--puy-orange); }
+        .hover\:bg-puy-orange:hover { background-color: var(--puy-orange); }
+        .hover\:text-puy-orange:hover { color: var(--puy-orange); }
+        .hover\:text-puy-red:hover { color: var(--puy-red); }
+        .from-puy-orange { --tw-gradient-from: var(--puy-orange); }
+        .to-puy-red { --tw-gradient-to: var(--puy-red); }
+        .hover\:from-puy-red:hover { --tw-gradient-from: var(--puy-red); }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen font-inter">
+    <!-- La sidebar et topbar seront injectées par shared-sidebar.js -->
+
+    <!-- Contenu principal -->
+    <main class="p-6">
+        <!-- Section de stats rapides -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- KPI Clients Actifs -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Clients Actifs</p>
+                        <p class="text-2xl font-bold text-gray-900" id="activeClients">24</p>
+                        <p class="text-xs text-green-600 font-medium mt-1">+2 ce mois</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Projets en Cours -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Projets en Cours</p>
+                        <p class="text-2xl font-bold text-gray-900" id="activeProjects">12</p>
+                        <p class="text-xs text-yellow-600 font-medium mt-1">3 livraisons prévues</p>
+                    </div>
+                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Leads Qualifiés -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Leads Qualifiés</p>
+                        <p class="text-2xl font-bold text-gray-900" id="qualifiedLeads">8</p>
+                        <p class="text-xs text-green-600 font-medium mt-1">+5 cette semaine</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Agents IA -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Agents IA</p>
+                        <p class="text-2xl font-bold text-gray-900" id="activeAgents">2</p>
+                        <div class="flex items-center space-x-1 mt-1">
+                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            <p class="text-xs text-green-600 font-medium">Actifs</p>
+                        </div>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <span class="text-2xl">🤖</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Agents IA Quick View -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Widget Agents IA -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                        <span>🤖</span>
+                        <span>Agents IA</span>
+                    </h3>
+                    <a href="./agents-ia.html" class="text-puy-orange hover:text-puy-red text-sm font-medium">Voir tout →</a>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                        <div class="flex items-center space-x-2">
+                            <span>🔍</span>
+                            <span class="text-sm font-medium">Veille Concurrentielle</span>
+                        </div>
+                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Actif</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                        <div class="flex items-center space-x-2">
+                            <span>✍️</span>
+                            <span class="text-sm font-medium">Générateur Contenu</span>
+                        </div>
+                        <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">Dev</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                        <div class="flex items-center space-x-2">
+                            <span>🎣</span>
+                            <span class="text-sm font-medium">Qualification Leads</span>
+                        </div>
+                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Test</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activité Récente -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Activité Récente</h3>
+                <div class="space-y-3">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-green-600 text-xs">🤖</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm text-gray-900 font-medium">Agent Veille: Rapport généré</p>
+                            <p class="text-xs text-gray-500">Il y a 15 minutes</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-blue-600 text-xs">👥</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm text-gray-900 font-medium">Nouveau client: Restaurant X</p>
+                            <p class="text-xs text-gray-500">Il y a 2 heures</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-yellow-600 text-xs">🎯</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm text-gray-900 font-medium">Projet livré: Site E-commerce</p>
+                            <p class="text-xs text-gray-500">Il y a 5 heures</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions Rapides -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Actions Rapides</h3>
+                <div class="space-y-3">
+                    <button class="w-full bg-puy-orange text-white px-4 py-3 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors flex items-center justify-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        <span>Nouveau Client</span>
+                    </button>
+                    <button class="w-full bg-green-500 text-white px-4 py-3 rounded-lg text-sm font-medium hover:bg-green-600 transition-colors flex items-center justify-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
+                        <span>Nouveau Projet</span>
+                    </button>
+                    <button class="w-full bg-blue-500 text-white px-4 py-3 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                        <span>Qualifier Lead</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graphiques -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Graphique CA -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900">Chiffre d'Affaires</h3>
+                    <select class="text-sm border border-gray-300 rounded-lg px-3 py-1">
+                        <option>30 derniers jours</option>
+                        <option>3 derniers mois</option>
+                        <option>12 derniers mois</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Graphique Projets -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900">Répartition Projets</h3>
+                    <div class="flex space-x-2">
+                        <span class="w-3 h-3 bg-puy-orange rounded-full"></span>
+                        <span class="text-xs text-gray-600">En cours</span>
+                        <span class="w-3 h-3 bg-green-500 rounded-full ml-3"></span>
+                        <span class="text-xs text-gray-600">Terminés</span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="projectsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tableau Clients Récents -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-gray-900">Clients Récents</h3>
+                <a href="./clients.html" class="text-puy-orange hover:text-puy-red text-sm font-medium">Voir tous →</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 text-sm font-medium text-gray-600">Client</th>
+                            <th class="text-left py-3 text-sm font-medium text-gray-600">Service</th>
+                            <th class="text-left py-3 text-sm font-medium text-gray-600">Status</th>
+                            <th class="text-left py-3 text-sm font-medium text-gray-600">Score IA</th>
+                            <th class="text-left py-3 text-sm font-medium text-gray-600">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentClients">
+                        <tr class="border-b border-gray-100">
+                            <td class="py-3">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <span class="text-blue-600 text-xs font-bold">RC</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">Restaurant Gourmet</p>
+                                        <p class="text-sm text-gray-500">contact@restaurant.fr</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3 text-sm text-gray-600">Community Management</td>
+                            <td class="py-3">
+                                <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">Actif</span>
+                            </td>
+                            <td class="py-3">
+                                <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">🤖 92/100</span>
+                            </td>
+                            <td class="py-3 text-sm text-gray-600">22/09/2024</td>
+                        </tr>
+                        <tr class="border-b border-gray-100">
+                            <td class="py-3">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                        <span class="text-green-600 text-xs font-bold">BC</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">Boutique Chic</p>
+                                        <p class="text-sm text-gray-500">info@boutique.fr</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3 text-sm text-gray-600">Site E-commerce</td>
+                            <td class="py-3">
+                                <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">En cours</span>
+                            </td>
+                            <td class="py-3">
+                                <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">🤖 87/100</span>
+                            </td>
+                            <td class="py-3 text-sm text-gray-600">20/09/2024</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Configuration Supabase
+        const SUPABASE_URL = 'https://ltqkbtfdjvslqktjtbod.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cWtidGZkanZzbHFrdGp0Ym9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjE1NzgsImV4cCI6MjA3MjM5NzU3OH0.RnZQZ3QmYrcedLK-IefXCQhTeNFJOUNmU7O0f5HGkLg';
+
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        window.supabaseClient = supabaseClient;
+
+        // Vérification de l'authentification
+        async function checkAuth() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = './index.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Initialisation des graphiques
+        function initCharts() {
+            // Graphique CA
+            const revenueCtx = document.getElementById('revenueChart');
+            if (revenueCtx) {
+                new Chart(revenueCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun'],
+                        datasets: [{
+                            label: 'Chiffre d\'Affaires',
+                            data: [12000, 15000, 18000, 22000, 19000, 25000],
+                            borderColor: '#FF7F50',
+                            backgroundColor: 'rgba(255, 127, 80, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString() + '€';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Graphique Projets
+            const projectsCtx = document.getElementById('projectsChart');
+            if (projectsCtx) {
+                new Chart(projectsCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['En cours', 'Terminés', 'En attente'],
+                        datasets: [{
+                            data: [12, 28, 5],
+                            backgroundColor: ['#FF7F50', '#10B981', '#F59E0B'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Initialisation de la page
+        async function initPage() {
+            if (await checkAuth()) {
+                // Initialiser la sidebar avec titre personnalisé
+                window.initAdminSidebar('Dashboard', 'Vue d\'ensemble de l\'activité');
+
+                // Initialiser les graphiques
+                initCharts();
+
+                console.log('✅ Dashboard avec sidebar initialisé');
+            }
+        }
+
+        // Démarrage de l'application
+        document.addEventListener('DOMContentLoaded', initPage);
+    </script>
+</body>
+</html>

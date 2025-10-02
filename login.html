@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - PuyDeCom Production</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="icon" href="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'puy-orange': '#FF7F50',
+                        'puy-pink': '#DB2777',
+                        'puy-dark': '#1F2937'
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.5s ease-out'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #FF7F50 0%, #DB2777 100%);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .input-focus:focus {
+            border-color: #FF7F50;
+            box-shadow: 0 0 0 3px rgba(255, 127, 80, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md animate-slide-up">
+        <!-- Logo et titre -->
+        <div class="text-center mb-8">
+            <div class="flex justify-center mb-4">
+                <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" 
+                     alt="PuyDeCom" 
+                     class="w-16 h-16 rounded-full shadow-lg border-2 border-white/20">
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">PuyDeCom Production</h1>
+            <p class="text-white/80">Plateforme de gestion de réseaux sociaux avec IA</p>
+        </div>
+
+        <!-- Formulaire de connexion -->
+        <div class="glass-effect rounded-2xl p-8 shadow-2xl">
+            <form id="loginForm" class="space-y-6">
+                <div class="space-y-4">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-white mb-2">
+                            Adresse email
+                        </label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            required
+                            class="input-focus w-full px-4 py-3 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/60 focus:outline-none transition-all duration-200"
+                            placeholder="votre@email.com"
+                        />
+                    </div>
+                    
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-white mb-2">
+                            Mot de passe
+                        </label>
+                        <div class="relative">
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                required
+                                class="input-focus w-full px-4 py-3 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/60 focus:outline-none transition-all duration-200"
+                                placeholder="••••••••"
+                            />
+                            <button
+                                type="button"
+                                id="togglePassword"
+                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Messages d'erreur -->
+                <div id="errorMessage" class="hidden bg-red-500/20 border border-red-500/50 text-red-100 px-4 py-3 rounded-lg">
+                    <div class="flex">
+                        <svg class="w-5 h-5 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span id="errorText"></span>
+                    </div>
+                </div>
+                
+                <!-- Bouton de connexion -->
+                <button
+                    type="submit"
+                    id="loginButton"
+                    class="w-full bg-white text-puy-dark font-semibold py-3 px-4 rounded-lg hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 transform hover:scale-105"
+                >
+                    <span id="loginButtonText">Se connecter</span>
+                    <div id="loginSpinner" class="hidden inline-block w-4 h-4 ml-2 border-2 border-puy-dark/30 border-t-puy-dark rounded-full animate-spin"></div>
+                </button>
+                
+                <!-- Lien vers admin -->
+                <div class="text-center pt-4">
+                    <p class="text-white/80 text-sm">
+                        Besoin d'accéder à l'interface admin ?
+                        <a href="https://admin.puydecom.fr" class="text-white font-medium hover:underline ml-1">
+                            Admin PuyDeCom
+                        </a>
+                    </p>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Footer -->
+        <div class="text-center mt-8 text-white/60 text-sm">
+            <p>&copy; 2024 PuyDeCom. Tous droits réservés.</p>
+        </div>
+    </div>
+
+    <script type="module" src="js/supabase.js"></script>
+    <script>
+        // Toggle password visibility
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            // Change icon
+            const icon = this.querySelector('svg');
+            if (type === 'text') {
+                icon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"/>
+                `;
+            } else {
+                icon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                `;
+            }
+        });
+
+        // Fonction pour afficher les erreurs
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+
+        // Fonction pour cacher les erreurs
+        function hideError() {
+            document.getElementById('errorMessage').classList.add('hidden');
+        }
+
+        // Fonction pour toggle le loading state
+        function toggleLoading(isLoading) {
+            const button = document.getElementById('loginButton');
+            const buttonText = document.getElementById('loginButtonText');
+            const spinner = document.getElementById('loginSpinner');
+            
+            if (isLoading) {
+                button.disabled = true;
+                buttonText.textContent = 'Connexion...';
+                spinner.classList.remove('hidden');
+                button.classList.add('opacity-75');
+            } else {
+                button.disabled = false;
+                buttonText.textContent = 'Se connecter';
+                spinner.classList.add('hidden');
+                button.classList.remove('opacity-75');
+            }
+        }
+
+        // Gestion du formulaire de connexion
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            hideError();
+            toggleLoading(true);
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                // Utilisation de la fonction globale signIn
+                const result = await window.PuyDeComAuth.signIn(email, password);
+                
+                if (result.success) {
+                    // Succès - redirection vers dashboard
+                    window.location.href = '/dashboard.html';
+                } else {
+                    // Erreur
+                    showError(result.error || 'Erreur de connexion');
+                }
+            } catch (error) {
+                showError('Une erreur inattendue s\'est produite');
+                console.error('Login error:', error);
+            } finally {
+                toggleLoading(false);
+            }
+        });
+
+        // Vérifier si l'utilisateur est déjà connecté
+        window.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const session = await window.PuyDeComAuth.checkAuth();
+                if (session) {
+                    // Déjà connecté, rediriger vers dashboard
+                    window.location.href = '/dashboard.html';
+                }
+            } catch (error) {
+                // Pas connecté, rester sur la page de login
+                console.log('Utilisateur non connecté');
+            }
+        });
+    </script>
+</body>
+</html>

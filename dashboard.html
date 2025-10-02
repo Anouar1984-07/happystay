@@ -1,0 +1,2375 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - PuyDeCom Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="icon" href="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'puy-orange': '#FF7F50',
+                        'puy-red': '#DC2626',
+                        'puy-blue': '#1E40AF'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        :root {
+            --puy-orange: #FF7F50;
+            --puy-red: #DC2626;
+            --puy-dark: #1F2937;
+            --puy-light: #F97316;
+        }
+        
+        .gradient-card {
+            background: linear-gradient(135deg, var(--puy-orange) 0%, #FF6B35 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .animate-bounce-slow {
+            animation: bounce 3s infinite;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        /* Custom Tailwind classes */
+        .bg-puy-orange { background-color: var(--puy-orange); }
+        .text-puy-orange { color: var(--puy-orange); }
+        .border-puy-orange { border-color: var(--puy-orange); }
+        .hover\:bg-puy-orange:hover { background-color: var(--puy-orange); }
+        .hover\:text-puy-orange:hover { color: var(--puy-orange); }
+        .hover\:text-puy-red:hover { color: var(--puy-red); }
+        .from-puy-orange { --tw-gradient-from: var(--puy-orange); }
+        .to-puy-red { --tw-gradient-to: var(--puy-red); }
+        .hover\:from-puy-red:hover { --tw-gradient-from: var(--puy-red); }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-inter">
+    
+    <!-- Navigation moderne -->
+    <nav class="bg-white/80 backdrop-blur-md shadow-lg border-b border-gray-200/50 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center space-x-3">
+                        <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="PuyDeCom" class="w-10 h-10 rounded-lg shadow-sm">
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-900">PuyDeCom</h1>
+                            <p class="text-xs text-gray-500">Admin Dashboard</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Menu desktop moderne -->
+                    <div class="hidden md:ml-10 md:flex md:space-x-1">
+                        <a href="./dashboard.html" class="bg-puy-orange text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 shadow-lg">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="./clients.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                            </svg>
+                            <span>Clients</span>
+                        </a>
+                        <a href="./projets.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                            <span>Projets</span>
+                        </a>
+                        <a href="./leads.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
+                            </svg>
+                            <span>Leads</span>
+                        </a>
+                        <a href="./calendrier.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Calendrier</span>
+                        </a>
+                        <a href="./analyse360.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>Analyse 360°</span>
+                        </a>
+                        <a href="https://mail.hostinger.com/" target="_blank" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Emails</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Actions droite -->
+                <div class="flex items-center space-x-4">
+                    <button id="logoutButton" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors shadow-lg">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        <span class="hidden md:inline">Déconnexion</span>
+                    </button>
+                    
+                    <!-- Menu mobile -->
+                    <div class="md:hidden">
+                        <button id="mobile-menu-button" type="button" class="bg-gray-100 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-200">
+                            <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Menu mobile -->
+        <div id="mobile-menu" class="md:hidden hidden border-t border-gray-200">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white">
+                <a href="./dashboard.html" class="bg-puy-orange text-white block px-3 py-2 rounded-md text-base font-medium">
+                    📊 Dashboard
+                </a>
+                <a href="./clients.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    👥 Clients
+                </a>
+                <a href="./projets.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    📁 Projets
+                </a>
+                <a href="./leads.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    🎯 Leads
+                </a>
+                <a href="./calendrier.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    📅 Calendrier
+                </a>
+                <a href="./analyse360.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    📊 Analyse 360°
+                </a>
+                <a href="https://mail.hostinger.com/" target="_blank" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    📧 Emails
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header avec boutons réorganisés -->
+    <header class="bg-white border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            
+            <!-- Boutons de mode - ligne principale -->
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 mb-4">
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex items-center bg-white rounded-xl shadow-sm border border-gray-200 p-1">
+                        <button id="mode-matin" class="mode-btn px-4 py-2 text-sm font-semibold rounded-lg transition-colors bg-puy-orange text-white shadow-sm">
+                            ☀️ Matin
+                        </button>
+                        <button id="mode-commercial" class="mode-btn px-4 py-2 text-sm font-semibold rounded-lg transition-colors text-gray-600 hover:bg-gray-50">
+                            💼 Commercial
+                        </button>
+                        <button id="mode-production" class="mode-btn px-4 py-2 text-sm font-semibold rounded-lg transition-colors text-gray-600 hover:bg-gray-50">
+                            ⚡ Production
+                        </button>
+                        <button id="mode-reporting" class="mode-btn px-4 py-2 text-sm font-semibold rounded-lg transition-colors text-gray-600 hover:bg-gray-50">
+                            📊 Analytics
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Boutons d'actions -->
+                <div class="flex items-center space-x-3">
+                    <button id="refreshBtn" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Actualiser
+                    </button>
+                    <button id="aiAnalysisBtn" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-colors shadow-lg">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        IA Analysis
+                    </button>
+                    <span id="lastUpdate" class="inline-flex items-center px-3 py-2 text-xs text-gray-500 bg-gray-100 rounded-full font-medium">
+                        Mis à jour: --:--:--
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Description et date -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm text-gray-600">
+                        <span id="modeDescription" class="font-medium">Mode Matin : Vos priorités de la journée</span>
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        <span id="currentDate" class="font-medium"></span>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Suggestion IA -->
+            <div id="aiSuggestion" class="mt-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 hidden">
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-blue-800 mb-1">💡 Suggestion IA</p>
+                        <p class="text-sm text-blue-700" id="aiSuggestionText">Analyse en cours...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="space-y-8">
+            
+            <!-- KPIs Cards Adaptatifs -->
+            <div id="kpiContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- KPI Card 1 - Adaptatif -->
+                <div class="kpi-card relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1" data-kpi="kpi1">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="kpi-icon w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white kpi-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path class="kpi-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="kpi-title text-sm font-medium text-gray-500 truncate">Tâches prioritaires</dt>
+                                    <dd class="flex items-baseline">
+                                        <div class="kpi-value text-2xl font-bold text-gray-900" id="kpi1Value">5</div>
+                                        <div class="kpi-trend ml-2 flex items-baseline text-sm font-semibold text-red-600">
+                                            <svg class="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 112 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                            </svg>
+                                            <span class="kpi-trend-text">urgentes</span>
+                                        </div>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kpi-footer bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-3">
+                        <div class="text-sm">
+                            <a href="#" class="kpi-action font-medium text-blue-700 hover:text-blue-600">Gérer les tâches →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI Card 2 - Adaptatif -->
+                <div class="kpi-card relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1" data-kpi="kpi2">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="kpi-icon w-12 h-12 bg-gradient-to-r from-puy-orange to-puy-red rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white kpi-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path class="kpi-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="kpi-title text-sm font-medium text-gray-500 truncate">RDV aujourd'hui</dt>
+                                    <dd class="flex items-baseline">
+                                        <div class="kpi-value text-2xl font-bold text-gray-900" id="kpi2Value">3</div>
+                                        <div class="kpi-trend ml-2 flex items-baseline text-sm font-semibold text-green-600">
+                                            <svg class="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                                            </svg>
+                                            <span class="kpi-trend-text">confirmés</span>
+                                        </div>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kpi-footer bg-gradient-to-r from-orange-50 to-red-50 px-6 py-3">
+                        <div class="text-sm">
+                            <a href="./calendrier.html" class="kpi-action font-medium text-orange-700 hover:text-orange-600">Voir planning →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI Card 3 - Adaptatif -->
+                <div class="kpi-card relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1" data-kpi="kpi3">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="kpi-icon w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white kpi-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path class="kpi-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="kpi-title text-sm font-medium text-gray-500 truncate">Messages non lus</dt>
+                                    <dd class="flex items-baseline">
+                                        <div class="kpi-value text-2xl font-bold text-gray-900" id="kpi3Value">12</div>
+                                        <div class="kpi-trend ml-2 flex items-baseline text-sm font-semibold text-orange-600">
+                                            <svg class="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                            </svg>
+                                            <span class="kpi-trend-text">2h moy</span>
+                                        </div>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kpi-footer bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-3">
+                        <div class="text-sm">
+                            <a href="https://mail.hostinger.com/" class="kpi-action font-medium text-green-700 hover:text-green-600" target="_blank">Répondre →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI Card 4 - Adaptatif -->
+                <div class="kpi-card relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1" data-kpi="kpi4">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="kpi-icon w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white kpi-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path class="kpi-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="kpi-title text-sm font-medium text-gray-500 truncate">Productivité</dt>
+                                    <dd class="flex items-baseline">
+                                        <div class="kpi-value text-2xl font-bold text-gray-900" id="kpi4Value">87%</div>
+                                        <div class="kpi-trend ml-2 flex items-baseline text-sm font-semibold text-green-600">
+                                            <svg class="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                                            </svg>
+                                            <span class="kpi-trend-text">+5%</span>
+                                        </div>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kpi-footer bg-gradient-to-r from-purple-50 to-indigo-50 px-6 py-3">
+                        <div class="text-sm">
+                            <span class="kpi-action font-medium text-purple-700">6.5h today</span>
+                            <div class="mt-1">
+                                <div class="w-full bg-purple-200 rounded-full h-2">
+                                    <div class="bg-purple-600 h-2 rounded-full" style="width: 87%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graphiques et activités -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Graphique des leads -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-2xl shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-semibold text-gray-900">Évolution des leads</h3>
+                            <div class="flex space-x-2">
+                                <button class="px-3 py-1 text-xs bg-puy-orange text-white rounded-full">7j</button>
+                                <button class="px-3 py-1 text-xs text-gray-500 hover:bg-gray-100 rounded-full">30j</button>
+                                <button class="px-3 py-1 text-xs text-gray-500 hover:bg-gray-100 rounded-full">3m</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="leadsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activités récentes -->
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900">Activité récente</h3>
+                        <a href="#" class="text-puy-orange hover:text-puy-red text-sm font-medium">Voir tout</a>
+                    </div>
+                    <div class="space-y-4" id="activitesList">
+                        <!-- Les activités récentes seront chargées dynamiquement ici -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projets prioritaires -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900">Projets prioritaires</h3>
+                    <a href="./projets.html" class="text-puy-orange hover:text-puy-red text-sm font-medium">Voir tous</a>
+                </div>
+                <div id="projets-prioritaires-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Les projets prioritaires seront chargés dynamiquement ici -->
+                </div>
+            </div>
+
+            <!-- Tâches et Événements d'aujourd'hui -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- Tâches d'aujourd'hui -->
+                <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-gradient-to-r from-puy-orange to-puy-red rounded-xl flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900">📋 Tâches d'aujourd'hui</h3>
+                                <p class="text-xs text-gray-500" id="taskProgress">- tâches • - terminées</p>
+                            </div>
+                        </div>
+                        <button id="addTaskBtn" class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-puy-orange to-puy-red text-white text-xs font-semibold rounded-lg hover:from-puy-red hover:to-red-600 transition-all transform hover:scale-105 shadow-sm">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            Ajouter
+                        </button>
+                    </div>
+                    
+                    <!-- Barre de progression -->
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between text-sm mb-2">
+                            <span class="font-medium text-gray-700">Progression du jour</span>
+                            <span class="font-bold text-puy-orange" id="progressPercent">-</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                            <div id="progressBar" class="bg-gradient-to-r from-puy-orange to-puy-red h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="tasksList" class="space-y-3 max-h-80 overflow-y-auto">
+                        <!-- Les tâches seront chargées dynamiquement -->
+                        <div class="text-center py-8 text-gray-500">
+                            <div class="text-4xl mb-2">📋</div>
+                            <div>Chargement des tâches...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Événements d'aujourd'hui -->
+                <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900">📅 Événements d'aujourd'hui</h3>
+                                <p class="text-xs text-gray-500" id="eventProgress">- événements • - confirmés</p>
+                            </div>
+                        </div>
+                        <button id="addEventBtn" class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-sm">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            Ajouter
+                        </button>
+                    </div>
+                    
+                    <!-- Résumé des événements -->
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between text-sm mb-2">
+                            <span class="font-medium text-gray-700">Statut du jour</span>
+                            <span class="font-bold text-blue-600" id="eventStatus">-</span>
+                        </div>
+                        <div class="flex space-x-3">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                <span class="text-xs text-gray-600">Confirmés</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                <span class="text-xs text-gray-600">En attente</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                                <span class="text-xs text-gray-600">Annulés</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="eventsList" class="space-y-3 max-h-80 overflow-y-auto">
+                        <!-- Les événements seront chargés dynamiquement -->
+                        <div class="text-center py-8 text-gray-500">
+                            <div class="text-4xl mb-2">📅</div>
+                            <div>Chargement des événements...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Configuration Supabase
+        const SUPABASE_URL = 'https://ltqkbtfdjvslqktjtbod.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cWtidGZkanZzbHFrdGp0Ym9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjE1NzgsImV4cCI6MjA3MjM5NzU3OH0.RnZQZ3QmYrcedLK-IefXCQhTeNFJOUNmU7O0f5HGkLg';
+        
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentUser = null;
+
+        // Vérifier l'authentification
+        async function checkAuth() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = './index.html';
+                return false;
+            }
+            
+            currentUser = session.user;
+            return true;
+        }
+
+        // Déconnexion - Event listener simple et fonctionnel
+        function setupLogoutButton() {
+            const logoutBtn = document.getElementById('logoutButton');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    console.log('Déconnexion en cours...');
+                    try {
+                        await supabaseClient.auth.signOut();
+                        window.location.href = './index.html';
+                    } catch (error) {
+                        console.error('Erreur déconnexion:', error);
+                        window.location.href = './index.html';
+                    }
+                });
+                console.log('✅ Bouton déconnexion configuré');
+            } else {
+                console.error('❌ Bouton logoutButton non trouvé');
+            }
+        }
+
+        // Gestion du menu mobile
+        function setupMobileMenu() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+                console.log('✅ Menu mobile configuré');
+            } else {
+                console.log('⚠️ Éléments menu mobile non trouvés');
+            }
+        }
+
+        // Afficher la date actuelle
+        function updateCurrentDate() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            document.getElementById('currentDate').textContent = 
+                now.toLocaleDateString('fr-FR', options);
+        }
+
+        // Fonction pour afficher la dernière mise à jour
+        function updateLastRefreshTime() {
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = 
+                `Mis à jour: ${now.toLocaleTimeString('fr-FR')}`;
+        }
+
+        // Créer le graphique des leads
+        function createLeadsChart() {
+            const ctx = document.getElementById('leadsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                    datasets: [{
+                        label: 'Nouveaux leads',
+                        data: [3, 7, 4, 9, 6, 8, 5],
+                        borderColor: '#FF7F50',
+                        backgroundColor: 'rgba(255, 127, 80, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Charger les KPIs
+        async function loadKPIs() {
+            try {
+                // Charger les statistiques depuis Supabase
+                const [clientsResult, projetsResult, leadsResult, caResult] = await Promise.all([
+                    supabaseClient.from('clients').select('id', { count: 'exact' }),
+                    supabaseClient.from('projets').select('id', { count: 'exact' }),
+                    supabaseClient.from('leads').select('id', { count: 'exact' }),
+                    supabaseClient.from('projets').select('budget').eq('statut', 'termine')
+                ]);
+
+                // Calculer le CA généré (projets terminés)
+                const caGenere = (caResult.data || []).reduce((total, projet) => {
+                    return total + (projet.budget || 0);
+                }, 0);
+
+                // Mettre à jour les KPIs avec les vraies données ou des valeurs par défaut
+                document.getElementById('clientsActifs').textContent = clientsResult.count || 24;
+                document.getElementById('projetsEnCours').textContent = projetsResult.count || 8;
+                document.getElementById('leadsCeMois').textContent = leadsResult.count || 32;
+                document.getElementById('caDuMois').textContent = caGenere.toLocaleString() + '€';
+
+            } catch (error) {
+                console.log('Utilisation des données d\'exemple');
+                // Utiliser les données d'exemple en cas d'erreur
+                document.getElementById('clientsActifs').textContent = '24';
+                document.getElementById('projetsEnCours').textContent = '8';
+                document.getElementById('leadsCeMois').textContent = '32';
+                document.getElementById('caDuMois').textContent = '28 500€';
+            }
+        }
+
+        // Charger les projets prioritaires depuis Supabase
+        async function loadProjetsPrioritaires() {
+            try {
+                // Récupérer les projets avec deadlines proches ou en cours
+                const { data: projets, error } = await supabaseClient
+                    .from('projets')
+                    .select(`
+                        *,
+                        clients!client_id (
+                            nom
+                        )
+                    `)
+                    .in('statut', ['en_cours', 'planifie'])
+                    .order('date_fin_prevue', { ascending: true })
+                    .limit(3);
+
+                if (error) {
+                    console.error('Erreur lors du chargement des projets prioritaires:', error);
+                    displayProjetsPrioritairesFallback();
+                    return;
+                }
+
+                displayProjetsPrioritaires(projets || []);
+
+            } catch (error) {
+                console.error('Erreur:', error);
+                displayProjetsPrioritairesFallback();
+            }
+        }
+
+        // Afficher les projets prioritaires
+        function displayProjetsPrioritaires(projets) {
+            const container = document.getElementById('projets-prioritaires-container');
+
+            if (projets.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-3 text-center py-8 text-gray-500">
+                        <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        <p>Aucun projet prioritaire pour le moment</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = projets.map(projet => {
+                const statutInfo = getStatutInfo(projet.statut);
+                const progression = projet.progression || 0;
+                const progressColor = progression >= 80 ? 'bg-green-500' : progression >= 50 ? 'bg-puy-orange' : 'bg-yellow-500';
+                const deadlineText = getDeadlineText(projet.date_fin_prevue);
+
+                return `
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-puy-orange transition-colors">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-medium text-gray-900">${projet.nom || 'Projet sans nom'}</h4>
+                            <span class="px-2 py-1 text-xs ${statutInfo.class} rounded-full">${statutInfo.text}</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">${projet.clients?.nom || 'Client non défini'}</p>
+                        <p class="text-xs text-gray-400 mt-1">${deadlineText}</p>
+                        <div class="mt-3">
+                            <div class="flex justify-between text-sm">
+                                <span>Progression</span>
+                                <span>${progression}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                <div class="${progressColor} h-2 rounded-full transition-all duration-300" style="width: ${progression}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Afficher un fallback en cas d'erreur
+        function displayProjetsPrioritairesFallback() {
+            const container = document.getElementById('projets-prioritaires-container');
+            container.innerHTML = `
+                <div class="col-span-3 text-center py-8 text-gray-500">
+                    <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                    <p>Impossible de charger les projets prioritaires</p>
+                    <p class="text-xs mt-1">Vérifiez votre connexion</p>
+                </div>
+            `;
+        }
+
+        // Fonctions utilitaires pour les projets
+        function getStatutInfo(statut) {
+            const statutsInfo = {
+                'planifie': { text: 'Planifié', class: 'bg-blue-100 text-blue-800' },
+                'en_cours': { text: 'En cours', class: 'bg-yellow-100 text-yellow-800' },
+                'en_pause': { text: 'En pause', class: 'bg-orange-100 text-orange-800' },
+                'termine': { text: 'Terminé', class: 'bg-green-100 text-green-800' }
+            };
+            return statutsInfo[statut] || { text: statut, class: 'bg-gray-100 text-gray-800' };
+        }
+
+        function getDeadlineText(dateFinPrevue) {
+            if (!dateFinPrevue) return 'Pas de deadline';
+
+            const deadline = new Date(dateFinPrevue);
+            const today = new Date();
+            const diffTime = deadline - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) {
+                return `En retard de ${Math.abs(diffDays)} jour(s)`;
+            } else if (diffDays === 0) {
+                return 'Deadline aujourd\'hui';
+            } else if (diffDays <= 7) {
+                return `Deadline dans ${diffDays} jour(s)`;
+            } else {
+                return `Deadline: ${deadline.toLocaleDateString('fr-FR')}`;
+            }
+        }
+
+        // Charger l'activité récente depuis Supabase
+        async function loadActiviteRecente() {
+            try {
+                // Récupérer les activités récentes depuis différentes tables
+                const [
+                    nouveauxLeads,
+                    projetsModifies,
+                    nouveauxClients,
+                    tachesTerminees
+                ] = await Promise.all([
+                    // Nouveaux leads (dernières 48h)
+                    supabaseClient
+                        .from('leads')
+                        .select('nom, created_at')
+                        .gte('created_at', new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString())
+                        .order('created_at', { ascending: false })
+                        .limit(3),
+
+                    // Projets récemment modifiés
+                    supabaseClient
+                        .from('projets')
+                        .select('nom, statut, updated_at, clients!client_id(nom)')
+                        .gte('updated_at', new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString())
+                        .order('updated_at', { ascending: false })
+                        .limit(3),
+
+                    // Nouveaux clients (dernière semaine)
+                    supabaseClient
+                        .from('clients')
+                        .select('nom, created_at')
+                        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+                        .order('created_at', { ascending: false })
+                        .limit(2),
+
+                    // Tâches récemment terminées
+                    supabaseClient
+                        .from('tasks')
+                        .select('title, updated_at')
+                        .eq('completed', true)
+                        .gte('updated_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+                        .order('updated_at', { ascending: false })
+                        .limit(2)
+                ]);
+
+                // Combiner toutes les activités
+                const activites = [];
+
+                // Ajouter les nouveaux leads
+                if (nouveauxLeads.data) {
+                    nouveauxLeads.data.forEach(lead => {
+                        activites.push({
+                            type: 'lead',
+                            message: `Nouveau lead: ${lead.nom}`,
+                            timestamp: lead.created_at,
+                            color: 'bg-green-500'
+                        });
+                    });
+                }
+
+                // Ajouter les projets modifiés
+                if (projetsModifies.data) {
+                    projetsModifies.data.forEach(projet => {
+                        let message = '';
+                        if (projet.statut === 'termine') {
+                            message = `Projet "${projet.nom}" terminé`;
+                        } else if (projet.statut === 'en_cours') {
+                            message = `Projet "${projet.nom}" démarré`;
+                        } else {
+                            message = `Projet "${projet.nom}" mis à jour`;
+                        }
+
+                        activites.push({
+                            type: 'projet',
+                            message: message,
+                            timestamp: projet.updated_at,
+                            color: projet.statut === 'termine' ? 'bg-blue-500' : 'bg-yellow-500'
+                        });
+                    });
+                }
+
+                // Ajouter les nouveaux clients
+                if (nouveauxClients.data) {
+                    nouveauxClients.data.forEach(client => {
+                        activites.push({
+                            type: 'client',
+                            message: `Nouveau client: ${client.nom}`,
+                            timestamp: client.created_at,
+                            color: 'bg-purple-500'
+                        });
+                    });
+                }
+
+                // Ajouter les tâches terminées
+                if (tachesTerminees.data) {
+                    tachesTerminees.data.forEach(task => {
+                        activites.push({
+                            type: 'task',
+                            message: `Tâche terminée: ${task.title}`,
+                            timestamp: task.updated_at,
+                            color: 'bg-orange-500'
+                        });
+                    });
+                }
+
+                // Trier par date décroissante et limiter à 5
+                activites.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                const activitesRecentes = activites.slice(0, 5);
+
+                displayActiviteRecente(activitesRecentes);
+
+            } catch (error) {
+                console.error('Erreur lors du chargement de l\'activité récente:', error);
+                displayActiviteRecenteFallback();
+            }
+        }
+
+        // Afficher l'activité récente
+        function displayActiviteRecente(activites) {
+            const container = document.getElementById('activitesList');
+
+            if (activites.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        <p>Aucune activité récente</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = activites.map(activite => {
+                const timeAgo = getTimeAgo(activite.timestamp);
+
+                return `
+                    <div class="flex items-start space-x-3">
+                        <div class="w-2 h-2 ${activite.color} rounded-full mt-2 flex-shrink-0"></div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium text-gray-900">${activite.message}</p>
+                            <p class="text-xs text-gray-500">${timeAgo}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Afficher un fallback en cas d'erreur
+        function displayActiviteRecenteFallback() {
+            const container = document.getElementById('activitesList');
+            container.innerHTML = `
+                <div class="text-center py-8 text-gray-500">
+                    <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                    <p>Impossible de charger l'activité récente</p>
+                    <p class="text-xs mt-1">Vérifiez votre connexion</p>
+                </div>
+            `;
+        }
+
+        // Fonction utilitaire pour calculer le temps écoulé
+        function getTimeAgo(timestamp) {
+            const now = new Date();
+            const past = new Date(timestamp);
+            const diffMs = now - past;
+            const diffMins = Math.floor(diffMs / (1000 * 60));
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+            if (diffMins < 1) {
+                return 'À l\'instant';
+            } else if (diffMins < 60) {
+                return `Il y a ${diffMins} minute${diffMins > 1 ? 's' : ''}`;
+            } else if (diffHours < 24) {
+                return `Il y a ${diffHours} heure${diffHours > 1 ? 's' : ''}`;
+            } else if (diffDays < 7) {
+                return `Il y a ${diffDays} jour${diffDays > 1 ? 's' : ''}`;
+            } else {
+                return past.toLocaleDateString('fr-FR');
+            }
+        }
+
+        // Charger les tâches depuis Supabase
+        async function loadTasks() {
+            try {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                
+                const { data: todayTasks, error } = await supabaseClient
+                    .from('tasks')
+                    .select('*')
+                    .gte('due_date', today.toISOString())
+                    .lt('due_date', tomorrow.toISOString())
+                    .order('priority', { ascending: false })
+                    .order('created_at', { ascending: false });
+                
+                if (error && error.code !== 'PGRST116') {
+                    throw error;
+                }
+                
+                const tasks = todayTasks || [];
+                displayTasks(tasks);
+                updateTaskProgress(tasks);
+                
+            } catch (error) {
+                console.log('Erreur lors du chargement des tâches:', error);
+                displayTasks([]);
+            }
+        }
+        
+        // Afficher les tâches
+        function displayTasks(tasks) {
+            const tasksList = document.getElementById('tasksList');
+            
+            if (!tasks || tasks.length === 0) {
+                tasksList.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="text-6xl mb-4">📋</div>
+                        <div class="text-xl font-semibold text-gray-700">Aucune tâche aujourd'hui</div>
+                        <div class="text-gray-500 mt-2">Profitez de cette journée plus calme !</div>
+                        <button onclick="addNewTask()" class="mt-4 px-4 py-2 bg-gradient-to-r from-puy-orange to-puy-red text-white rounded-lg font-semibold hover:from-puy-red hover:to-red-600 transition-all transform hover:scale-105">
+                            ✨ Ajouter une tâche
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            tasksList.innerHTML = tasks.map(task => {
+                const isCompleted = task.status === 'completed';
+                const priorityIcon = getPriorityIcon(task.priority);
+                
+                return `
+                    <div class="task-item flex items-start space-x-3 p-4 hover:bg-gray-50 rounded-xl transition-colors group" 
+                         data-task-id="${task.id}" 
+                         data-completed="${isCompleted}">
+                        <input type="checkbox" 
+                               class="task-checkbox h-5 w-5 text-puy-orange rounded border-2 mt-0.5" 
+                               ${isCompleted ? 'checked' : ''}
+                               data-task-id="${task.id}">
+                        <div class="flex-1 ${isCompleted ? 'opacity-60' : ''}">
+                            <p class="text-sm font-semibold text-gray-900 ${isCompleted ? 'line-through' : ''}">
+                                ${priorityIcon} ${task.title}
+                            </p>
+                            <p class="text-xs mt-1 ${isCompleted ? 'text-green-600 font-medium' : 'text-gray-600'}">
+                                ${isCompleted 
+                                    ? `✓ Terminé ${task.completed_at ? new Date(task.completed_at).toLocaleDateString('fr-FR') : ''}` 
+                                    : formatTaskDetails(task)
+                                }
+                            </p>
+                            ${task.client_name ? `<div class="text-xs text-purple-600 mt-1">🏢 ${task.client_name}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            attachTaskListeners();
+        }
+        
+        // Mettre à jour la progression des tâches
+        function updateTaskProgress(tasks) {
+            const totalTasks = tasks.length;
+            const completedTasks = tasks.filter(task => task.status === 'completed').length;
+            const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+            
+            document.getElementById('taskProgress').textContent = `${totalTasks} tâches • ${completedTasks} terminées`;
+            document.getElementById('progressPercent').textContent = `${completionRate}%`;
+            document.getElementById('progressBar').style.width = `${completionRate}%`;
+        }
+
+        // Basculer le statut d'une tâche
+        async function toggleTask(checkbox, taskItem) {
+            const taskId = checkbox.getAttribute('data-task-id');
+            const isCompleted = checkbox.checked;
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('tasks')
+                    .update({
+                        status: isCompleted ? 'completed' : 'todo',
+                        progress: isCompleted ? 100 : 0,
+                        completed_at: isCompleted ? new Date().toISOString() : null
+                    })
+                    .eq('id', taskId);
+                    
+                if (error) throw error;
+                
+                if (isCompleted) {
+                    showNotification('✨ Tâche terminée ! Félicitations !', 'success');
+                }
+                
+                loadTasks();
+                loadEvents();
+                
+            } catch (error) {
+                console.error('Erreur lors de la mise à jour de la tâche:', error);
+                checkbox.checked = !isCompleted;
+                showNotification('Erreur lors de la mise à jour', 'error');
+            }
+        }
+
+        // Ouvrir le modal de nouvelle tâche
+        function addNewTask() {
+            // Pré-remplir la date avec maintenant
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('modalTaskDueDate').value = now.toISOString().slice(0,16);
+            
+            document.getElementById('taskModal').classList.remove('hidden');
+            document.getElementById('modalTaskTitle').focus();
+        }
+
+        // Charger les événements d'aujourd'hui
+        async function loadEvents() {
+            try {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                
+                const { data: todayEvents, error } = await supabaseClient
+                    .from('calendar_events')
+                    .select('*')
+                    .gte('start_time', today.toISOString())
+                    .lt('start_time', tomorrow.toISOString())
+                    .order('start_time', { ascending: true });
+                
+                if (error && error.code !== 'PGRST116') {
+                    throw error;
+                }
+                
+                const events = todayEvents || [];
+                displayEvents(events);
+                updateEventProgress(events);
+                
+            } catch (error) {
+                console.log('Erreur lors du chargement des événements:', error);
+                displayEvents([]);
+            }
+        }
+        
+        // Afficher les événements
+        function displayEvents(events) {
+            const eventsList = document.getElementById('eventsList');
+            
+            if (!events || events.length === 0) {
+                eventsList.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="text-6xl mb-4">📅</div>
+                        <div class="text-xl font-semibold text-gray-700">Aucun événement aujourd'hui</div>
+                        <div class="text-gray-500 mt-2">Journée libre pour vous concentrer !</div>
+                        <button onclick="addNewEvent()" class="mt-4 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105">
+                            ✨ Ajouter un événement
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            eventsList.innerHTML = events.map(event => {
+                const eventTime = new Date(event.start_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                const statusInfo = getEventStatusInfo(event.status);
+                
+                return `
+                    <div class="event-item flex items-start space-x-3 p-4 hover:bg-gray-50 rounded-xl transition-colors group border-l-4 ${statusInfo.borderClass}" 
+                         data-event-id="${event.id}">
+                        <div class="flex-shrink-0 mt-1">
+                            <div class="w-8 h-8 ${statusInfo.bgClass} rounded-full flex items-center justify-center">
+                                <span class="text-xs font-bold text-white">${eventTime.split(':')[0]}</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-semibold text-gray-900">
+                                ${statusInfo.icon} ${event.title}
+                            </p>
+                            <p class="text-xs text-gray-600 mt-1">
+                                🕐 ${eventTime} ${event.duration ? `• ${event.duration}` : ''}
+                            </p>
+                            
+                            ${event.location ? `<div class="text-xs text-blue-600 mt-1">📍 ${event.location}</div>` : ''}
+                            ${event.description ? `<div class="text-xs text-gray-500 mt-2">${event.description}</div>` : ''}
+                        </div>
+                        <div class="flex-shrink-0">
+                            <select class="event-status-select text-xs border rounded px-2 py-1" data-event-id="${event.id}" onchange="updateEventStatus(this)">
+                                <option value="pending" ${event.status === 'pending' ? 'selected' : ''}>En attente</option>
+                                <option value="confirmed" ${event.status === 'confirmed' ? 'selected' : ''}>Confirmé</option>
+                                <option value="cancelled" ${event.status === 'cancelled' ? 'selected' : ''}>Annulé</option>
+                                <option value="completed" ${event.status === 'completed' ? 'selected' : ''}>Terminé</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Mettre à jour la progression des événements
+        function updateEventProgress(events) {
+            const totalEvents = events.length;
+            const confirmedEvents = events.filter(event => event.status === 'confirmed').length;
+            const completedEvents = events.filter(event => event.status === 'completed').length;
+            
+            document.getElementById('eventProgress').textContent = `${totalEvents} événements • ${confirmedEvents} confirmés`;
+            document.getElementById('eventStatus').textContent = totalEvents > 0 ? 
+                `${confirmedEvents}/${totalEvents} confirmés` : 'Aucun événement';
+        }
+        
+        // Obtenir les informations de statut d'un événement
+        function getEventStatusInfo(status) {
+            const statusMap = {
+                'pending': {
+                    icon: '⏳',
+                    bgClass: 'bg-yellow-500',
+                    borderClass: 'border-yellow-500',
+                    textClass: 'text-yellow-600'
+                },
+                'confirmed': {
+                    icon: '✅',
+                    bgClass: 'bg-green-500',
+                    borderClass: 'border-green-500',
+                    textClass: 'text-green-600'
+                },
+                'cancelled': {
+                    icon: '❌',
+                    bgClass: 'bg-red-500',
+                    borderClass: 'border-red-500',
+                    textClass: 'text-red-600'
+                },
+                'completed': {
+                    icon: '🏁',
+                    bgClass: 'bg-blue-500',
+                    borderClass: 'border-blue-500',
+                    textClass: 'text-blue-600'
+                }
+            };
+            
+            return statusMap[status] || statusMap['pending'];
+        }
+        
+        // Mettre à jour le statut d'un événement
+        async function updateEventStatus(selectElement) {
+            const eventId = selectElement.getAttribute('data-event-id');
+            const newStatus = selectElement.value;
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('calendar_events')
+                    .update({ status: newStatus })
+                    .eq('id', eventId);
+                    
+                if (error) throw error;
+                
+                showNotification(`📅 Statut mis à jour : ${getEventStatusInfo(newStatus).icon}`, 'success');
+                loadEvents();
+                
+            } catch (error) {
+                console.error('Erreur lors de la mise à jour du statut:', error);
+                showNotification('Erreur lors de la mise à jour', 'error');
+                loadEvents();
+            }
+        }
+        
+        // Ouvrir le modal de nouvel événement
+        function addNewEvent() {
+            // Pré-remplir la date avec maintenant
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('modalEventStartTime').value = now.toISOString().slice(0,16);
+            
+            // Pré-remplir la date de fin avec +1h
+            const endTime = new Date(now);
+            endTime.setHours(endTime.getHours() + 1);
+            document.getElementById('modalEventEndTime').value = endTime.toISOString().slice(0,16);
+            
+            document.getElementById('eventModal').classList.remove('hidden');
+            document.getElementById('modalEventTitle').focus();
+        }
+
+        // Fonctions utilitaires
+        function getPriorityIcon(priority) {
+            switch (priority) {
+                case 'urgent': return '🚨';
+                case 'high': return '🔥';
+                case 'medium': return '📊';
+                case 'low': return '🟢';
+                default: return '⚙️';
+            }
+        }
+        
+        function formatTaskDetails(task) {
+            let details = [];
+            
+            if (task.due_date) {
+                const dueDate = new Date(task.due_date);
+                details.push(`📅 ${dueDate.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}`);
+            }
+            
+            if (task.estimated_hours) {
+                details.push(`⏱️ ${task.estimated_hours}h`);
+            }
+            
+            return details.join(' • ') || '📄 Tâche générale';
+        }
+        
+        function attachTaskListeners() {
+            document.querySelectorAll('.task-checkbox').forEach(checkbox => {
+                checkbox.removeEventListener('change', handleTaskChange);
+                checkbox.addEventListener('change', handleTaskChange);
+            });
+        }
+
+        function handleTaskChange(e) {
+            const checkbox = e.target;
+            const taskItem = checkbox.closest('.task-item');
+            toggleTask(checkbox, taskItem);
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+            notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-transform duration-300`;
+            notification.textContent = message;
+            notification.style.transform = 'translateX(100%)';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Simulation de chargement des données
+        function simulateDataLoading() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            const originalText = refreshBtn.innerHTML;
+            
+            refreshBtn.innerHTML = `
+                <svg class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Actualisation...
+            `;
+            refreshBtn.disabled = true;
+
+            setTimeout(() => {
+                refreshBtn.innerHTML = originalText;
+                refreshBtn.disabled = false;
+                updateLastRefreshTime();
+                loadKPIs();
+                loadActiviteRecente();
+                loadProjetsPrioritaires();
+                loadTasks();
+                loadEvents();
+                
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                notification.textContent = 'Données mises à jour !';
+                document.body.appendChild(notification);
+                
+                setTimeout(() => notification.remove(), 3000);
+            }, 1500);
+        }
+
+        // Configuration des boutons principaux
+        function setupMainButtons() {
+            // Bouton actualiser
+            const refreshBtn = document.getElementById('refreshBtn');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    console.log('Actualisation en cours...');
+                    const originalText = refreshBtn.innerHTML;
+                    
+                    refreshBtn.innerHTML = `
+                        <svg class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Actualisation...
+                    `;
+                    refreshBtn.disabled = true;
+                    
+                    try {
+                        await syncDashboardData();
+                        showNotification('✨ Données actualisées !', 'success');
+                    } catch (error) {
+                        console.error('Erreur syncDashboardData:', error);
+                        loadKPIs();
+                        loadActiviteRecente();
+                        loadProjetsPrioritaires();
+                        loadTasks();
+                loadEvents();
+                        updateLastRefreshTime();
+                        showNotification('✨ Données actualisées !', 'success');
+                    } finally {
+                        setTimeout(() => {
+                            refreshBtn.innerHTML = originalText;
+                            refreshBtn.disabled = false;
+                        }, 1000);
+                    }
+                });
+                console.log('✅ Bouton actualiser configuré');
+            } else {
+                console.error('❌ Bouton refreshBtn non trouvé');
+            }
+            
+            // Bouton ajouter tâche
+            const addTaskBtn = document.getElementById('addTaskBtn');
+            if (addTaskBtn) {
+                addTaskBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Ajout de tâche...');
+                    addNewTask();
+                });
+                console.log('✅ Bouton ajouter tâche configuré');
+            } else {
+                console.error('❌ Bouton addTaskBtn non trouvé');
+            }
+
+            // Bouton ajouter événement
+            const addEventBtn = document.getElementById('addEventBtn');
+            if (addEventBtn) {
+                addEventBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Ajout d\'événement...');
+                    addNewEvent();
+                });
+                console.log('✅ Bouton ajouter événement configuré');
+            } else {
+                console.error('❌ Bouton addEventBtn non trouvé');
+            }
+
+            // Gestionnaires pour les modales
+            setupModalHandlers();
+        }
+
+        // Configuration des gestionnaires d'événements pour les modales
+        function setupModalHandlers() {
+            // Modal Task - Fermeture
+            document.getElementById('cancelTask').addEventListener('click', () => {
+                document.getElementById('taskModal').classList.add('hidden');
+                document.getElementById('taskForm').reset();
+            });
+
+            // Modal Event - Fermeture
+            document.getElementById('cancelEvent').addEventListener('click', () => {
+                document.getElementById('eventModal').classList.add('hidden');
+                document.getElementById('eventForm').reset();
+            });
+
+            // Fermeture en cliquant en dehors des modales
+            document.getElementById('taskModal').addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) {
+                    document.getElementById('taskModal').classList.add('hidden');
+                    document.getElementById('taskForm').reset();
+                }
+            });
+
+            document.getElementById('eventModal').addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) {
+                    document.getElementById('eventModal').classList.add('hidden');
+                    document.getElementById('eventForm').reset();
+                }
+            });
+
+            // Formulaire de tâche - Soumission
+            document.getElementById('taskForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await saveNewTask();
+            });
+
+            // Formulaire d'événement - Soumission
+            document.getElementById('eventForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await saveNewEvent();
+            });
+        }
+
+        // Sauvegarder une nouvelle tâche (copié exactement du calendrier.html)
+        async function saveNewTask() {
+            try {
+                const title = document.getElementById('modalTaskTitle').value;
+                const description = document.getElementById('modalTaskDescription').value;
+                const dueDate = document.getElementById('modalTaskDueDate').value;
+                const estimatedHours = document.getElementById('modalTaskEstimatedHours').value;
+                const category = document.getElementById('modalTaskCategory').value;
+                const priority = document.getElementById('modalTaskPriority').value;
+                const clientName = document.getElementById('modalTaskClientId').value;
+
+                const { data, error } = await supabaseClient
+                    .from('tasks')
+                    .insert([{
+                        title: title.trim(),
+                        description: description.trim() || 'Tâche créée depuis le dashboard',
+                        category: category,
+                        priority: priority,
+                        status: 'todo',
+                        progress: 0,
+                        due_date: new Date(dueDate).toISOString(),
+                        estimated_hours: parseFloat(estimatedHours),
+                        client_name: (clientName && clientName !== "") ? clientName.trim() : null,
+                        user_id: currentUser.id
+                    }])
+                    .select();
+                    
+                if (error) throw error;
+                
+                showNotification('✨ Tâche créée avec succès !', 'success');
+                document.getElementById('taskModal').classList.add('hidden');
+                document.getElementById('taskForm').reset();
+                loadTasks();
+                
+            } catch (error) {
+                console.error('Erreur lors de la création de la tâche:', error);
+                showNotification('❌ Erreur lors de la création de la tâche', 'error');
+            }
+        }
+
+        // Sauvegarder un nouvel événement (copié exactement du calendrier.html)
+        async function saveNewEvent() {
+            try {
+                const title = document.getElementById('modalEventTitle').value;
+                const description = document.getElementById('modalEventDescription').value;
+                const startTime = document.getElementById('modalEventStartTime').value;
+                const endTime = document.getElementById('modalEventEndTime').value;
+                const eventType = document.getElementById('modalEventType').value;
+                const location = document.getElementById('modalEventLocation').value;
+
+                const { data, error } = await supabaseClient
+                    .from('calendar_events')
+                    .insert([{
+                        title: title.trim(),
+                        description: description.trim(),
+                        start_time: new Date(startTime).toISOString(),
+                        end_time: new Date(endTime).toISOString(),
+                        event_type: eventType,
+                        location: location.trim() || null,
+                        color: getEventTypeColor(eventType),
+                        user_id: currentUser.id
+                    }])
+                    .select();
+                
+                if (error) throw error;
+                
+                showNotification('✨ Événement créé avec succès !', 'success');
+                document.getElementById('eventModal').classList.add('hidden');
+                document.getElementById('eventForm').reset();
+                loadEvents();
+                
+            } catch (error) {
+                console.error('Erreur lors de la création de l\'événement:', error);
+                showNotification('❌ Erreur lors de la création de l\'événement', 'error');
+            }
+        }
+
+        // Obtenir la couleur selon le type d'événement
+        function getEventTypeColor(eventType) {
+            const colorMap = {
+                'meeting': '#10B981',     // Vert pour RDV
+                'deadline': '#EF4444',   // Rouge pour échéances
+                'reminder': '#8B5CF6',   // Violet pour rappels
+                'task': '#F59E0B'        // Orange pour tâches
+            };
+            return colorMap[eventType] || '#6B7280';
+        }
+
+        // Charger la liste des clients pour les selects (uniquement pour les tâches)
+        async function loadClientOptions() {
+            try {
+                const { data: clients, error } = await supabaseClient
+                    .from('clients')
+                    .select('id, nom')
+                    .order('nom');
+                
+                if (error && error.code !== 'PGRST116') {
+                    throw error;
+                }
+                
+                const taskSelect = document.getElementById('modalTaskClientId');
+                
+                if (taskSelect) {
+                    // Vider les options existantes sauf "Aucun client"
+                    taskSelect.innerHTML = '<option value="">Aucun client</option>';
+                    
+                    if (clients) {
+                        clients.forEach(client => {
+                            const option = document.createElement('option');
+                            option.value = client.nom;
+                            option.textContent = client.nom;
+                            taskSelect.appendChild(option);
+                        });
+                    }
+                }
+                
+            } catch (error) {
+                console.log('Erreur lors du chargement des clients:', error);
+            }
+        }
+
+        // Rendre les fonctions globales
+        window.addNewTask = addNewTask;
+        window.addNewEvent = addNewEvent;
+        window.updateEventStatus = updateEventStatus;
+        
+        // Fonction de diagnostic des boutons (pour débogage)
+        function diagnosticButtons() {
+            const buttonsToCheck = [
+                { id: 'logoutButton', name: 'Bouton Déconnexion' },
+                { id: 'refreshBtn', name: 'Bouton Actualiser' },
+                { id: 'aiAnalysisBtn', name: 'Bouton IA Analysis' },
+                { id: 'addTaskBtn', name: 'Bouton Ajouter Tâche' },
+                { id: 'mode-matin', name: 'Mode Matin' },
+                { id: 'mode-commercial', name: 'Mode Commercial' },
+                { id: 'mode-production', name: 'Mode Production' },
+                { id: 'mode-reporting', name: 'Mode Analytics' }
+            ];
+            
+            const linksToCheck = [
+                './dashboard.html',
+                './clients.html', 
+                './projets.html',
+                './leads.html',
+                './calendrier.html'
+            ];
+            
+            console.group('📊 DIAGNOSTIC BOUTONS DASHBOARD');
+            
+            // Vérifier les boutons
+            buttonsToCheck.forEach(button => {
+                const element = document.getElementById(button.id);
+                const status = element ? '✅' : '❌';
+                const hasListeners = element && (element.onclick || element._eventListeners) ? ' (avec events)' : element ? ' (sans events)' : '';
+                console.log(`${status} ${button.name}${hasListeners}`);
+            });
+            
+            // Vérifier les liens de navigation
+            console.log('\n🔗 LIENS DE NAVIGATION:');
+            linksToCheck.forEach(link => {
+                const elements = document.querySelectorAll(`a[href="${link}"]`);
+                console.log(`${elements.length > 0 ? '✅' : '❌'} ${link} (${elements.length} éléments)`);
+            });
+            
+            // Vérifier les actions KPI
+            console.log('\n📊 ACTIONS KPI:');
+            const kpiActions = document.querySelectorAll('.kpi-action');
+            console.log(`ℹ️ ${kpiActions.length} actions KPI trouvées`);
+            kpiActions.forEach((action, index) => {
+                const href = action.getAttribute('href');
+                const onclick = action.onclick;
+                const status = href || onclick ? '✅' : '⚠️';
+                console.log(`  ${status} KPI ${index + 1}: ${href || (onclick ? 'action JS' : 'pas d action')}`);
+            });
+            
+            console.groupEnd();
+            
+            // Afficher dans l'interface
+            showNotification('📊 Diagnostic terminé - Voir console F12', 'success');
+        }
+        
+        // Rendre diagnostic accessible globalement pour les tests
+        window.diagnosticButtons = diagnosticButtons;
+
+        // =====================================
+        // DASHBOARD HYBRIDE INTELLIGENT
+        // =====================================
+        
+        let currentMode = 'matin';
+        
+        // Configuration des modes
+        const modeConfig = {
+            matin: {
+                description: 'Mode Matin : Vos priorités de la journée',
+                kpis: {
+                    kpi1: { title: 'Tâches prioritaires', value: '5', trend: 'urgentes', trendClass: 'text-red-600', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', iconClass: 'from-blue-500 to-blue-600', action: 'Gérer les tâches →', link: '#tasks' },
+                    kpi2: { title: 'RDV aujourd hui', value: '3', trend: 'confirmés', trendClass: 'text-green-600', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', iconClass: 'from-orange-500 to-red-600', action: 'Voir planning →', link: './calendrier.html' },
+                    kpi3: { title: 'Messages non lus', value: '12', trend: '2h moy', trendClass: 'text-orange-600', icon: 'M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', iconClass: 'from-green-500 to-emerald-600', action: 'Répondre →', link: 'https://mail.hostinger.com/' },
+                    kpi4: { title: 'Productivité', value: '87%', trend: '+5%', trendClass: 'text-green-600', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', iconClass: 'from-purple-500 to-indigo-600', action: '6.5h today', link: '#' }
+                },
+                aiSuggestions: [
+                    'Commencez par relancer Pharmacie Martin (devis en attente depuis 6 jours)',
+                    'RDV Restaurant Le Gourmet à 14h30 : préparez les maquettes validées',
+                    '12 emails non traités - temps de réponse objectif: <2h'
+                ]
+            },
+            commercial: {
+                description: 'Mode Commercial : Pipeline et opportunités',
+                kpis: {
+                    kpi1: { title: 'Leads chauds', value: '8', trend: '+24%', trendClass: 'text-green-600', icon: 'M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122', iconClass: 'from-green-500 to-emerald-600', action: 'Qualifier →', link: './leads.html' },
+                    kpi2: { title: 'Devis en attente', value: '4', trend: '3j moy', trendClass: 'text-orange-600', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', iconClass: 'from-orange-500 to-red-600', action: 'Relancer →', link: '#' },
+                    kpi3: { title: 'CA ce mois', value: '28.5k€', trend: '+18%', trendClass: 'text-green-600', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', iconClass: 'from-purple-500 to-indigo-600', action: '81% objectif', link: '#' },
+                    kpi4: { title: 'Taux conversion', value: '32%', trend: '+7%', trendClass: 'text-green-600', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', iconClass: 'from-blue-500 to-blue-600', action: 'Analyser →', link: '#' }
+                },
+                aiSuggestions: [
+                    'Lead "Artisanat des Volcans" très engagé → planifier demo cette semaine',
+                    'Devis Pharmacie Martin expire demain → call urgent recommandé',
+                    'Opportunité upsell : 3 clients actuels sans service réseaux sociaux'
+                ]
+            },
+            production: {
+                description: 'Mode Production : Projets et deadlines',
+                kpis: {
+                    kpi1: { title: 'Projets actifs', value: '12', trend: 'stable', trendClass: 'text-yellow-600', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10', iconClass: 'from-orange-500 to-red-600', action: 'Gérer →', link: './projets.html' },
+                    kpi2: { title: 'Deadlines < 7j', value: '3', trend: 'urgent', trendClass: 'text-red-600', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', iconClass: 'from-red-500 to-red-600', action: 'Prioriser →', link: '#' },
+                    kpi3: { title: 'Temps facturé', value: '156h', trend: 'ce mois', trendClass: 'text-green-600', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', iconClass: 'from-green-500 to-emerald-600', action: 'Facturer →', link: '#' },
+                    kpi4: { title: 'Sites en ligne', value: '24/24', trend: '100%', trendClass: 'text-green-600', icon: 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9', iconClass: 'from-blue-500 to-blue-600', action: 'Monitor →', link: '#' }
+                },
+                aiSuggestions: [
+                    'Site Restaurant Le Gourmet : livraison prévue dans 5 jours → on track',
+                    'Backup automatique ce soir à 17h30 → 2h estimées',
+                    'Formation WordPress Hotel Mont-Dore demain → préparer documents'
+                ]
+            },
+            reporting: {
+                description: 'Mode Analytics : Performance et insights',
+                kpis: {
+                    kpi1: { title: 'ROI moyen', value: '340%', trend: '+12%', trendClass: 'text-green-600', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', iconClass: 'from-green-500 to-emerald-600', action: 'Détails →', link: '#' },
+                    kpi2: { title: 'Clients satisfaits', value: '96%', trend: '+2%', trendClass: 'text-green-600', icon: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z', iconClass: 'from-pink-500 to-red-500', action: 'Témoignages →', link: '#' },
+                    kpi3: { title: 'Croissance MRR', value: '+15%', trend: 'mensuel', trendClass: 'text-green-600', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', iconClass: 'from-purple-500 to-indigo-600', action: 'Forecast →', link: '#' },
+                    kpi4: { title: 'Leads/jour', value: '2.3', trend: '+0.8', trendClass: 'text-green-600', icon: 'M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122', iconClass: 'from-blue-500 to-blue-600', action: 'Analyse →', link: '#' }
+                },
+                aiSuggestions: [
+                    'Tendance forte : +40% demandes "sites e-commerce" ce trimestre',
+                    'Prédiction : dépassement objectif mensuel de 12% probable',
+                    'Opportunité : 5 clients dormants depuis 90j → campagne de réactivation'
+                ]
+            }
+        };
+        
+        // Fonction pour changer de mode
+        async function switchMode(mode) {
+            currentMode = mode;
+            const config = modeConfig[mode];
+            
+            // Mettre à jour l'interface
+            document.getElementById('modeDescription').textContent = config.description;
+            
+            // Mettre à jour les boutons de mode
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('bg-puy-orange', 'text-white');
+                btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+            });
+            document.getElementById(`mode-${mode}`).classList.add('bg-puy-orange', 'text-white');
+            document.getElementById(`mode-${mode}`).classList.remove('text-gray-600', 'hover:bg-gray-100');
+            
+            // Mettre à jour les KPIs avec données réelles
+            await updateKPIs(config.kpis);
+            
+            // Afficher suggestion IA intelligente
+            await showAISuggestion();
+            
+            // Sauvegarder le mode préféré de l'utilisateur
+            try {
+                await supabaseClient.rpc('update_dashboard_metric', {
+                    metric_name: 'preferred_mode',
+                    metric_text: mode
+                });
+            } catch (error) {
+                console.log('Mode non sauvegardé:', error);
+            }
+        }
+        
+        // Fonction pour mettre à jour les KPIs avec données Supabase
+        async function updateKPIs(kpis) {
+            try {
+                // Récupérer les vraies données depuis Supabase
+                const { data: realData, error } = await supabaseClient.rpc('get_dashboard_stats', { 
+                    mode_name: currentMode 
+                });
+                
+                if (error) {
+                    console.error('Erreur lors du chargement des stats:', error);
+                    // Utiliser les données par défaut en cas d'erreur
+                } else if (realData) {
+                    // Fusionner les vraies données avec la configuration
+                    Object.keys(kpis).forEach(kpiKey => {
+                        if (realData[kpiKey]) {
+                            kpis[kpiKey].value = realData[kpiKey].value;
+                            kpis[kpiKey].trend = realData[kpiKey].trend;
+                        }
+                    });
+                }
+                
+                // Mettre à jour l'interface
+                Object.keys(kpis).forEach(kpiKey => {
+                    const kpi = kpis[kpiKey];
+                    const card = document.querySelector(`[data-kpi="${kpiKey}"]`);
+                    
+                    if (card) {
+                        // Titre
+                        card.querySelector('.kpi-title').textContent = kpi.title;
+                        
+                        // Valeur
+                        card.querySelector('.kpi-value').textContent = kpi.value;
+                        
+                        // Trend
+                        const trendElement = card.querySelector('.kpi-trend');
+                        trendElement.className = `kpi-trend ml-2 flex items-baseline text-sm font-semibold ${kpi.trendClass}`;
+                        card.querySelector('.kpi-trend-text').textContent = kpi.trend;
+                        
+                        // Icône
+                        card.querySelector('.kpi-icon-path').setAttribute('d', kpi.icon);
+                        card.querySelector('.kpi-icon').className = `kpi-icon w-12 h-12 bg-gradient-to-r ${kpi.iconClass} rounded-xl flex items-center justify-center`;
+                        
+                        // Action (utilise la même logique que updateKPIs)
+                        const actionElement = card.querySelector('.kpi-action');
+                        actionElement.textContent = kpi.action;
+                        
+                        if (kpi.link && kpi.link !== '#') {
+                            if (kpi.link.startsWith('http')) {
+                                actionElement.setAttribute('href', kpi.link);
+                                actionElement.setAttribute('target', '_blank');
+                                actionElement.style.pointerEvents = 'auto';
+                            } else if (kpi.link.startsWith('./')) {
+                                actionElement.setAttribute('href', kpi.link);
+                                actionElement.removeAttribute('target');
+                                actionElement.style.pointerEvents = 'auto';
+                            } else if (kpi.link === '#tasks') {
+                                actionElement.removeAttribute('href');
+                                actionElement.style.cursor = 'pointer';
+                                actionElement.style.pointerEvents = 'auto';
+                                actionElement.onclick = () => {
+                                    const tasksSection = document.getElementById('tasksList');
+                                    if (tasksSection) {
+                                        tasksSection.scrollIntoView({ behavior: 'smooth' });
+                                        tasksSection.classList.add('ring-2', 'ring-puy-orange', 'rounded-lg');
+                                        setTimeout(() => {
+                                            tasksSection.classList.remove('ring-2', 'ring-puy-orange', 'rounded-lg');
+                                        }, 3000);
+                                    }
+                                };
+                            }
+                        } else {
+                            actionElement.removeAttribute('href');
+                            actionElement.style.pointerEvents = 'none';
+                        }
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Erreur lors de la mise à jour des KPIs:', error);
+                // Continuer avec les données par défaut
+                updateKPIsUI(kpis);
+            }
+        }
+        
+        // Fonction auxiliaire pour mettre à jour l'UI
+        function updateKPIsUI(kpis) {
+            Object.keys(kpis).forEach(kpiKey => {
+                const kpi = kpis[kpiKey];
+                const card = document.querySelector(`[data-kpi="${kpiKey}"]`);
+                
+                if (card) {
+                    card.querySelector('.kpi-title').textContent = kpi.title;
+                    card.querySelector('.kpi-value').textContent = kpi.value;
+                    
+                    const trendElement = card.querySelector('.kpi-trend');
+                    trendElement.className = `kpi-trend ml-2 flex items-baseline text-sm font-semibold ${kpi.trendClass}`;
+                    card.querySelector('.kpi-trend-text').textContent = kpi.trend;
+                    
+                    card.querySelector('.kpi-icon-path').setAttribute('d', kpi.icon);
+                    card.querySelector('.kpi-icon').className = `kpi-icon w-12 h-12 bg-gradient-to-r ${kpi.iconClass} rounded-xl flex items-center justify-center`;
+                    
+                    const actionElement = card.querySelector('.kpi-action');
+                    actionElement.textContent = kpi.action;
+                    
+                    // Gérer les liens et actions spéciales
+                    if (kpi.link && kpi.link !== '#') {
+                        if (kpi.link.startsWith('http')) {
+                            actionElement.setAttribute('href', kpi.link);
+                            actionElement.setAttribute('target', '_blank');
+                            actionElement.style.pointerEvents = 'auto';
+                        } else if (kpi.link.startsWith('./')) {
+                            actionElement.setAttribute('href', kpi.link);
+                            actionElement.removeAttribute('target');
+                            actionElement.style.pointerEvents = 'auto';
+                        } else if (kpi.link === '#tasks') {
+                            // Action spéciale pour les tâches
+                            actionElement.removeAttribute('href');
+                            actionElement.style.cursor = 'pointer';
+                            actionElement.style.pointerEvents = 'auto';
+                            actionElement.onclick = () => {
+                                // Scroll vers la section des tâches
+                                const tasksSection = document.getElementById('tasksList');
+                                if (tasksSection) {
+                                    tasksSection.scrollIntoView({ behavior: 'smooth' });
+                                    // Highlight temporaire
+                                    tasksSection.classList.add('ring-2', 'ring-puy-orange', 'rounded-lg');
+                                    setTimeout(() => {
+                                        tasksSection.classList.remove('ring-2', 'ring-puy-orange', 'rounded-lg');
+                                    }, 3000);
+                                }
+                            };
+                        }
+                    } else {
+                        actionElement.removeAttribute('href');
+                        actionElement.style.pointerEvents = 'none';
+                    }
+                }
+            });
+        }
+        
+        // Fonction pour afficher les suggestions IA avec données Supabase
+        async function showAISuggestion(fallbackSuggestions = null) {
+            const aiSuggestion = document.getElementById('aiSuggestion');
+            const aiSuggestionText = document.getElementById('aiSuggestionText');
+            
+            try {
+                // Récupérer les suggestions IA depuis Supabase
+                const { data: aiData, error } = await supabaseClient.rpc('get_ai_suggestions', { 
+                    mode_name: currentMode 
+                });
+                
+                let suggestions = fallbackSuggestions || modeConfig[currentMode].aiSuggestions;
+                
+                if (!error && aiData && aiData.suggestions) {
+                    suggestions = aiData.suggestions;
+                    
+                    // Changer la couleur selon la priorité
+                    const priorityColors = {
+                        high: 'from-red-50 to-orange-50 border-red-200',
+                        medium: 'from-yellow-50 to-orange-50 border-yellow-200', 
+                        low: 'from-blue-50 to-purple-50 border-blue-200'
+                    };
+                    
+                    const priority = aiData.priority || 'low';
+                    aiSuggestion.className = `mt-2 bg-gradient-to-r ${priorityColors[priority]} border rounded-lg p-3 hidden`;
+                }
+                
+                if (suggestions && suggestions.length > 0) {
+                    const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
+                    aiSuggestionText.textContent = randomSuggestion;
+                    aiSuggestion.classList.remove('hidden');
+                    
+                    // Auto-hide après 12 secondes
+                    setTimeout(() => {
+                        aiSuggestion.classList.add('hidden');
+                    }, 12000);
+                }
+                
+            } catch (error) {
+                console.error('Erreur lors du chargement des suggestions IA:', error);
+                // Fallback vers les suggestions statiques
+                const suggestions = fallbackSuggestions || modeConfig[currentMode].aiSuggestions;
+                if (suggestions && suggestions.length > 0) {
+                    const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
+                    aiSuggestionText.textContent = randomSuggestion;
+                    aiSuggestion.classList.remove('hidden');
+                    
+                    setTimeout(() => {
+                        aiSuggestion.classList.add('hidden');
+                    }, 10000);
+                }
+            }
+        }
+        
+        // Configuration des boutons de mode
+        function setupModeButtons() {
+            console.log('Configuration des boutons de mode...');
+            const modeButtons = document.querySelectorAll('.mode-btn');
+            console.log('Boutons de mode trouvés:', modeButtons.length);
+            
+            modeButtons.forEach(btn => {
+                const mode = btn.id.replace('mode-', '');
+                console.log('Configuration bouton mode:', mode);
+                
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Changement de mode vers:', mode);
+                    switchMode(mode);
+                });
+            });
+            
+            if (modeButtons.length > 0) {
+                console.log('✅ Boutons de mode configurés');
+            } else {
+                console.error('❌ Aucun bouton de mode trouvé');
+            }
+        }
+        
+        // Mode intelligent basé sur l'heure et historique utilisateur
+        async function autoSelectMode() {
+            try {
+                // Essayer de récupérer le mode préféré de l'utilisateur
+                const { data: preferredMode } = await supabaseClient
+                    .from('dashboard_metrics')
+                    .select('metric_text')
+                    .eq('metric_name', 'preferred_mode')
+                    .eq('metric_date', new Date().toISOString().split('T')[0])
+                    .single();
+                
+                if (preferredMode && preferredMode.metric_text) {
+                    await switchMode(preferredMode.metric_text);
+                    return;
+                }
+            } catch (error) {
+                console.log('Pas de mode préféré trouvé, utilisation du mode automatique');
+            }
+            
+            // Mode automatique basé sur l'heure
+            const hour = new Date().getHours();
+            
+            if (hour >= 6 && hour < 10) {
+                await switchMode('matin');
+            } else if (hour >= 10 && hour < 14) {
+                await switchMode('commercial');
+            } else if (hour >= 14 && hour < 18) {
+                await switchMode('production');
+            } else {
+                await switchMode('reporting');
+            }
+        }
+        
+        // Fonction pour synchroniser les données en temps réel
+        async function syncDashboardData() {
+            try {
+                // Mettre à jour les KPIs du mode actuel
+                const config = modeConfig[currentMode];
+                await updateKPIs(config.kpis);
+                
+                // Recharger les tâches si on est en mode matin ou production
+                if (currentMode === 'matin' || currentMode === 'production') {
+                    await loadTasks();
+                }
+                
+                // Mettre à jour l'horodatage
+                updateLastRefreshTime();
+                
+            } catch (error) {
+                console.error('Erreur lors de la synchronisation:', error);
+            }
+        }
+
+        // Configuration du bouton IA Analysis
+        function setupAIButton() {
+            const aiAnalysisBtn = document.getElementById('aiAnalysisBtn');
+            if (aiAnalysisBtn) {
+                aiAnalysisBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    console.log('Analyse IA en cours...');
+                    const originalText = aiAnalysisBtn.innerHTML;
+                    aiAnalysisBtn.innerHTML = '🔄 Analyse...';
+                    aiAnalysisBtn.disabled = true;
+                    
+                    try {
+                        await showAISuggestion();
+                        await syncDashboardData();
+                        showNotification('🧠 Analyse IA terminée !', 'success');
+                    } catch (error) {
+                        showNotification('⚠️ Erreur analyse IA', 'error');
+                    } finally {
+                        setTimeout(() => {
+                            aiAnalysisBtn.innerHTML = originalText;
+                            aiAnalysisBtn.disabled = false;
+                        }, 1500);
+                    }
+                });
+                console.log('✅ Bouton IA Analysis configuré');
+            } else {
+                console.error('❌ Bouton aiAnalysisBtn non trouvé');
+            }
+        }
+
+        // Initialisation simple et directe - comme avant quand ça marchait
+        async function initializePage() {
+            console.log('🚀 Démarrage page dashboard');
+            
+            const isAuthenticated = await checkAuth();
+            if (!isAuthenticated) {
+                console.log('❌ Non authentifié');
+                return;
+            }
+            
+            console.log('✅ Utilisateur authentifié');
+            
+            // Configuration immédiate des boutons - méthode simple
+            console.log('🔧 Configuration des boutons...');
+            
+            // Bouton déconnexion - méthode directe
+            const logoutBtn = document.getElementById('logoutButton');
+            if (logoutBtn) {
+                console.log('Bouton logout trouvé');
+                logoutBtn.onclick = async function() {
+                    console.log('CLIC LOGOUT DÉTECTÉ');
+                    await supabaseClient.auth.signOut();
+                    window.location.href = './index.html';
+                };
+            } else {
+                console.log('❌ Bouton logout non trouvé');
+            }
+            
+            // Bouton actualiser - méthode directe
+            const refreshBtn = document.getElementById('refreshBtn');
+            if (refreshBtn) {
+                console.log('Bouton refresh trouvé');
+                refreshBtn.onclick = function() {
+                    console.log('CLIC REFRESH DÉTECTÉ');
+                    loadKPIs();
+                    loadActiviteRecente();
+                    loadProjetsPrioritaires();
+                    loadTasks();
+                loadEvents();
+                    updateLastRefreshTime();
+                };
+            } else {
+                console.log('❌ Bouton refresh non trouvé');
+            }
+            
+            // Bouton ajouter tâche - méthode directe
+            const addTaskBtn = document.getElementById('addTaskBtn');
+            if (addTaskBtn) {
+                console.log('Bouton addTask trouvé');
+                addTaskBtn.onclick = function() {
+                    console.log('CLIC ADD TASK DÉTECTÉ');
+                    addNewTask();
+                };
+            } else {
+                console.log('❌ Bouton addTask non trouvé');
+            }
+
+            // Bouton ajouter événement - méthode directe
+            const addEventBtn = document.getElementById('addEventBtn');
+            if (addEventBtn) {
+                console.log('Bouton addEvent trouvé');
+                addEventBtn.onclick = function() {
+                    console.log('CLIC ADD EVENT DÉTECTÉ');
+                    addNewEvent();
+                };
+            } else {
+                console.log('❌ Bouton addEvent non trouvé');
+            }
+            
+            // Boutons mode - méthode directe
+            const matinBtn = document.getElementById('mode-matin');
+            if (matinBtn) {
+                console.log('Bouton mode matin trouvé');
+                matinBtn.onclick = function() {
+                    console.log('CLIC MODE MATIN DÉTECTÉ');
+                    switchMode('matin');
+                };
+            }
+            
+            const commercialBtn = document.getElementById('mode-commercial');
+            if (commercialBtn) {
+                console.log('Bouton mode commercial trouvé');
+                commercialBtn.onclick = function() {
+                    console.log('CLIC MODE COMMERCIAL DÉTECTÉ');
+                    switchMode('commercial');
+                };
+            }
+            
+            const productionBtn = document.getElementById('mode-production');
+            if (productionBtn) {
+                console.log('Bouton mode production trouvé');
+                productionBtn.onclick = function() {
+                    console.log('CLIC MODE PRODUCTION DÉTECTÉ');
+                    switchMode('production');
+                };
+            }
+            
+            const reportingBtn = document.getElementById('mode-reporting');
+            if (reportingBtn) {
+                console.log('Bouton mode reporting trouvé');
+                reportingBtn.onclick = function() {
+                    console.log('CLIC MODE REPORTING DÉTECTÉ');
+                    switchMode('reporting');
+                };
+            }
+            
+            // Bouton IA
+            const aiBtn = document.getElementById('aiAnalysisBtn');
+            if (aiBtn) {
+                console.log('Bouton AI trouvé');
+                aiBtn.onclick = function() {
+                    console.log('CLIC AI DÉTECTÉ');
+                    showAISuggestion();
+                };
+            } else {
+                console.log('❌ Bouton AI non trouvé');
+            }
+            
+            console.log('✅ Configuration des boutons terminée');
+            
+            // Initialisation du contenu
+            updateCurrentDate();
+            updateLastRefreshTime();
+            setupMobileMenu();
+            createLeadsChart();
+            loadKPIs();
+            loadActiviteRecente();
+            loadProjetsPrioritaires();
+            loadTasks();
+            loadEvents();
+            loadClientOptions();
+            
+            // Mode initial
+            switchMode('matin');
+            
+            // Configuration des modales
+            setupModalHandlers();
+            
+            console.log('✅ Dashboard initialisé');
+        }
+
+        // Démarrage simple
+        initializePage();
+    </script>
+
+    <!-- Modal Nouvelle Tâche -->
+    <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 backdrop-blur-sm">
+        <div class="relative top-4 sm:top-20 mx-auto p-6 border-0 w-full max-w-lg shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md">
+            <div class="text-center mb-6">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-r from-puy-orange to-puy-red mb-4">
+                    <span class="text-2xl text-white">📋</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">Nouvelle Tâche</h3>
+                <p class="text-gray-600 mt-2">Créez une tâche à accomplir</p>
+            </div>
+            
+            <form id="taskForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
+                    <input type="text" id="modalTaskTitle" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange" placeholder="Ex: Appel client important">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea id="modalTaskDescription" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange" placeholder="Détails de la tâche..."></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Date d'échéance *</label>
+                        <input type="datetime-local" id="modalTaskDueDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Temps estimé</label>
+                        <select id="modalTaskEstimatedHours" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange">
+                            <option value="0.5">30 min</option>
+                            <option value="1" selected>1 heure</option>
+                            <option value="2">2 heures</option>
+                            <option value="4">4 heures</option>
+                            <option value="8">1 journée</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                        <select id="modalTaskCategory" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange">
+                            <option value="general">📁 Général</option>
+                            <option value="marketing">📢 Marketing</option>
+                            <option value="commercial">💼 Commercial</option>
+                            <option value="technique">🔧 Technique</option>
+                            <option value="design">🎨 Design</option>
+                            <option value="admin">📄 Admin</option>
+                            <option value="formation">🎓 Formation</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Priorité</label>
+                        <select id="modalTaskPriority" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange">
+                            <option value="low">🟢 Faible</option>
+                            <option value="medium" selected>📊 Moyenne</option>
+                            <option value="high">🔥 Haute</option>
+                            <option value="urgent">🚨 Urgente</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Client (optionnel)</label>
+                    <select id="modalTaskClientId" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-puy-orange focus:border-puy-orange">
+                        <option value="">Aucun client</option>
+                        <!-- Options seront chargées dynamiquement -->
+                    </select>
+                </div>
+                
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" id="cancelTask" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-colors">
+                        Annuler
+                    </button>
+                    <button type="submit" class="px-6 py-3 bg-gradient-to-r from-puy-orange to-puy-red text-white rounded-xl font-semibold hover:from-puy-red hover:to-red-600 shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                        ✨ Créer la tâche
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Nouvel Événement -->
+    <div id="eventModal" class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 backdrop-blur-sm">
+        <div class="relative top-4 sm:top-20 mx-auto p-6 border-0 w-full max-w-lg shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md">
+            <div class="text-center mb-6">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 mb-4">
+                    <span class="text-2xl text-white">📅</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">Nouvel Événement</h3>
+                <p class="text-gray-600 mt-2">Ajoutez un rendez-vous ou un événement</p>
+            </div>
+            
+            <form id="eventForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Titre *</label>
+                    <input type="text" id="modalEventTitle" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea id="modalEventDescription" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Date de début *</label>
+                        <input type="datetime-local" id="modalEventStartTime" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Date de fin</label>
+                        <input type="datetime-local" id="modalEventEndTime" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Type d'événement</label>
+                    <select id="modalEventType" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="meeting">🤝 Rendez-vous client</option>
+                        <option value="deadline">⚠️ Échéance</option>
+                        <option value="reminder">🔔 Rappel</option>
+                        <option value="task">📋 Tâche</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Lieu</label>
+                    <input type="text" id="modalEventLocation" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Bureaux PuyDeCom, Visioconférence...">
+                </div>
+                
+                
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" id="cancelEvent" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-colors">
+                        Annuler
+                    </button>
+                    <button type="submit" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                        ✨ Créer l'événement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

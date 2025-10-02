@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clients - PuyDeCom Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="icon" href="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'puy-orange': '#FF7F50',
+                        'puy-red': '#DC2626',
+                        'puy-dark': '#1F2937',
+                        'puy-light': '#F97316'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .gradient-card {
+            background: linear-gradient(135deg, #FF7F50 0%, #FF6B35 100%);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+    
+    <!-- Navigation moderne -->
+    <nav class="bg-white/80 backdrop-blur-md shadow-lg border-b border-gray-200/50 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center space-x-3">
+                        <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="PuyDeCom" class="w-10 h-10 rounded-lg shadow-sm">
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-900">PuyDeCom</h1>
+                            <p class="text-xs text-gray-500">Admin Dashboard</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Menu desktop moderne -->
+                    <div class="hidden md:ml-10 md:flex md:space-x-1">
+                        <a href="./dashboard.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="./clients.html" class="bg-puy-orange text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 shadow-lg">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                            </svg>
+                            <span>Clients</span>
+                        </a>
+                        <a href="./projets.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                            <span>Projets</span>
+                        </a>
+                        <a href="./leads.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
+                            </svg>
+                            <span>Leads</span>
+                        </a>
+                        <a href="./calendrier.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Calendrier</span>
+                        </a>
+                        <a href="./analyse360.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>Analyse 360°</span>
+                        </a>
+                        <a href="https://mail.hostinger.com/" target="_blank" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Emails</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Actions droite -->
+                <div class="flex items-center space-x-4">
+                    <button id="logoutButton" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors shadow-lg">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        <span class="hidden md:inline">Déconnexion</span>
+                    </button>
+                    
+                    <!-- Menu mobile -->
+                    <div class="md:hidden">
+                        <button id="mobile-menu-button" type="button" class="bg-gray-100 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-200">
+                            <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Menu mobile -->
+        <div id="mobile-menu" class="md:hidden hidden border-t border-gray-200">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white">
+                <a href="./dashboard.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    📊 Dashboard
+                </a>
+                <a href="./clients.html" class="bg-puy-orange text-white block px-3 py-2 rounded-md text-base font-medium">
+                    👥 Clients
+                </a>
+                <a href="./projets.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    📁 Projets
+                </a>
+                <a href="./leads.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    🎯 Leads
+                </a>
+                <a href="./calendrier.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    📅 Calendrier
+                </a>
+                <a href="./analyse360.html" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    📊 Analyse 360°
+                </a>
+                <a href="https://mail.hostinger.com/" target="_blank" class="text-gray-700 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    📧 Emails
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div class="flex-1 min-w-0">
+                    <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl">
+                        Gestion des Clients 👥
+                    </h1>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                        Gérez votre portefeuille clients et développez vos relations commerciales
+                    </p>
+                </div>
+                <div class="mt-4 md:mt-0 flex space-x-3">
+                    <button id="nouveauClientBtn" class="inline-flex items-center px-4 py-2 bg-puy-orange hover:bg-puy-red text-white text-sm font-medium rounded-lg transition-colors shadow-lg">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Nouveau client
+                    </button>
+                    <button id="exportBtn" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Exporter
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="space-y-8">
+            
+            <!-- Statistiques KPIs -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Total Clients</dt>
+                                    <dd class="text-2xl font-bold text-gray-900" id="totalClients">0</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Clients Actifs</dt>
+                                    <dd class="text-2xl font-bold text-gray-900" id="clientsActifs">0</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Clients inactifs</dt>
+                                    <dd class="text-2xl font-bold text-gray-900" id="clientsInactifs">0</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Nouveaux ce mois</dt>
+                                    <dd class="text-2xl font-bold text-gray-900" id="nouveauxCeMois">0</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Barre de recherche et filtres -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                    <div class="flex-1 max-w-lg">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </div>
+                            <input type="text" id="searchInput" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange" placeholder="Rechercher un client...">
+                        </div>
+                    </div>
+                    <div class="flex space-x-3">
+                        <select id="statutFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                            <option value="tous">Tous les statuts</option>
+                            <option value="actif">Actifs</option>
+                            <option value="inactif">Inactifs</option>
+                        </select>
+                        <select id="secteurFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                            <option value="tous">Tous les secteurs</option>
+                            <option value="Agriculture">Agriculture</option>
+                            <option value="Alimentation">Alimentation</option>
+                            <option value="Commerce">Commerce de détail</option>
+                            <option value="E-commerce">E-commerce</option>
+                            <option value="Informatique">Informatique & Tech</option>
+                            <option value="Marketing">Marketing & Communication</option>
+                            <option value="Restaurant">Restauration</option>
+                            <option value="Services">Services aux entreprises</option>
+                            <option value="Autre">Autre</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liste des clients -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Liste des clients</h3>
+                </div>
+                
+                <div id="clientsLoading" class="p-8 text-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-puy-orange mx-auto"></div>
+                    <p class="mt-2 text-gray-600">Chargement des clients...</p>
+                </div>
+                
+                <div id="clientsContainer" class="hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dernière activité</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Projets</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientsTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Contenu généré dynamiquement -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Nouveau Client -->
+    <div id="clientModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-10 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-2xl bg-white">
+            <div class="text-center">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Nouveau Client</h3>
+                <form id="clientForm" class="space-y-6 text-left max-h-96 overflow-y-auto">
+
+                    <!-- Section obligatoire -->
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <h4 class="font-medium text-blue-900 mb-3 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Informations essentielles
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nom de l'entreprise *</label>
+                                <input type="text" id="nom" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <input type="email" id="email" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                                <input type="tel" id="telephone" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Secteur d'activité</label>
+                                <select id="secteur" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                    <option value="">Sélectionnez un secteur</option>
+                                    <option value="Agriculture">Agriculture</option>
+                                    <option value="Alimentation">Alimentation</option>
+                                    <option value="Automobile">Automobile</option>
+                                    <option value="Banque/Finance">Banque & Finance</option>
+                                    <option value="Beauté/Cosmétique">Beauté & Cosmétique</option>
+                                    <option value="BTP/Construction">BTP & Construction</option>
+                                    <option value="Commerce">Commerce de détail</option>
+                                    <option value="Conseil">Conseil</option>
+                                    <option value="E-commerce">E-commerce</option>
+                                    <option value="Éducation">Éducation & Formation</option>
+                                    <option value="Énergie">Énergie</option>
+                                    <option value="Événementiel">Événementiel</option>
+                                    <option value="Hôtellerie">Hôtellerie</option>
+                                    <option value="Immobilier">Immobilier</option>
+                                    <option value="Industrie">Industrie</option>
+                                    <option value="Informatique">Informatique & Tech</option>
+                                    <option value="Juridique">Juridique</option>
+                                    <option value="Logistique">Logistique & Transport</option>
+                                    <option value="Luxe">Luxe</option>
+                                    <option value="Marketing">Marketing & Communication</option>
+                                    <option value="Médical">Médical & Santé</option>
+                                    <option value="Mode">Mode & Textile</option>
+                                    <option value="ONG">ONG & Associations</option>
+                                    <option value="Restaurant">Restauration</option>
+                                    <option value="Services">Services aux entreprises</option>
+                                    <option value="Sport">Sport & Loisirs</option>
+                                    <option value="Startups">Startups</option>
+                                    <option value="Télécommunications">Télécommunications</option>
+                                    <option value="Tourisme">Tourisme</option>
+                                    <option value="Autre">Autre</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                                <select id="statut" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                    <option value="actif">Client actif</option>
+                                    <option value="inactif">Client inactif</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sections optionnelles -->
+                    <div class="space-y-4">
+                        <h4 class="font-medium text-gray-900">Informations complémentaires (optionnelles)</h4>
+
+                        <!-- Section Informations légales -->
+                        <div class="border border-gray-200 rounded-lg">
+                            <div class="p-3 bg-gray-50 flex items-center">
+                                <input type="checkbox" id="toggleLegal" class="mr-3 h-4 w-4 text-puy-orange focus:ring-puy-orange border-gray-300 rounded">
+                                <label for="toggleLegal" class="font-medium text-gray-700 cursor-pointer">Informations légales</label>
+                            </div>
+                            <div id="sectionLegal" class="p-4 hidden">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">SIRET</label>
+                                        <input type="text" id="siret" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">TVA Intracommunautaire</label>
+                                        <input type="text" id="tva" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Code APE</label>
+                                        <input type="text" id="codeApe" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Forme juridique</label>
+                                        <select id="formeJuridique" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                            <option value="">Choisir...</option>
+                                            <option value="sarl">SARL</option>
+                                            <option value="sas">SAS</option>
+                                            <option value="sasu">SASU</option>
+                                            <option value="eurl">EURL</option>
+                                            <option value="auto-entrepreneur">Auto-entrepreneur</option>
+                                            <option value="sa">SA</option>
+                                            <option value="autre">Autre</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Contact détaillé -->
+                        <div class="border border-gray-200 rounded-lg">
+                            <div class="p-3 bg-gray-50 flex items-center">
+                                <input type="checkbox" id="toggleContact" class="mr-3 h-4 w-4 text-puy-orange focus:ring-puy-orange border-gray-300 rounded">
+                                <label for="toggleContact" class="font-medium text-gray-700 cursor-pointer">Contact détaillé</label>
+                            </div>
+                            <div id="sectionContact" class="p-4 hidden">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Prénom du contact</label>
+                                        <input type="text" id="prenomContact" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Nom du contact</label>
+                                        <input type="text" id="nomContact" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Fonction</label>
+                                        <input type="text" id="fonction" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone mobile</label>
+                                        <input type="tel" id="telephoneMobile" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Site web</label>
+                                        <input type="url" id="siteWeb" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Adresse complète -->
+                        <div class="border border-gray-200 rounded-lg">
+                            <div class="p-3 bg-gray-50 flex items-center">
+                                <input type="checkbox" id="toggleAdresse" class="mr-3 h-4 w-4 text-puy-orange focus:ring-puy-orange border-gray-300 rounded">
+                                <label for="toggleAdresse" class="font-medium text-gray-700 cursor-pointer">Adresse complète</label>
+                            </div>
+                            <div id="sectionAdresse" class="p-4 hidden">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Adresse</label>
+                                        <input type="text" id="adresse" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Code postal</label>
+                                        <input type="text" id="codePostal" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Ville</label>
+                                        <input type="text" id="ville" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Région</label>
+                                        <input type="text" id="region" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Pays</label>
+                                        <input type="text" id="pays" value="France" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Informations commerciales -->
+                        <div class="border border-gray-200 rounded-lg">
+                            <div class="p-3 bg-gray-50 flex items-center">
+                                <input type="checkbox" id="toggleCommercial" class="mr-3 h-4 w-4 text-puy-orange focus:ring-puy-orange border-gray-300 rounded">
+                                <label for="toggleCommercial" class="font-medium text-gray-700 cursor-pointer">Informations commerciales</label>
+                            </div>
+                            <div id="sectionCommercial" class="p-4 hidden">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">CA estimé (€/an)</label>
+                                        <input type="number" id="caEstime" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Budget marketing (€/mois)</label>
+                                        <input type="number" id="budgetMarketing" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre d'employés</label>
+                                        <input type="number" id="nbEmployes" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Source de prospection</label>
+                                        <select id="sourceProspection" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                            <option value="">Choisir...</option>
+                                            <option value="recommandation">Recommandation</option>
+                                            <option value="google">Google</option>
+                                            <option value="reseaux-sociaux">Réseaux sociaux</option>
+                                            <option value="bouche-a-oreille">Bouche à oreille</option>
+                                            <option value="prospection">Prospection</option>
+                                            <option value="autre">Autre</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Réseaux sociaux -->
+                        <div class="border border-gray-200 rounded-lg">
+                            <div class="p-3 bg-gray-50 flex items-center">
+                                <input type="checkbox" id="toggleReseaux" class="mr-3 h-4 w-4 text-puy-orange focus:ring-puy-orange border-gray-300 rounded">
+                                <label for="toggleReseaux" class="font-medium text-gray-700 cursor-pointer">Réseaux sociaux</label>
+                            </div>
+                            <div id="sectionReseaux" class="p-4 hidden">
+                                <!-- Réseaux essentiels -->
+                                <div class="mb-4">
+                                    <h6 class="text-sm font-medium text-gray-900 mb-2 flex items-center">
+                                        📱 Essentiels pour les entreprises
+                                    </h6>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
+                                            <input type="text" id="instagram" placeholder="@username" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Facebook</label>
+                                            <input type="text" id="facebook" placeholder="Page Facebook" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">YouTube</label>
+                                            <input type="text" id="youtube" placeholder="Chaîne YouTube" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Google My Business</label>
+                                            <input type="text" id="googleBusiness" placeholder="Lien GMB" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">WhatsApp Business</label>
+                                            <input type="text" id="whatsapp" placeholder="+33 6 XX XX XX XX" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">TikTok</label>
+                                            <input type="text" id="tiktok" placeholder="@username" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Réseaux professionnels -->
+                                <div>
+                                    <h6 class="text-sm font-medium text-gray-900 mb-2 flex items-center">
+                                        🎯 Professionnels
+                                    </h6>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
+                                            <input type="text" id="linkedin" placeholder="Profil LinkedIn" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Pinterest</label>
+                                            <input type="text" id="pinterest" placeholder="Profil Pinterest" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Snapchat</label>
+                                            <input type="text" id="snapchat" placeholder="@username" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Twitter/X</label>
+                                            <input type="text" id="twitter" placeholder="@username" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Suivi & Notes -->
+                        <div class="border border-gray-200 rounded-lg">
+                            <div class="p-3 bg-gray-50 flex items-center">
+                                <input type="checkbox" id="toggleNotes" class="mr-3 h-4 w-4 text-puy-orange focus:ring-puy-orange border-gray-300 rounded">
+                                <label for="toggleNotes" class="font-medium text-gray-700 cursor-pointer">Suivi & Notes</label>
+                            </div>
+                            <div id="sectionNotes" class="p-4 hidden">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Objectifs marketing</label>
+                                        <textarea id="objectifs" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange" placeholder="Objectifs du client..."></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                        <textarea id="notes" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange" placeholder="Informations complémentaires..."></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Prochaine action</label>
+                                        <input type="text" id="prochaineAction" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-puy-orange focus:border-puy-orange" placeholder="Prochaine action à effectuer...">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button id="cancelBtn" class="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-400 transition-colors">
+                        Annuler
+                    </button>
+                    <button id="saveBtn" class="px-4 py-2 bg-puy-orange text-white text-sm font-medium rounded-lg hover:bg-puy-red transition-colors">
+                        Enregistrer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration Supabase
+        const SUPABASE_URL = 'https://ltqkbtfdjvslqktjtbod.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cWtidGZkanZzbHFrdGp0Ym9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjE1NzgsImV4cCI6MjA3MjM5NzU3OH0.RnZQZ3QmYrcedLK-IefXCQhTeNFJOUNmU7O0f5HGkLg';
+        
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Variable pour stocker les clients depuis Supabase
+        let clientsData = [];
+
+        // Vérifier l'authentification
+        async function checkAuth() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = './index.html';
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Déconnexion
+        document.getElementById('logoutButton').addEventListener('click', async () => {
+            await supabaseClient.auth.signOut();
+            window.location.href = './index.html';
+        });
+
+        // Gestion du menu mobile
+        document.getElementById('mobile-menu-button').addEventListener('click', () => {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Gestion des sections optionnelles du formulaire
+        function setupFormToggles() {
+            const toggles = [
+                { checkbox: 'toggleLegal', section: 'sectionLegal' },
+                { checkbox: 'toggleContact', section: 'sectionContact' },
+                { checkbox: 'toggleAdresse', section: 'sectionAdresse' },
+                { checkbox: 'toggleCommercial', section: 'sectionCommercial' },
+                { checkbox: 'toggleReseaux', section: 'sectionReseaux' },
+                { checkbox: 'toggleNotes', section: 'sectionNotes' }
+            ];
+
+            toggles.forEach(toggle => {
+                const checkbox = document.getElementById(toggle.checkbox);
+                const section = document.getElementById(toggle.section);
+
+                if (checkbox && section) {
+                    checkbox.addEventListener('change', function() {
+                        if (this.checked) {
+                            section.classList.remove('hidden');
+                        } else {
+                            section.classList.add('hidden');
+                            // Optionnel : réinitialiser les champs de cette section
+                            clearSectionFields(section);
+                        }
+                    });
+                }
+            });
+        }
+
+        // Fonction pour vider les champs d'une section
+        function clearSectionFields(section) {
+            const inputs = section.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    input.checked = false;
+                } else {
+                    input.value = '';
+                }
+            });
+        }
+
+        // Fonctions utilitaires
+        function getStatutBadge(statut) {
+            const badges = {
+                'actif': 'bg-green-100 text-green-800',
+                'inactif': 'bg-gray-100 text-gray-800'
+            };
+            return badges[statut] || 'bg-green-100 text-green-800'; // défaut: actif
+        }
+
+        function getSecteurBadge(secteur) {
+            const secteurs = {
+                'Agriculture': 'bg-green-100 text-green-800',
+                'Alimentation': 'bg-yellow-100 text-yellow-800',
+                'Commerce': 'bg-blue-100 text-blue-800',
+                'E-commerce': 'bg-indigo-100 text-indigo-800',
+                'Informatique': 'bg-purple-100 text-purple-800',
+                'Marketing': 'bg-pink-100 text-pink-800',
+                'Restaurant': 'bg-orange-100 text-orange-800',
+                'Services': 'bg-teal-100 text-teal-800',
+                'Juridique': 'bg-gray-100 text-gray-800',
+                'Médical': 'bg-red-100 text-red-800'
+            };
+            return secteurs[secteur] || 'bg-gray-100 text-gray-800';
+        }
+
+        // Charger les clients depuis Supabase
+        async function loadClients() {
+            try {
+                const { data: clients, error } = await supabaseClient
+                    .from('clients')
+                    .select(`
+                        *,
+                        projets(*)
+                    `)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('Erreur lors du chargement des clients:', error);
+                    showNotification('Erreur lors du chargement des clients', 'error');
+                    return;
+                }
+
+                // Traiter les données pour compter les projets
+                clientsData = (clients || []).map(client => {
+                    // Compter le nombre de projets pour ce client
+                    // Si client.projets est un tableau, compter sa longueur, sinon 0
+                    const projectCount = (client.projets && Array.isArray(client.projets))
+                        ? client.projets.length
+                        : 0;
+
+                    return {
+                        ...client,
+                        projets_count: projectCount
+                    };
+                });
+                displayClients(clientsData);
+                updateStats();
+                
+                // Cacher le loader et afficher le contenu
+                document.getElementById('clientsLoading').classList.add('hidden');
+                document.getElementById('clientsContainer').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Erreur lors du chargement des clients:', error);
+                showNotification('Erreur lors du chargement des clients', 'error');
+            }
+        }
+
+        // Afficher les clients
+        function displayClients(clients = clientsData) {
+            const tbody = document.getElementById('clientsTableBody');
+            if (!tbody) {
+                console.error('Element clientsTableBody non trouvé');
+                return;
+            }
+            
+            tbody.innerHTML = '';
+
+            if (clients.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-500">Aucun client trouvé</td></tr>';
+                return;
+            }
+
+            clients.forEach(client => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors';
+                row.setAttribute('data-client-id', client.id);
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">${client.nom || 'Sans nom'}</div>
+                            <div class="text-sm text-gray-500">${client.email || 'Sans email'}</div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSecteurBadge(client.secteur || 'autre')}">
+                            ${client.secteur || 'Non défini'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatutBadge(client.statut || 'actif')}">
+                            ${client.statut || 'Actif'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${client.derniere_activite ? new Date(client.derniere_activite).toLocaleDateString('fr-FR') : 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <span class="font-medium">${client.projets_count !== undefined ? client.projets_count : 0}</span> projet${(client.projets_count !== undefined ? client.projets_count : 0) > 1 ? 's' : '(s)'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                            <button onclick="voirClient('${client.id}')" class="text-puy-orange hover:text-puy-red transition-colors" title="Voir le client">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                            <button onclick="editerClient('${client.id}')" class="text-blue-600 hover:text-blue-800 transition-colors" title="Éditer le client">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                            </button>
+                            <button onclick="supprimerClient('${client.id}')" class="text-red-600 hover:text-red-800 transition-colors" title="Supprimer le client">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Fonctions d'action pour les clients
+        function voirClient(clientId) {
+            const client = clientsData.find(c => c.id === clientId);
+            if (!client) return;
+
+            // Fonction pour créer une section si elle contient des données
+            function createSection(title, fields, icon = '') {
+                const validFields = fields.filter(field => field.value && field.value.trim() !== '');
+                if (validFields.length === 0) return '';
+
+                return `
+                    <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <h4 class="font-semibold text-gray-900 mb-3 flex items-center">
+                            ${icon} ${title}
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                            ${validFields.map(field => `
+                                <div><strong>${field.label} :</strong> ${field.value}</div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+            modal.innerHTML = `
+                <div class="relative top-10 mx-auto p-6 border w-full max-w-4xl shadow-lg rounded-2xl bg-white max-h-screen overflow-y-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900">Profil client complet</h3>
+                        <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600 p-2">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Section Informations essentielles -->
+                    <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <h4 class="font-semibold text-blue-900 mb-3 flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            Informations essentielles
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                            <div><strong>Entreprise :</strong> ${client.nom || 'Non renseigné'}</div>
+                            <div><strong>Secteur :</strong> ${client.secteur || 'Non renseigné'}</div>
+                            <div><strong>Email :</strong> ${client.email ? `<a href="mailto:${client.email}" class="text-blue-600 hover:underline">${client.email}</a>` : 'Non renseigné'}</div>
+                            <div><strong>Téléphone :</strong> ${client.telephone ? `<a href="tel:${client.telephone}" class="text-blue-600 hover:underline">${client.telephone}</a>` : 'Non renseigné'}</div>
+                            <div><strong>Statut :</strong> <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatutBadge(client.statut)}">${client.statut || 'Actif'}</span></div>
+                            <div><strong>Dernière activité :</strong> ${client.derniere_activite ? new Date(client.derniere_activite).toLocaleDateString('fr-FR') : 'N/A'}</div>
+                            <div><strong>Projets :</strong> <span class="font-medium text-green-600">${client.projets_count !== undefined ? client.projets_count : 0}</span> projet${(client.projets_count !== undefined ? client.projets_count : 0) > 1 ? 's' : '(s)'}</div>
+                        </div>
+                    </div>
+
+                    <!-- Section Informations légales -->
+                    ${createSection('Informations légales', [
+                        { label: 'SIRET', value: client.siret },
+                        { label: 'TVA Intracommunautaire', value: client.tva },
+                        { label: 'Code APE', value: client.code_ape },
+                        { label: 'Forme juridique', value: client.forme_juridique }
+                    ], '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>')}
+
+                    <!-- Section Contact détaillé -->
+                    ${createSection('Contact détaillé', [
+                        { label: 'Prénom du contact', value: client.prenom_contact },
+                        { label: 'Nom du contact', value: client.nom_contact },
+                        { label: 'Fonction', value: client.fonction },
+                        { label: 'Téléphone mobile', value: client.telephone_mobile ? `<a href="tel:${client.telephone_mobile}" class="text-blue-600 hover:underline">${client.telephone_mobile}</a>` : '' },
+                        { label: 'Site web', value: client.site_web ? `<a href="${client.site_web}" target="_blank" class="text-blue-600 hover:underline">${client.site_web}</a>` : '' }
+                    ], '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>')}
+
+                    <!-- Section Adresse complète -->
+                    ${createSection('Adresse complète', [
+                        { label: 'Adresse', value: client.adresse },
+                        { label: 'Code postal', value: client.code_postal },
+                        { label: 'Ville', value: client.ville },
+                        { label: 'Région', value: client.region },
+                        { label: 'Pays', value: client.pays }
+                    ], '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>')}
+
+                    <!-- Section Informations commerciales -->
+                    ${createSection('Informations commerciales', [
+                        { label: 'CA estimé', value: client.ca_estime ? `${parseInt(client.ca_estime).toLocaleString('fr-FR')} €/an` : '' },
+                        { label: 'Budget marketing', value: client.budget_marketing ? `${parseInt(client.budget_marketing).toLocaleString('fr-FR')} €/mois` : '' },
+                        { label: 'Nombre d\'employés', value: client.nb_employes },
+                        { label: 'Source de prospection', value: client.source_prospection }
+                    ], '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>')}
+
+                    <!-- Section Réseaux sociaux -->
+                    ${(() => {
+                        const reseauxEssentiels = [
+                            { label: 'Instagram', value: client.instagram ? `<a href="https://instagram.com/${client.instagram.replace('@', '')}" target="_blank" class="text-blue-600 hover:underline">${client.instagram}</a>` : '' },
+                            { label: 'Facebook', value: client.facebook ? `<a href="${client.facebook}" target="_blank" class="text-blue-600 hover:underline">${client.facebook}</a>` : '' },
+                            { label: 'YouTube', value: client.youtube ? `<a href="${client.youtube}" target="_blank" class="text-blue-600 hover:underline">${client.youtube}</a>` : '' },
+                            { label: 'Google My Business', value: client.google_business ? `<a href="${client.google_business}" target="_blank" class="text-blue-600 hover:underline">Voir la page GMB</a>` : '' },
+                            { label: 'WhatsApp Business', value: client.whatsapp ? `<a href="https://wa.me/${client.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="text-blue-600 hover:underline">${client.whatsapp}</a>` : '' },
+                            { label: 'TikTok', value: client.tiktok ? `<a href="https://tiktok.com/@${client.tiktok.replace('@', '')}" target="_blank" class="text-blue-600 hover:underline">${client.tiktok}</a>` : '' }
+                        ];
+
+                        const reseauxProfessionnels = [
+                            { label: 'LinkedIn', value: client.linkedin ? `<a href="${client.linkedin}" target="_blank" class="text-blue-600 hover:underline">${client.linkedin}</a>` : '' },
+                            { label: 'Pinterest', value: client.pinterest ? `<a href="${client.pinterest}" target="_blank" class="text-blue-600 hover:underline">${client.pinterest}</a>` : '' },
+                            { label: 'Snapchat', value: client.snapchat ? `<a href="https://snapchat.com/add/${client.snapchat.replace('@', '')}" target="_blank" class="text-blue-600 hover:underline">${client.snapchat}</a>` : '' },
+                            { label: 'Twitter/X', value: client.twitter ? `<a href="https://twitter.com/${client.twitter.replace('@', '')}" target="_blank" class="text-blue-600 hover:underline">${client.twitter}</a>` : '' }
+                        ];
+
+                        const allReseaux = [...reseauxEssentiels, ...reseauxProfessionnels];
+                        const validReseaux = allReseaux.filter(r => r.value && r.value.trim() !== '');
+
+                        if (validReseaux.length === 0) return '';
+
+                        return `
+                            <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <h4 class="font-semibold text-gray-900 mb-3 flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v3M7 4H5a1 1 0 00-1 1v3m16-4v3a1 1 0 01-1 1h-2M7 4h10M5 8v8a1 1 0 001 1h3m10-9v8a1 1 0 01-1 1h-3m-6 1v3a1 1 0 001 1h8a1 1 0 001-1v-3"/>
+                                    </svg>
+                                    Réseaux sociaux
+                                </h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                                    ${validReseaux.map(reseau => `
+                                        <div><strong>${reseau.label} :</strong> ${reseau.value}</div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    })()}
+
+                    <!-- Section Suivi & Notes -->
+                    ${createSection('Suivi & Notes', [
+                        { label: 'Objectifs marketing', value: client.objectifs },
+                        { label: 'Notes', value: client.notes },
+                        { label: 'Prochaine action', value: client.prochaine_action }
+                    ], '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>')}
+
+                    <!-- Section Origine Lead -->
+                    ${client.origine_lead_id ? `
+                        <div class="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                            <h4 class="font-semibold text-green-900 mb-3 flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                </svg>
+                                Origine : Converti depuis un lead
+                            </h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                <div><strong>Date de conversion :</strong> ${client.date_conversion_lead ? new Date(client.date_conversion_lead).toLocaleDateString('fr-FR') : 'Non renseignée'}</div>
+                                <div class="flex items-center space-x-2">
+                                    <strong>Action :</strong>
+                                    <a href="./leads.html?showConverted=true&filterStatut=converti" class="text-green-600 hover:text-green-800 underline text-sm">
+                                        Voir dans les leads convertis
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <!-- Boutons d'action -->
+                    <div class="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+                        <button onclick="editerClient('${client.id}'); this.closest('.fixed').remove();" class="px-4 py-2 bg-puy-orange text-white text-sm font-medium rounded-lg hover:bg-puy-red transition-colors flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                            Modifier
+                        </button>
+                        <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-400 transition-colors">
+                            Fermer
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function editerClient(clientId) {
+            const client = clientsData.find(c => c.id === clientId);
+            if (!client) return;
+
+            // Remplir le formulaire avec les données de base
+            document.getElementById('nom').value = client.nom || '';
+            document.getElementById('email').value = client.email || '';
+            document.getElementById('telephone').value = client.telephone || '';
+            document.getElementById('statut').value = client.statut || '';
+            document.getElementById('secteur').value = client.secteur || '';
+
+            // Remplir et activer les sections optionnelles si les données existent
+            if (client.siret || client.tva || client.code_ape || client.forme_juridique) {
+                document.getElementById('toggleLegal').checked = true;
+                document.getElementById('sectionLegal').classList.remove('hidden');
+                document.getElementById('siret').value = client.siret || '';
+                document.getElementById('tva').value = client.tva || '';
+                document.getElementById('codeApe').value = client.code_ape || '';
+                document.getElementById('formeJuridique').value = client.forme_juridique || '';
+            }
+
+            if (client.prenom_contact || client.nom_contact || client.fonction || client.telephone_mobile || client.site_web) {
+                document.getElementById('toggleContact').checked = true;
+                document.getElementById('sectionContact').classList.remove('hidden');
+                document.getElementById('prenomContact').value = client.prenom_contact || '';
+                document.getElementById('nomContact').value = client.nom_contact || '';
+                document.getElementById('fonction').value = client.fonction || '';
+                document.getElementById('telephoneMobile').value = client.telephone_mobile || '';
+                document.getElementById('siteWeb').value = client.site_web || '';
+            }
+
+            if (client.adresse || client.code_postal || client.ville || client.region || client.pays) {
+                document.getElementById('toggleAdresse').checked = true;
+                document.getElementById('sectionAdresse').classList.remove('hidden');
+                document.getElementById('adresse').value = client.adresse || '';
+                document.getElementById('codePostal').value = client.code_postal || '';
+                document.getElementById('ville').value = client.ville || '';
+                document.getElementById('region').value = client.region || '';
+                document.getElementById('pays').value = client.pays || 'France';
+            }
+
+            if (client.ca_estime || client.budget_marketing || client.nb_employes || client.source_prospection) {
+                document.getElementById('toggleCommercial').checked = true;
+                document.getElementById('sectionCommercial').classList.remove('hidden');
+                document.getElementById('caEstime').value = client.ca_estime || '';
+                document.getElementById('budgetMarketing').value = client.budget_marketing || '';
+                document.getElementById('nbEmployes').value = client.nb_employes || '';
+                document.getElementById('sourceProspection').value = client.source_prospection || '';
+            }
+
+            if (client.instagram || client.facebook || client.youtube || client.google_business ||
+                client.whatsapp || client.tiktok || client.linkedin || client.pinterest ||
+                client.snapchat || client.twitter) {
+                document.getElementById('toggleReseaux').checked = true;
+                document.getElementById('sectionReseaux').classList.remove('hidden');
+                document.getElementById('instagram').value = client.instagram || '';
+                document.getElementById('facebook').value = client.facebook || '';
+                document.getElementById('youtube').value = client.youtube || '';
+                document.getElementById('googleBusiness').value = client.google_business || '';
+                document.getElementById('whatsapp').value = client.whatsapp || '';
+                document.getElementById('tiktok').value = client.tiktok || '';
+                document.getElementById('linkedin').value = client.linkedin || '';
+                document.getElementById('pinterest').value = client.pinterest || '';
+                document.getElementById('snapchat').value = client.snapchat || '';
+                document.getElementById('twitter').value = client.twitter || '';
+            }
+
+            if (client.objectifs || client.notes || client.prochaine_action) {
+                document.getElementById('toggleNotes').checked = true;
+                document.getElementById('sectionNotes').classList.remove('hidden');
+                document.getElementById('objectifs').value = client.objectifs || '';
+                document.getElementById('notes').value = client.notes || '';
+                document.getElementById('prochaineAction').value = client.prochaine_action || '';
+            }
+
+            // Changer le titre du modal
+            document.querySelector('#clientModal h3').textContent = 'Modifier le client';
+            
+            // Modifier le bouton de sauvegarde pour la mise à jour
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.textContent = 'Mettre à jour';
+            saveBtn.onclick = async () => {
+                try {
+                    const updatedData = {
+                        nom: document.getElementById('nom').value,
+                        secteur: document.getElementById('secteur').value,
+                        email: document.getElementById('email').value,
+                        telephone: document.getElementById('telephone').value,
+                        statut: document.getElementById('statut').value,
+                        derniere_activite: new Date().toISOString()
+                    };
+
+                    // Ajouter les données des sections optionnelles si elles sont activées
+                    if (document.getElementById('toggleLegal').checked) {
+                        updatedData.siret = document.getElementById('siret').value;
+                        updatedData.tva = document.getElementById('tva').value;
+                        updatedData.code_ape = document.getElementById('codeApe').value;
+                        updatedData.forme_juridique = document.getElementById('formeJuridique').value;
+                    }
+
+                    if (document.getElementById('toggleContact').checked) {
+                        updatedData.prenom_contact = document.getElementById('prenomContact').value;
+                        updatedData.nom_contact = document.getElementById('nomContact').value;
+                        updatedData.fonction = document.getElementById('fonction').value;
+                        updatedData.telephone_mobile = document.getElementById('telephoneMobile').value;
+                        updatedData.site_web = document.getElementById('siteWeb').value;
+                    }
+
+                    if (document.getElementById('toggleAdresse').checked) {
+                        updatedData.adresse = document.getElementById('adresse').value;
+                        updatedData.code_postal = document.getElementById('codePostal').value;
+                        updatedData.ville = document.getElementById('ville').value;
+                        updatedData.region = document.getElementById('region').value;
+                        updatedData.pays = document.getElementById('pays').value;
+                    }
+
+                    if (document.getElementById('toggleCommercial').checked) {
+                        const caEstime = document.getElementById('caEstime').value.trim();
+                        const budgetMarketing = document.getElementById('budgetMarketing').value.trim();
+                        const nbEmployes = document.getElementById('nbEmployes').value.trim();
+
+                        updatedData.ca_estime = caEstime ? parseFloat(caEstime) : null;
+                        updatedData.budget_marketing = budgetMarketing ? parseFloat(budgetMarketing) : null;
+                        updatedData.nb_employes = nbEmployes ? parseInt(nbEmployes, 10) : null;
+                        updatedData.source_prospection = document.getElementById('sourceProspection').value;
+                    }
+
+                    if (document.getElementById('toggleReseaux').checked) {
+                        updatedData.instagram = document.getElementById('instagram').value;
+                        updatedData.facebook = document.getElementById('facebook').value;
+                        updatedData.youtube = document.getElementById('youtube').value;
+                        updatedData.google_business = document.getElementById('googleBusiness').value;
+                        updatedData.whatsapp = document.getElementById('whatsapp').value;
+                        updatedData.tiktok = document.getElementById('tiktok').value;
+                        updatedData.linkedin = document.getElementById('linkedin').value;
+                        updatedData.pinterest = document.getElementById('pinterest').value;
+                        updatedData.snapchat = document.getElementById('snapchat').value;
+                        updatedData.twitter = document.getElementById('twitter').value;
+                    }
+
+                    if (document.getElementById('toggleNotes').checked) {
+                        updatedData.objectifs = document.getElementById('objectifs').value;
+                        updatedData.notes = document.getElementById('notes').value;
+                        updatedData.prochaine_action = document.getElementById('prochaineAction').value;
+                    }
+
+                    const { data, error } = await supabaseClient
+                        .from('clients')
+                        .update(updatedData)
+                        .eq('id', clientId)
+                        .select();
+
+                    if (error) {
+                        console.error('Erreur lors de la mise à jour:', error);
+                        showNotification('Erreur lors de la mise à jour du client', 'error');
+                        return;
+                    }
+
+                    await loadClients();
+                    document.getElementById('clientModal').classList.add('hidden');
+                    document.getElementById('clientForm').reset();
+                    showNotification('Client modifié avec succès !', 'success');
+                    
+                    // Remettre le bouton à son état initial
+                    saveBtn.textContent = 'Enregistrer';
+                    saveBtn.onclick = ajouterNouveauClient;
+                    document.querySelector('#clientModal h3').textContent = 'Nouveau Client';
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    showNotification('Erreur lors de la mise à jour du client', 'error');
+                }
+            };
+
+            document.getElementById('clientModal').classList.remove('hidden');
+        }
+
+        async function supprimerClient(clientId) {
+            const client = clientsData.find(c => c.id === clientId);
+            if (!client) return;
+
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+            modal.innerHTML = `
+                <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-2xl bg-white">
+                    <div class="text-center">
+                        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                            <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Supprimer le client</h3>
+                        <p class="text-sm text-gray-600 mb-6">Êtes-vous sûr de vouloir supprimer <strong>${client.nom}</strong> ? Cette action est irréversible.</p>
+                        <div class="flex justify-center space-x-3">
+                            <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-400 transition-colors">
+                                Annuler
+                            </button>
+                            <button onclick="confirmerSuppression('${clientId}')" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
+                                Supprimer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function confirmerSuppression(clientId) {
+            try {
+                const client = clientsData.find(c => c.id === clientId);
+
+                // Vérifier s'il y a des dépendances (projets ET lead converti)
+                const [projetsResult, leadResult] = await Promise.all([
+                    supabaseClient
+                        .from('projets')
+                        .select('id, nom')
+                        .eq('client_id', clientId),
+                    supabaseClient
+                        .from('leads')
+                        .select('id, nom_complet')
+                        .eq('client_id', clientId)
+                ]);
+
+                if (projetsResult.error || leadResult.error) {
+                    console.error('Erreur lors de la vérification:', projetsResult.error || leadResult.error);
+                    showNotification('Erreur lors de la vérification des dépendances', 'error');
+                    return;
+                }
+
+                const projetsLies = projetsResult.data || [];
+                const leadConverti = leadResult.data || [];
+                const hasDependendencies = projetsLies.length > 0 || leadConverti.length > 0;
+
+                // Debug logs
+                console.log('Client à supprimer:', client);
+                console.log('Projets liés:', projetsLies);
+                console.log('Lead converti:', leadConverti);
+                console.log('A des dépendances?', hasDependendencies);
+
+                // Si des dépendances existent, empêcher la suppression
+                if (hasDependendencies) {
+                    // Fermer le modal actuel
+                    document.querySelector('.fixed').remove();
+
+                    // Afficher un modal d'information détaillé
+                    const modal = document.createElement('div');
+                    modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+                    modal.innerHTML = `
+                        <div class="relative top-10 mx-auto p-6 border w-full max-w-2xl shadow-lg rounded-2xl bg-white">
+                            <div class="text-center">
+                                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 mb-4">
+                                    <svg class="h-8 w-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-4">⚠️ Suppression impossible</h3>
+
+                                <div class="text-left bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                                    <h4 class="text-lg font-semibold text-red-800 mb-2">Pourquoi cette erreur ?</h4>
+                                    <p class="text-sm text-red-700 mb-3">
+                                        Le client <strong>"${client?.nom || 'inconnu'}"</strong> ne peut pas être supprimé car il est encore référencé dans le système.
+                                        Cela protège l'intégrité de vos données et évite de casser les liens entre vos informations.
+                                    </p>
+                                </div>
+
+                                <div class="text-left mb-6">
+                                    <h4 class="text-lg font-semibold text-gray-900 mb-3">🔍 Dépendances détectées :</h4>
+
+                                    ${leadConverti.length > 0 ? `
+                                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                                            <div class="flex items-center mb-2">
+                                                <span class="text-2xl mr-2">🎯</span>
+                                                <h5 class="text-base font-semibold text-blue-800">Lead converti</h5>
+                                            </div>
+                                            <p class="text-sm text-blue-700 mb-2">Ce client provient de la conversion du lead :</p>
+                                            ${leadConverti.map(lead => `<p class="text-sm font-medium text-blue-800">• ${lead.nom_complet}</p>`).join('')}
+                                            <p class="text-xs text-blue-600 mt-2">
+                                                ℹ️ <em>Les clients convertis depuis des leads conservent un lien historique pour le suivi commercial.</em>
+                                            </p>
+                                        </div>
+                                    ` : ''}
+
+                                    ${projetsLies.length > 0 ? `
+                                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                                            <div class="flex items-center mb-2">
+                                                <span class="text-2xl mr-2">📁</span>
+                                                <h5 class="text-base font-semibold text-gray-800">${projetsLies.length} projet(s) actif(s)</h5>
+                                            </div>
+                                            <p class="text-sm text-gray-700 mb-2">Ce client est assigné aux projets suivants :</p>
+                                            <div class="max-h-24 overflow-y-auto bg-white rounded p-2 border">
+                                                ${projetsLies.map(projet => `<p class="text-sm font-medium text-gray-800">• ${projet.nom}</p>`).join('')}
+                                            </div>
+                                            <p class="text-xs text-gray-600 mt-2">
+                                                ℹ️ <em>Supprimer ce client casserait le lien avec ces projets.</em>
+                                            </p>
+                                        </div>
+                                    ` : ''}
+                                </div>
+
+                                <div class="text-left bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                                    <h4 class="text-lg font-semibold text-green-800 mb-3">✅ Solutions de suppression</h4>
+
+                                    ${leadConverti.length > 0 && projetsLies.length > 0 ? `
+                                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                                            <p class="text-sm text-yellow-800 font-medium mb-2">⚠️ Option 1 : Suppression complète (recommandée)</p>
+                                            <div class="space-y-2 text-xs text-yellow-700">
+                                                <p>1. Gérer les projets → Supprimez ou réassignez les ${projetsLies.length} projet(s)</p>
+                                                <p>2. Utiliser le bouton "Forcer la suppression" ci-dessous</p>
+                                            </div>
+                                        </div>
+                                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                                            <p class="text-sm text-blue-800 font-medium mb-2">🔄 Option 2 : Méthode manuelle</p>
+                                            <div class="space-y-2 text-xs text-blue-700">
+                                                <p>1. Gérer les projets d'abord</p>
+                                                <p>2. Aller dans Leads → Supprimer le lead "${leadConverti[0]?.nom_complet}"</p>
+                                                <p>3. Revenir ici pour supprimer le client</p>
+                                            </div>
+                                        </div>
+                                    ` : leadConverti.length > 0 ? `
+                                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                                            <p class="text-sm text-yellow-800 font-medium mb-2">⚠️ Option 1 : Suppression forcée (recommandée)</p>
+                                            <p class="text-xs text-yellow-700">Utilisez le bouton "Forcer la suppression" ci-dessous pour casser automatiquement le lien avec le lead.</p>
+                                        </div>
+                                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                                            <p class="text-sm text-blue-800 font-medium mb-2">🔄 Option 2 : Méthode manuelle</p>
+                                            <div class="space-y-2 text-xs text-blue-700">
+                                                <p>1. Aller dans Leads → Supprimer le lead "${leadConverti[0]?.nom_complet}"</p>
+                                                <p>2. Revenir ici pour supprimer le client</p>
+                                            </div>
+                                        </div>
+                                    ` : projetsLies.length > 0 ? `
+                                        <div class="space-y-3">
+                                            <div class="flex items-start">
+                                                <span class="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
+                                                <div>
+                                                    <p class="font-medium text-green-800">Gérer les projets</p>
+                                                    <p class="text-sm text-green-700">Allez dans <strong>Projets</strong> → Supprimez ou réassignez les ${projetsLies.length} projet(s) à un autre client</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-start">
+                                                <span class="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
+                                                <div>
+                                                    <p class="font-medium text-green-800">Supprimer le client</p>
+                                                    <p class="text-sm text-green-700">Revenez ici et tentez à nouveau la suppression</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+
+                                <div class="flex flex-col space-y-3">
+                                    ${leadConverti.length > 0 ? `
+                                        <button onclick="forcerSuppressionClient('${clientId}')" class="w-full px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
+                                            🗑️ Forcer la suppression (casse le lien avec le lead)
+                                        </button>
+                                    ` : ''}
+                                    <div class="flex justify-between space-x-3">
+                                        <button onclick="this.closest('.fixed').remove()" class="flex-1 px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-400 transition-colors">
+                                            Fermer
+                                        </button>
+                                        <a href="./projets.html" class="flex-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors text-center">
+                                            📁 Voir Projets
+                                        </a>
+                                        <a href="./leads.html" class="flex-1 px-4 py-2 bg-puy-orange text-white text-sm font-medium rounded-lg hover:bg-puy-red transition-colors text-center">
+                                            🎯 Voir Leads
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+                    return;
+                }
+
+                // Si aucun projet lié, procéder à la suppression
+                console.log('Tentative de suppression du client ID:', clientId);
+                const { error } = await supabaseClient
+                    .from('clients')
+                    .delete()
+                    .eq('id', clientId);
+
+                if (error) {
+                    console.error('Erreur lors de la suppression:', error);
+                    console.error('Code erreur:', error.code);
+                    console.error('Message erreur:', error.message);
+                    console.error('Détails:', error.details);
+                    showNotification(`Erreur lors de la suppression: ${error.message}`, 'error');
+                    return;
+                }
+
+                // Fermer le modal de confirmation
+                document.querySelector('.fixed').remove();
+
+                await loadClients();
+                showNotification(`Client ${client?.nom || ''} supprimé avec succès !`, 'success');
+            } catch (error) {
+                console.error('Erreur:', error);
+                showNotification('Erreur lors de la suppression du client', 'error');
+
+                // S'assurer que le modal se ferme même en cas d'erreur
+                const modal = document.querySelector('.fixed');
+                if (modal) modal.remove();
+            }
+        }
+
+        // Fonction pour forcer la suppression d'un client converti
+        async function forcerSuppressionClient(clientId) {
+            try {
+                const client = clientsData.find(c => c.id === clientId);
+
+                // Vérifier d'abord s'il y a des projets liés
+                const { data: projetsLies, error: checkError } = await supabaseClient
+                    .from('projets')
+                    .select('id, nom')
+                    .eq('client_id', clientId);
+
+                if (checkError) {
+                    console.error('Erreur lors de la vérification des projets:', checkError);
+                    showNotification('Erreur lors de la vérification des projets', 'error');
+                    return;
+                }
+
+                if (projetsLies && projetsLies.length > 0) {
+                    showNotification('Supprimez d\'abord les projets associés avant de forcer la suppression', 'error');
+                    return;
+                }
+
+                // Étape 1: Mettre à jour le lead pour supprimer la référence client_id
+                const { error: leadUpdateError } = await supabaseClient
+                    .from('leads')
+                    .update({
+                        client_id: null,
+                        statut: 'prospect' // Remettre le lead en statut prospect
+                    })
+                    .eq('client_id', clientId);
+
+                if (leadUpdateError) {
+                    console.error('Erreur lors de la mise à jour du lead:', leadUpdateError);
+                    showNotification('Erreur lors de la déconnexion du lead', 'error');
+                    return;
+                }
+
+                // Étape 2: Supprimer le client
+                const { error: clientDeleteError } = await supabaseClient
+                    .from('clients')
+                    .delete()
+                    .eq('id', clientId);
+
+                if (clientDeleteError) {
+                    console.error('Erreur lors de la suppression du client:', clientDeleteError);
+                    showNotification('Erreur lors de la suppression du client', 'error');
+                    return;
+                }
+
+                // Fermer le modal et recharger
+                document.querySelector('.fixed').remove();
+                await loadClients();
+                showNotification(`Client "${client?.nom || ''}" supprimé avec succès ! Le lead source a été remis en statut prospect.`, 'success');
+
+            } catch (error) {
+                console.error('Erreur lors de la suppression forcée:', error);
+                showNotification('Erreur lors de la suppression forcée du client', 'error');
+            }
+        }
+
+        // Fonctions de filtrage et recherche
+        function filterClients() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statutFilter = document.getElementById('statutFilter').value;
+            const secteurFilter = document.getElementById('secteurFilter').value;
+
+            let filtered = clientsData.filter(client => {
+                const matchesSearch = client.nom.toLowerCase().includes(searchTerm) || 
+                                    (client.email && client.email.toLowerCase().includes(searchTerm)) ||
+                                    (client.adresse && client.adresse.toLowerCase().includes(searchTerm));
+                const matchesStatut = statutFilter === 'tous' || client.statut === statutFilter;
+                const matchesSecteur = secteurFilter === 'tous' || client.secteur === secteurFilter;
+                
+                return matchesSearch && matchesStatut && matchesSecteur;
+            });
+
+            displayClients(filtered);
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', filterClients);
+        document.getElementById('statutFilter').addEventListener('change', filterClients);
+        document.getElementById('secteurFilter').addEventListener('change', filterClients);
+
+        // Modal gestion
+        document.getElementById('nouveauClientBtn').addEventListener('click', () => {
+            document.getElementById('clientModal').classList.remove('hidden');
+        });
+
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            document.getElementById('clientModal').classList.add('hidden');
+            document.getElementById('clientForm').reset();
+            
+            // Remettre le modal en mode "Nouveau client"
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.textContent = 'Enregistrer';
+            saveBtn.onclick = ajouterNouveauClient;
+            document.querySelector('#clientModal h3').textContent = 'Nouveau Client';
+        });
+
+        // Fonction pour ajouter un nouveau client
+        async function ajouterNouveauClient() {
+            try {
+                // Récupérer les données du formulaire de base (champs existants seulement)
+                const nouveauClient = {
+                    nom: document.getElementById('nom').value,
+                    secteur: document.getElementById('secteur').value,
+                    email: document.getElementById('email').value,
+                    telephone: document.getElementById('telephone').value,
+                    statut: document.getElementById('statut').value,
+                    derniere_activite: new Date().toISOString()
+                };
+
+
+                // Ajouter l'adresse de base si remplie
+                if (document.getElementById('adresse') && document.getElementById('adresse').value) {
+                    nouveauClient.adresse = document.getElementById('adresse').value;
+                }
+
+                // Ajouter les notes de base si remplies
+                if (document.getElementById('notes') && document.getElementById('notes').value) {
+                    nouveauClient.notes = document.getElementById('notes').value;
+                }
+
+                // Ajouter les données des sections optionnelles si elles sont activées
+                if (document.getElementById('toggleLegal').checked) {
+                    nouveauClient.siret = document.getElementById('siret').value;
+                    nouveauClient.tva = document.getElementById('tva').value;
+                    nouveauClient.code_ape = document.getElementById('codeApe').value;
+                    nouveauClient.forme_juridique = document.getElementById('formeJuridique').value;
+                }
+
+                if (document.getElementById('toggleContact').checked) {
+                    nouveauClient.prenom_contact = document.getElementById('prenomContact').value;
+                    nouveauClient.nom_contact = document.getElementById('nomContact').value;
+                    nouveauClient.fonction = document.getElementById('fonction').value;
+                    nouveauClient.telephone_mobile = document.getElementById('telephoneMobile').value;
+                    nouveauClient.site_web = document.getElementById('siteWeb').value;
+                }
+
+                if (document.getElementById('toggleAdresse').checked) {
+                    // Ne pas redéfinir adresse si déjà définie plus haut
+                    if (!nouveauClient.adresse) {
+                        nouveauClient.adresse = document.getElementById('adresse').value;
+                    }
+                    nouveauClient.code_postal = document.getElementById('codePostal').value;
+                    nouveauClient.ville = document.getElementById('ville').value;
+                    nouveauClient.region = document.getElementById('region').value;
+                    nouveauClient.pays = document.getElementById('pays').value;
+                }
+
+                if (document.getElementById('toggleCommercial').checked) {
+                    const caEstime = document.getElementById('caEstime').value.trim();
+                    const budgetMarketing = document.getElementById('budgetMarketing').value.trim();
+                    const nbEmployes = document.getElementById('nbEmployes').value.trim();
+
+                    nouveauClient.ca_estime = caEstime ? parseFloat(caEstime) : null;
+                    nouveauClient.budget_marketing = budgetMarketing ? parseFloat(budgetMarketing) : null;
+                    nouveauClient.nb_employes = nbEmployes ? parseInt(nbEmployes, 10) : null;
+                    nouveauClient.source_prospection = document.getElementById('sourceProspection').value;
+                }
+
+                if (document.getElementById('toggleReseaux').checked) {
+                    nouveauClient.instagram = document.getElementById('instagram').value;
+                    nouveauClient.facebook = document.getElementById('facebook').value;
+                    nouveauClient.youtube = document.getElementById('youtube').value;
+                    nouveauClient.google_business = document.getElementById('googleBusiness').value;
+                    nouveauClient.whatsapp = document.getElementById('whatsapp').value;
+                    nouveauClient.tiktok = document.getElementById('tiktok').value;
+                    nouveauClient.linkedin = document.getElementById('linkedin').value;
+                    nouveauClient.pinterest = document.getElementById('pinterest').value;
+                    nouveauClient.snapchat = document.getElementById('snapchat').value;
+                    nouveauClient.twitter = document.getElementById('twitter').value;
+                }
+
+                if (document.getElementById('toggleNotes').checked) {
+                    nouveauClient.objectifs = document.getElementById('objectifs').value;
+                    // Ne pas redéfinir notes si déjà définie plus haut
+                    if (!nouveauClient.notes) {
+                        nouveauClient.notes = document.getElementById('notes').value;
+                    }
+                    nouveauClient.prochaine_action = document.getElementById('prochaineAction').value;
+                }
+
+                // S'assurer qu'on n'envoie pas d'ID vide (Supabase génère automatiquement)
+                if (nouveauClient.id !== undefined) {
+                    delete nouveauClient.id;
+                }
+
+                // Vérifier si un client avec cet email existe déjà
+                if (nouveauClient.email) {
+                    const { data: existingClient } = await supabaseClient
+                        .from('clients')
+                        .select('id')
+                        .eq('email', nouveauClient.email)
+                        .single();
+
+                    if (existingClient) {
+                        showNotification('Un client avec cet email existe déjà', 'error');
+                        return;
+                    }
+                }
+
+                // Debug: afficher les données envoyées
+                console.log('Données envoyées:', nouveauClient);
+
+                const { data, error } = await supabaseClient
+                    .from('clients')
+                    .insert([nouveauClient])
+                    .select();
+
+                if (error) {
+                    console.error('Erreur lors de l\'ajout:', error);
+                    if (error.code === '23505') {
+                        showNotification('Un client avec cet email existe déjà', 'error');
+                    } else if (error.code === 'PGRST204') {
+                        showNotification('Erreur de colonnes: vérifiez les champs du formulaire', 'error');
+                    } else if (error.code === '23502') {
+                        showNotification('Champ obligatoire manquant', 'error');
+                    } else if (error.code === '22P02') {
+                        showNotification('Format de données invalide (vérifiez les champs numériques)', 'error');
+                    } else {
+                        showNotification(`Erreur lors de l'ajout: ${error.message || 'Erreur inconnue'}`, 'error');
+                    }
+                    return;
+                }
+
+                await loadClients();
+                showNotification('Client ajouté avec succès !', 'success');
+                document.getElementById('clientModal').classList.add('hidden');
+                document.getElementById('clientForm').reset();
+            } catch (error) {
+                console.error('Erreur complète:', error);
+                if (error.status === 409) {
+                    showNotification('Conflit détecté: un client avec ces informations existe peut-être déjà', 'error');
+                } else if (error.message) {
+                    showNotification(`Erreur: ${error.message}`, 'error');
+                } else {
+                    showNotification('Erreur lors de l\'ajout du client', 'error');
+                }
+            }
+        }
+
+        document.getElementById('saveBtn').addEventListener('click', ajouterNouveauClient);
+
+        // Fonction de notification
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-4 py-2 rounded-md text-white z-50 ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Simulation chargement
+        // Fonction pour mettre à jour les statistiques
+        function updateStats() {
+            const totalClients = clientsData.length;
+            const clientsActifs = clientsData.filter(c => c.statut === 'actif').length;
+            const clientsInactifs = clientsData.filter(c => c.statut === 'inactif').length;
+
+            // Calculer les nouveaux clients de ce mois
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+
+            const nouveauxCeMois = clientsData.filter(client => {
+                if (!client.created_at) return false;
+                const clientDate = new Date(client.created_at);
+                return clientDate.getMonth() === currentMonth &&
+                       clientDate.getFullYear() === currentYear;
+            }).length;
+
+            // Mettre à jour l'affichage des statistiques si les éléments existent
+            const totalElement = document.getElementById('totalClients');
+            const actifsElement = document.getElementById('clientsActifs');
+            const inactifsElement = document.getElementById('clientsInactifs');
+            const nouveauxElement = document.getElementById('nouveauxCeMois');
+
+            if (totalElement) totalElement.textContent = totalClients;
+            if (actifsElement) actifsElement.textContent = clientsActifs;
+            if (inactifsElement) inactifsElement.textContent = clientsInactifs;
+            if (nouveauxElement) nouveauxElement.textContent = nouveauxCeMois;
+        }
+
+        // Fonction pour mettre en évidence un client spécifique
+        function highlightClient(clientId) {
+            if (!clientId) return;
+
+            // Attendre que les clients soient chargés
+            setTimeout(() => {
+                const clientRow = document.querySelector(`[data-client-id="${clientId}"]`);
+                if (clientRow) {
+                    // Scroller vers le client
+                    clientRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    // Ajouter une classe pour le mettre en évidence
+                    clientRow.classList.add('bg-green-100', 'border-2', 'border-green-400');
+
+                    // Enlever la mise en évidence après 3 secondes
+                    setTimeout(() => {
+                        clientRow.classList.remove('bg-green-100', 'border-2', 'border-green-400');
+                    }, 3000);
+
+                    // Ouvrir automatiquement les détails du client
+                    setTimeout(() => {
+                        const detailsButton = clientRow.querySelector('[onclick*="voirClient"]');
+                        if (detailsButton) {
+                            detailsButton.click();
+                        }
+                    }, 500);
+                }
+            }, 1000);
+        }
+
+        // Vérifier les paramètres URL pour mise en évidence
+        function checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const highlightId = urlParams.get('highlight');
+            if (highlightId) {
+                highlightClient(highlightId);
+                // Nettoyer l'URL
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, '', newUrl);
+            }
+        }
+
+        // Initialisation
+        checkAuth().then(isAuthenticated => {
+            if (isAuthenticated) {
+                loadClients().then(() => {
+                    checkUrlParams();
+                });
+                setupFormToggles();
+            }
+        });
+    </script>
+</body>
+</html>

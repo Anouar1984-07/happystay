@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer un Post - PuyDeCom Production</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'puy-orange': '#FF7F50',
+                        'puy-pink': '#DB2777',
+                        'puy-dark': '#1F2937'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50">
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="flex items-center">
+                    <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="PuyDeCom" class="w-8 h-8 rounded-full mr-3">
+                    <div>
+                        <h2 class="text-white font-bold text-lg">PuyDeCom</h2>
+                        <p class="text-gray-300 text-xs">Production</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                    </svg>
+                    Dashboard
+                </a>
+                
+                <a href="clients.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    Clients
+                </a>
+                
+                <a href="create-post.html" class="nav-item active">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Créer un Post
+                </a>
+                
+                <a href="calendar.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Calendrier
+                </a>
+                
+                <a href="analytics.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    Analytics
+                </a>
+                
+                <a href="settings.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Paramètres
+                </a>
+                
+                <div class="mt-8 border-t border-white/10 pt-4">
+                    <button class="nav-item" data-logout>
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        Déconnexion
+                    </button>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button id="toggleSidebar" class="lg:hidden p-2 rounded-lg hover:bg-gray-100">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                    <h1 class="text-2xl font-bold text-gray-900 ml-4">Créer un Post</h1>
+                </div>
+                
+                <div class="header-right">
+                    <div class="flex items-center space-x-3">
+                        <div class="text-right">
+                            <p class="text-sm font-medium text-gray-900" data-user-name>Utilisateur</p>
+                            <p class="text-xs text-gray-500" data-user-email>email@domain.com</p>
+                        </div>
+                        <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="Avatar" class="w-8 h-8 rounded-full">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="content">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Form Column -->
+                    <div class="lg:col-span-2">
+                        <form id="createPostForm" class="space-y-6">
+                            <!-- Step 1: Client Selection -->
+                            <div class="card" id="step-1">
+                                <div class="flex items-center space-x-2 mb-4">
+                                    <div class="w-8 h-8 bg-puy-orange text-white rounded-full flex items-center justify-center font-semibold">1</div>
+                                    <h3 class="text-lg font-semibold text-gray-900">Sélectionner le Client</h3>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="clientSelect">Client</label>
+                                    <select id="clientSelect" class="form-input form-select" required>
+                                        <option value="">Choisissez un client</option>
+                                        <!-- Options will be loaded here -->
+                                    </select>
+                                </div>
+                                
+                                <div id="clientInfo" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
+                                    <!-- Client info will be displayed here -->
+                                </div>
+                            </div>
+
+                            <!-- Step 2: Platforms & Language -->
+                            <div class="card" id="step-2">
+                                <div class="flex items-center space-x-2 mb-4">
+                                    <div class="w-8 h-8 bg-puy-orange text-white rounded-full flex items-center justify-center font-semibold">2</div>
+                                    <h3 class="text-lg font-semibold text-gray-900">Plateformes et Langue</h3>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Plateformes cibles</label>
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="platformsGrid">
+                                        <!-- Platform checkboxes will be loaded here -->
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="languageSelect">Langue</label>
+                                    <select id="languageSelect" class="form-input form-select" required>
+                                        <option value="fr">Français</option>
+                                        <option value="en">Anglais</option>
+                                        <option value="es">Espagnol</option>
+                                        <option value="de">Allemand</option>
+                                        <option value="ar">Arabe Classique</option>
+                                        <option value="ar-ma">Arabe Marocain</option>
+                                        <option value="ar-sa">Arabe Saoudien</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: Content Type & AI Generation -->
+                            <div class="card" id="step-3">
+                                <div class="flex items-center space-x-2 mb-4">
+                                    <div class="w-8 h-8 bg-puy-orange text-white rounded-full flex items-center justify-center font-semibold">3</div>
+                                    <h3 class="text-lg font-semibold text-gray-900">Contenu et IA</h3>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="contentType">Type de contenu</label>
+                                    <select id="contentType" class="form-input form-select" required>
+                                        <option value="">Sélectionner un type</option>
+                                        <option value="text">Texte uniquement</option>
+                                        <option value="image">Image + Texte</option>
+                                        <option value="video">Vidéo + Texte</option>
+                                        <option value="carousel">Carrousel d'images</option>
+                                        <option value="story">Story</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="postTopic">Sujet du post</label>
+                                    <input
+                                        type="text"
+                                        id="postTopic"
+                                        class="form-input"
+                                        placeholder="Ex: Nouveau menu automne, promotion Black Friday..."
+                                        required
+                                    />
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="postTone">Ton & Style</label>
+                                    <select id="postTone" class="form-input form-select">
+                                        <option value="professional">Professionnel</option>
+                                        <option value="friendly">Amical</option>
+                                        <option value="fun">Amusant</option>
+                                        <option value="elegant">Élégant</option>
+                                        <option value="persuasive">Persuasif</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- AI Options -->
+                                <div class="bg-gradient-to-br from-purple-50 to-blue-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold text-gray-900 mb-3 flex items-center">
+                                        🤖 Génération IA
+                                    </h4>
+                                    
+                                    <div class="space-y-3">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="generateText" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                            <span class="ml-2 text-sm">Générer le texte automatiquement</span>
+                                        </label>
+                                        
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="generateImage" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                            <span class="ml-2 text-sm">Générer une image IA</span>
+                                        </label>
+                                        
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="generateVideo" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                            <span class="ml-2 text-sm">Générer une vidéo IA (via n8n webhook)</span>
+                                        </label>
+                                    </div>
+                                    
+                                    <button type="button" id="generateAIContent" class="btn btn-primary mt-3 w-full">
+                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                        </svg>
+                                        Générer le contenu IA
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Step 4: Content Creation -->
+                            <div class="card" id="step-4">
+                                <div class="flex items-center space-x-2 mb-4">
+                                    <div class="w-8 h-8 bg-puy-orange text-white rounded-full flex items-center justify-center font-semibold">4</div>
+                                    <h3 class="text-lg font-semibold text-gray-900">Contenu Final</h3>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="postContent">Texte du post</label>
+                                    <textarea
+                                        id="postContent"
+                                        class="form-input"
+                                        rows="6"
+                                        placeholder="Rédigez votre post ou utilisez la génération IA..."
+                                        required
+                                    ></textarea>
+                                    <div class="flex justify-between items-center mt-2">
+                                        <span class="text-sm text-gray-500" id="charCount">0 caractères</span>
+                                        <button type="button" id="addEmojis" class="text-sm text-puy-orange hover:underline">
+                                            Ajouter des emojis 😊
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="hashtags">Hashtags</label>
+                                    <input
+                                        type="text"
+                                        id="hashtags"
+                                        class="form-input"
+                                        placeholder="#restaurant #food #clermont"
+                                    />
+                                    <p class="text-sm text-gray-500 mt-1">Séparez les hashtags par des espaces</p>
+                                </div>
+                                
+                                <!-- Media Upload -->
+                                <div class="form-group">
+                                    <label class="form-label">Médias</label>
+                                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-puy-orange transition-colors">
+                                        <input type="file" id="mediaFiles" multiple accept="image/*,video/*" class="hidden">
+                                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                        </svg>
+                                        <p class="mt-2 text-sm text-gray-600">
+                                            <button type="button" onclick="document.getElementById('mediaFiles').click()" class="font-medium text-puy-orange hover:underline">
+                                                Cliquez pour télécharger
+                                            </button>
+                                            ou glissez-déposez vos fichiers
+                                        </p>
+                                        <p class="text-xs text-gray-500">PNG, JPG, MP4 jusqu'à 50MB</p>
+                                    </div>
+                                    <div id="mediaPreview" class="mt-4 grid grid-cols-2 gap-4">
+                                        <!-- Media previews will appear here -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 5: Scheduling & Publishing -->
+                            <div class="card" id="step-5">
+                                <div class="flex items-center space-x-2 mb-4">
+                                    <div class="w-8 h-8 bg-puy-orange text-white rounded-full flex items-center justify-center font-semibold">5</div>
+                                    <h3 class="text-lg font-semibold text-gray-900">Programmation & Publication</h3>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Options de publication</label>
+                                    <div class="space-y-2">
+                                        <label class="flex items-center">
+                                            <input type="radio" name="publishOption" value="now" class="text-puy-orange focus:ring-puy-orange" checked>
+                                            <span class="ml-2">Publier maintenant</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="radio" name="publishOption" value="schedule" class="text-puy-orange focus:ring-puy-orange">
+                                            <span class="ml-2">Programmer la publication</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="radio" name="publishOption" value="draft" class="text-puy-orange focus:ring-puy-orange">
+                                            <span class="ml-2">Sauvegarder en brouillon</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div id="scheduleOptions" class="form-group hidden">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="form-label" for="scheduleDate">Date</label>
+                                            <input type="date" id="scheduleDate" class="form-input">
+                                        </div>
+                                        <div>
+                                            <label class="form-label" for="scheduleTime">Heure</label>
+                                            <input type="time" id="scheduleTime" class="form-input">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Workflow Options -->
+                                <div class="bg-blue-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold text-gray-900 mb-3">Workflow d'approbation</h4>
+                                    <div class="space-y-2">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="needsApproval" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                            <span class="ml-2 text-sm">Nécessite une approbation</span>
+                                        </label>
+                                        
+                                        <div id="approvalOptions" class="hidden ml-6 space-y-2">
+                                            <select id="assignTo" class="form-select w-full">
+                                                <option value="">Assigner à un membre de l'équipe</option>
+                                                <option value="manager">Manager</option>
+                                                <option value="client">Client</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-6 border-t">
+                                    <button type="button" class="btn btn-secondary flex-1" onclick="saveDraft()">
+                                        Sauvegarder en brouillon
+                                    </button>
+                                    <button type="button" class="btn btn-outline flex-1" onclick="previewPost()">
+                                        Aperçu
+                                    </button>
+                                    <button type="submit" class="btn btn-primary flex-1">
+                                        <span id="submitButtonText">Publier maintenant</span>
+                                        <div id="submitSpinner" class="hidden inline-block w-4 h-4 ml-2 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Preview Column -->
+                    <div class="lg:col-span-1">
+                        <div class="sticky top-24">
+                            <div class="card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Aperçu en temps réel</h3>
+                                
+                                <!-- Platform Previews -->
+                                <div id="previewContainer" class="space-y-4">
+                                    <!-- Instagram Preview -->
+                                    <div id="instagramPreview" class="hidden border rounded-lg p-4">
+                                        <div class="flex items-center space-x-2 mb-3">
+                                            <div class="w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white text-xs">📷</div>
+                                            <div>
+                                                <p class="font-semibold text-sm" id="igClientName">Client</p>
+                                                <p class="text-xs text-gray-500">Instagram</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="igMediaPreview" class="mb-3 bg-gray-100 aspect-square rounded-lg flex items-center justify-center">
+                                            <span class="text-gray-400">Image/Vidéo</span>
+                                        </div>
+                                        
+                                        <div id="igTextPreview" class="text-sm">
+                                            <p class="text-gray-400">Votre texte apparaîtra ici...</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Facebook Preview -->
+                                    <div id="facebookPreview" class="hidden border rounded-lg p-4">
+                                        <div class="flex items-center space-x-2 mb-3">
+                                            <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs">📘</div>
+                                            <div>
+                                                <p class="font-semibold text-sm" id="fbClientName">Client</p>
+                                                <p class="text-xs text-gray-500">Facebook</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="fbTextPreview" class="text-sm mb-3">
+                                            <p class="text-gray-400">Votre texte apparaîtra ici...</p>
+                                        </div>
+                                        
+                                        <div id="fbMediaPreview" class="bg-gray-100 aspect-video rounded-lg flex items-center justify-center">
+                                            <span class="text-gray-400">Média</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- LinkedIn Preview -->
+                                    <div id="linkedinPreview" class="hidden border rounded-lg p-4">
+                                        <div class="flex items-center space-x-2 mb-3">
+                                            <div class="w-8 h-8 bg-blue-700 rounded-full flex items-center justify-center text-white text-xs">💼</div>
+                                            <div>
+                                                <p class="font-semibold text-sm" id="liClientName">Client</p>
+                                                <p class="text-xs text-gray-500">LinkedIn</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="liTextPreview" class="text-sm mb-3">
+                                            <p class="text-gray-400">Votre texte apparaîtra ici...</p>
+                                        </div>
+                                        
+                                        <div id="liMediaPreview" class="bg-gray-100 aspect-video rounded-lg flex items-center justify-center">
+                                            <span class="text-gray-400">Média</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- No Platform Selected -->
+                                <div id="noPreview" class="text-center py-8">
+                                    <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                    <p class="mt-2 text-sm text-gray-500">Sélectionnez des plateformes pour voir l'aperçu</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script type="module" src="js/supabase.js"></script>
+    <script>
+        // Mock data
+        const mockClients = [
+            { id: 1, name: 'Café Central', industry: 'restaurant', avatar: '☕' },
+            { id: 2, name: 'Restaurant Italia', industry: 'restaurant', avatar: '🍝' },
+            { id: 3, name: 'Boutique Mode', industry: 'retail', avatar: '👗' },
+            { id: 4, name: 'Salon Beauté', industry: 'beauty', avatar: '💄' },
+            { id: 5, name: 'TechStart Solutions', industry: 'tech', avatar: '💻' }
+        ];
+
+        const platforms = [
+            { id: 'instagram', name: 'Instagram', icon: '📷', color: 'from-purple-600 to-pink-600' },
+            { id: 'facebook', name: 'Facebook', icon: '📘', color: 'from-blue-600 to-blue-700' },
+            { id: 'linkedin', name: 'LinkedIn', icon: '💼', color: 'from-blue-700 to-blue-800' },
+            { id: 'twitter', name: 'Twitter', icon: '🐦', color: 'from-blue-400 to-blue-500' },
+            { id: 'tiktok', name: 'TikTok', icon: '🎵', color: 'from-pink-600 to-red-600' },
+            { id: 'youtube', name: 'YouTube', icon: '📺', color: 'from-red-600 to-red-700' }
+        ];
+
+        // Initialize page
+        function initCreatePost() {
+            loadClients();
+            loadPlatforms();
+            setupEventListeners();
+            
+            // Check for client parameter in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const clientId = urlParams.get('client');
+            if (clientId) {
+                document.getElementById('clientSelect').value = clientId;
+                updateClientInfo(clientId);
+            }
+        }
+
+        // Load clients into select
+        function loadClients() {
+            const select = document.getElementById('clientSelect');
+            select.innerHTML = '<option value="">Choisissez un client</option>';
+            
+            mockClients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client.id;
+                option.textContent = `${client.avatar} ${client.name}`;
+                select.appendChild(option);
+            });
+        }
+
+        // Load platforms grid
+        function loadPlatforms() {
+            const grid = document.getElementById('platformsGrid');
+            
+            platforms.forEach(platform => {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                        <input type="checkbox" name="platforms" value="${platform.id}" class="sr-only">
+                        <div class="w-8 h-8 bg-gradient-to-br ${platform.color} rounded-full flex items-center justify-center text-white text-sm mr-3">
+                            ${platform.icon}
+                        </div>
+                        <span class="text-sm font-medium">${platform.name}</span>
+                    </label>
+                `;
+                
+                const checkbox = div.querySelector('input');
+                const label = div.querySelector('label');
+                
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        label.classList.add('border-puy-orange', 'bg-puy-orange/5');
+                    } else {
+                        label.classList.remove('border-puy-orange', 'bg-puy-orange/5');
+                    }
+                    updatePreview();
+                });
+                
+                grid.appendChild(div);
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Mobile sidebar toggle
+            document.getElementById('toggleSidebar').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('show');
+            });
+
+            // Client selection
+            document.getElementById('clientSelect').addEventListener('change', function() {
+                updateClientInfo(this.value);
+                updatePreview();
+            });
+
+            // Content updates
+            document.getElementById('postContent').addEventListener('input', function() {
+                updateCharCount();
+                updatePreview();
+            });
+
+            document.getElementById('hashtags').addEventListener('input', updatePreview);
+
+            // Publishing options
+            document.querySelectorAll('input[name="publishOption"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const scheduleOptions = document.getElementById('scheduleOptions');
+                    const submitButton = document.getElementById('submitButtonText');
+                    
+                    if (this.value === 'schedule') {
+                        scheduleOptions.classList.remove('hidden');
+                        submitButton.textContent = 'Programmer';
+                    } else {
+                        scheduleOptions.classList.add('hidden');
+                        if (this.value === 'draft') {
+                            submitButton.textContent = 'Sauvegarder';
+                        } else {
+                            submitButton.textContent = 'Publier maintenant';
+                        }
+                    }
+                });
+            });
+
+            // Approval checkbox
+            document.getElementById('needsApproval').addEventListener('change', function() {
+                const approvalOptions = document.getElementById('approvalOptions');
+                approvalOptions.classList.toggle('hidden', !this.checked);
+            });
+
+            // AI generation
+            document.getElementById('generateAIContent').addEventListener('click', generateAIContent);
+
+            // Media upload
+            document.getElementById('mediaFiles').addEventListener('change', handleMediaUpload);
+
+            // Form submission
+            document.getElementById('createPostForm').addEventListener('submit', handleSubmit);
+
+            // Content type change
+            document.getElementById('contentType').addEventListener('change', function() {
+                const generateImage = document.getElementById('generateImage');
+                const generateVideo = document.getElementById('generateVideo');
+                
+                // Enable/disable AI options based on content type
+                if (this.value === 'image' || this.value === 'carousel') {
+                    generateImage.disabled = false;
+                    generateVideo.disabled = true;
+                } else if (this.value === 'video') {
+                    generateImage.disabled = true;
+                    generateVideo.disabled = false;
+                } else {
+                    generateImage.disabled = false;
+                    generateVideo.disabled = false;
+                }
+            });
+        }
+
+        // Update client info display
+        function updateClientInfo(clientId) {
+            const clientInfo = document.getElementById('clientInfo');
+            
+            if (!clientId) {
+                clientInfo.classList.add('hidden');
+                return;
+            }
+            
+            const client = mockClients.find(c => c.id == clientId);
+            if (!client) return;
+            
+            clientInfo.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-puy-orange to-puy-pink rounded-full flex items-center justify-center text-white text-xl">
+                        ${client.avatar}
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-900">${client.name}</h4>
+                        <p class="text-sm text-gray-500 capitalize">${client.industry}</p>
+                    </div>
+                </div>
+            `;
+            clientInfo.classList.remove('hidden');
+        }
+
+        // Update character count
+        function updateCharCount() {
+            const content = document.getElementById('postContent').value;
+            const count = document.getElementById('charCount');
+            count.textContent = `${content.length} caractères`;
+            
+            // Color coding based on platform limits
+            if (content.length > 2200) {
+                count.className = 'text-sm text-red-500';
+            } else if (content.length > 1800) {
+                count.className = 'text-sm text-yellow-500';
+            } else {
+                count.className = 'text-sm text-gray-500';
+            }
+        }
+
+        // Update preview
+        function updatePreview() {
+            const selectedPlatforms = Array.from(document.querySelectorAll('input[name="platforms"]:checked')).map(cb => cb.value);
+            const clientId = document.getElementById('clientSelect').value;
+            const client = mockClients.find(c => c.id == clientId);
+            const content = document.getElementById('postContent').value;
+            const hashtags = document.getElementById('hashtags').value;
+            
+            // Hide all previews first
+            document.querySelectorAll('[id$="Preview"]').forEach(preview => {
+                preview.classList.add('hidden');
+            });
+            
+            if (selectedPlatforms.length === 0) {
+                document.getElementById('noPreview').classList.remove('hidden');
+                return;
+            }
+            
+            document.getElementById('noPreview').classList.add('hidden');
+            
+            // Show selected platform previews
+            selectedPlatforms.forEach(platform => {
+                const preview = document.getElementById(`${platform}Preview`);
+                if (preview) {
+                    preview.classList.remove('hidden');
+                    
+                    // Update client name
+                    const nameEl = preview.querySelector(`#${platform === 'instagram' ? 'ig' : platform === 'facebook' ? 'fb' : 'li'}ClientName`);
+                    if (nameEl && client) {
+                        nameEl.textContent = client.name;
+                    }
+                    
+                    // Update content
+                    const textEl = preview.querySelector(`#${platform === 'instagram' ? 'ig' : platform === 'facebook' ? 'fb' : 'li'}TextPreview`);
+                    if (textEl) {
+                        const fullContent = content + (hashtags ? '\n\n' + hashtags : '');
+                        textEl.innerHTML = fullContent || '<p class="text-gray-400">Votre texte apparaîtra ici...</p>';
+                    }
+                }
+            });
+        }
+
+        // Generate AI content
+        async function generateAIContent() {
+            const button = document.getElementById('generateAIContent');
+            const originalText = button.innerHTML;
+            
+            // Show loading state
+            button.innerHTML = `
+                <div class="inline-block w-5 h-5 mr-2 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Génération en cours...
+            `;
+            button.disabled = true;
+            
+            try {
+                // Simulate AI generation (replace with actual n8n webhook call)
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                const topic = document.getElementById('postTopic').value;
+                const tone = document.getElementById('postTone').value;
+                const language = document.getElementById('languageSelect').value;
+                
+                // Mock generated content
+                const mockContent = {
+                    fr: {
+                        professional: `🌟 Découvrez notre ${topic} ! Une expérience unique qui vous attend chez nous. Venez découvrir ce qui fait notre différence et laissez-vous surprendre par la qualité de notre service.`,
+                        friendly: `Hey ! 👋 On a quelque chose de spécial à vous montrer : ${topic} ! C'est exactement ce qu'il vous faut pour égayer votre journée. Venez nous voir, on vous attend avec le sourire !`,
+                        fun: `🎉 Tada ! Voici ${topic} ! C'est parti pour une nouvelle aventure délicieuse ! Qui est prêt à vivre quelque chose d'extraordinaire ? 🚀`,
+                        elegant: `✨ Nous avons l'honneur de vous présenter ${topic}. Une création pensée avec soin pour vous offrir une expérience d'exception. L'élégance se trouve dans les détails.`,
+                        persuasive: `🔥 DERNIÈRE CHANCE ! ${topic} vous attend et c'est maintenant ou jamais ! Ne ratez pas cette opportunité unique de découvrir quelque chose d'exceptionnel. Réservez dès maintenant !`
+                    }
+                };
+                
+                const generatedText = mockContent[language]?.[tone] || mockContent.fr[tone];
+                document.getElementById('postContent').value = generatedText;
+                
+                // Generate hashtags
+                const mockHashtags = '#nouveauté #qualité #expérience #local #authentique';
+                document.getElementById('hashtags').value = mockHashtags;
+                
+                updateCharCount();
+                updatePreview();
+                
+                window.PuyDeComAuth.showNotification('Contenu généré avec succès !', 'success');
+                
+            } catch (error) {
+                console.error('Error generating AI content:', error);
+                window.PuyDeComAuth.showNotification('Erreur lors de la génération IA', 'error');
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
+
+        // Handle media upload
+        function handleMediaUpload(event) {
+            const files = Array.from(event.target.files);
+            const preview = document.getElementById('mediaPreview');
+            preview.innerHTML = '';
+            
+            files.forEach((file, index) => {
+                const div = document.createElement('div');
+                div.className = 'relative group';
+                
+                if (file.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(file);
+                    img.className = 'w-full h-24 object-cover rounded-lg';
+                    div.appendChild(img);
+                } else if (file.type.startsWith('video/')) {
+                    const video = document.createElement('video');
+                    video.src = URL.createObjectURL(file);
+                    video.className = 'w-full h-24 object-cover rounded-lg';
+                    video.controls = true;
+                    div.appendChild(video);
+                }
+                
+                // Remove button
+                const removeBtn = document.createElement('button');
+                removeBtn.innerHTML = '×';
+                removeBtn.className = 'absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-sm opacity-0 group-hover:opacity-100 transition-opacity';
+                removeBtn.onclick = () => div.remove();
+                div.appendChild(removeBtn);
+                
+                preview.appendChild(div);
+            });
+        }
+
+        // Handle form submission
+        async function handleSubmit(event) {
+            event.preventDefault();
+            
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const spinner = document.getElementById('submitSpinner');
+            const buttonText = document.getElementById('submitButtonText');
+            
+            // Show loading
+            spinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+            
+            try {
+                // Collect form data
+                const formData = {
+                    client_id: document.getElementById('clientSelect').value,
+                    platforms: Array.from(document.querySelectorAll('input[name="platforms"]:checked')).map(cb => cb.value),
+                    language: document.getElementById('languageSelect').value,
+                    content_type: document.getElementById('contentType').value,
+                    topic: document.getElementById('postTopic').value,
+                    tone: document.getElementById('postTone').value,
+                    content: document.getElementById('postContent').value,
+                    hashtags: document.getElementById('hashtags').value,
+                    publish_option: document.querySelector('input[name="publishOption"]:checked').value,
+                    schedule_date: document.getElementById('scheduleDate').value,
+                    schedule_time: document.getElementById('scheduleTime').value,
+                    needs_approval: document.getElementById('needsApproval').checked,
+                    assigned_to: document.getElementById('assignTo').value
+                };
+                
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                window.PuyDeComAuth.showNotification('Post créé avec succès !', 'success');
+                
+                // Redirect based on action
+                if (formData.publish_option === 'draft') {
+                    window.location.href = 'dashboard.html';
+                } else if (formData.publish_option === 'schedule') {
+                    window.location.href = 'calendar.html';
+                } else {
+                    window.location.href = 'dashboard.html';
+                }
+                
+            } catch (error) {
+                console.error('Error creating post:', error);
+                window.PuyDeComAuth.showNotification('Erreur lors de la création du post', 'error');
+            } finally {
+                spinner.classList.add('hidden');
+                submitBtn.disabled = false;
+            }
+        }
+
+        // Save draft function
+        async function saveDraft() {
+            // Similar to handleSubmit but saves as draft
+            window.PuyDeComAuth.showNotification('Brouillon sauvegardé !', 'success');
+        }
+
+        // Preview post function
+        function previewPost() {
+            // Open preview modal or redirect to preview page
+            window.PuyDeComAuth.showNotification('Aperçu généré !', 'info');
+        }
+
+        // Initialize page on load
+        document.addEventListener('DOMContentLoaded', initCreatePost);
+    </script>
+</body>
+</html>

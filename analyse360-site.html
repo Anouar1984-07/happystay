@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse 360 — Site web - PuyDeCom Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="icon" href="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'puy-orange': '#FF7F50',
+                        'puy-red': '#DC2626',
+                        'puy-blue': '#1E40AF',
+                        'puy-action': '#FF7A3D'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        :root {
+            --puy-orange: #FF7F50;
+            --puy-red: #DC2626;
+            --puy-dark: #1F2937;
+            --puy-light: #F97316;
+            --puy-action: #FF7A3D;
+        }
+        
+        .bg-puy-action { background-color: var(--puy-action); }
+        .text-puy-action { color: var(--puy-action); }
+        
+        /* Wizard specific styles */
+        .step-content {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Focus styles for accessibility */
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            ring-width: 2px;
+            ring-color: #10B981;
+            border-color: transparent;
+        }
+        
+        /* Mobile responsive adjustments */
+        @media (max-width: 640px) {
+            .progress-step-label {
+                display: none;
+            }
+            
+            .wizard-navigation {
+                flex-direction: column-reverse;
+                gap: 0.5rem;
+            }
+        }
+        
+        /* Progress bar responsive */
+        @media (max-width: 768px) {
+            .progress-bar-container {
+                padding: 1rem;
+            }
+        }
+        
+        .step-content {
+            display: none;
+        }
+        
+        .step-content.active {
+            display: block;
+        }
+        
+        @media print {
+            body { 
+                font-size: 11pt; 
+                font-family: 'Inter', 'Arial', sans-serif;
+                line-height: 1.4;
+                color: #333;
+            }
+            .print-header { display: block !important; }
+            .no-print { display: none !important; }
+            .step-content { display: block !important; }
+            .bg-white { background: white !important; }
+            .shadow-lg, .shadow-xl { box-shadow: none !important; }
+            
+            /* Page de couverture */
+            .cover-page {
+                page-break-after: always;
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                text-align: center;
+                padding: 2cm;
+            }
+            
+            /* Table des matières */
+            .toc-page {
+                page-break-before: always;
+                page-break-after: always;
+            }
+            
+            .toc-item {
+                display: flex;
+                justify-content: space-between;
+                padding: 0.3rem 0;
+                border-bottom: 1px dotted #ccc;
+                margin-bottom: 0.2rem;
+            }
+            
+            /* Chapitres */
+            .chapter {
+                page-break-before: always;
+                margin-bottom: 2rem;
+            }
+            
+            .chapter:first-child {
+                page-break-before: auto;
+            }
+            
+            .chapter-title {
+                font-size: 18pt;
+                font-weight: bold;
+                color: #1F2937;
+                margin-bottom: 1rem;
+                padding-bottom: 0.5rem;
+                border-bottom: 2px solid #FF7A3D;
+            }
+            
+            .chapter-number {
+                color: #FF7A3D;
+                margin-right: 0.5rem;
+            }
+            
+            /* Sections */
+            .section {
+                margin-bottom: 1.5rem;
+            }
+            
+            .section-title {
+                font-size: 14pt;
+                font-weight: 600;
+                color: #374151;
+                margin-bottom: 0.8rem;
+            }
+            
+            .section-content {
+                margin-left: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            /* Tableaux */
+            .print-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 1rem 0;
+                font-size: 10pt;
+            }
+            
+            .print-table th,
+            .print-table td {
+                border: 1px solid #ddd;
+                padding: 0.5rem;
+                text-align: left;
+            }
+            
+            .print-table th {
+                background-color: #f8f9fa;
+                font-weight: 600;
+            }
+            
+            /* Éviter les coupures */
+            .avoid-break {
+                page-break-inside: avoid;
+            }
+            
+            /* Headers et footers */
+            @page {
+                margin: 2.5cm 2cm;
+                @top-center {
+                    content: "Cahier des charges - Site Web";
+                    font-size: 9pt;
+                    color: #666;
+                }
+                @bottom-center {
+                    content: "Page " counter(page);
+                    font-size: 9pt;
+                    color: #666;
+                }
+                @bottom-right {
+                    content: "PuyDeCom";
+                    font-size: 9pt;
+                    color: #666;
+                }
+            }
+            
+            /* Page de couverture sans header/footer */
+            @page:first {
+                @top-center { content: none; }
+                @bottom-center { content: none; }
+                @bottom-right { content: none; }
+            }
+            
+            /* Signatures */
+            .signatures-print {
+                page-break-before: always;
+                margin-top: 2rem;
+            }
+            
+            .signature-box {
+                border: 1px solid #ddd;
+                padding: 1rem;
+                margin: 1rem 0;
+            }
+            
+            /* Listes */
+            ul, ol {
+                margin: 0.5rem 0;
+                padding-left: 1.5rem;
+            }
+            
+            li {
+                margin-bottom: 0.3rem;
+            }
+        }
+        
+        .print-header {
+            display: none;
+            page-break-after: avoid;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-inter">
+    
+    <!-- Navigation -->
+    <nav class="bg-white/80 backdrop-blur-md shadow-lg border-b border-gray-200/50 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center space-x-3">
+                        <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="PuyDeCom" class="w-10 h-10 rounded-lg shadow-sm">
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-900">PuyDeCom</h1>
+                            <p class="text-xs text-gray-500">Admin Dashboard</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Actions droite -->
+                <div class="flex items-center space-x-4">
+                    <a href="./analyse360.html" class="text-puy-action hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        <span>Retour</span>
+                    </a>
+                    <button id="logoutButton" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors shadow-lg">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        <span class="hidden md:inline">Déconnexion</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-6" aria-label="Breadcrumb">
+            <ol class="flex items-center space-x-4">
+                <li>
+                    <a href="./analyse360.html" class="text-gray-500 hover:text-gray-700 transition-colors">
+                        Analyse 360°
+                    </a>
+                </li>
+                <li>
+                    <svg class="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                </li>
+                <li>
+                    <span class="text-gray-900 font-medium" aria-current="page">Analyse Site Web</span>
+                </li>
+            </ol>
+        </nav>
+
+        <!-- En-tête -->
+        <header class="mb-8">
+            <div class="flex items-center space-x-4 mb-4">
+                <div class="p-3 bg-blue-100 rounded-xl">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Analyse 360 — Site Web</h1>
+                    <p class="text-lg text-gray-600 mt-1">Questionnaire complet pour la création de votre cahier des charges</p>
+                </div>
+            </div>
+        </header>
+        <div class="space-y-8">
+            
+            <!-- Print Header -->
+            <div class="print-header">
+                <div class="flex justify-between items-start mb-8">
+                    <div class="flex items-center space-x-4">
+                        <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="PuyDeCom" class="w-16 h-16 rounded-lg">
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900">Cahier des charges - Site web</h1>
+                            <p class="text-lg text-gray-600 mt-1">PuyDeCom - Analyse 360</p>
+                            <p class="text-sm text-gray-500 mt-1">Généré le: <span id="printDate"></span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Zones de signature en bas du PDF -->
+                <div class="signatures-section" style="page-break-before: always; margin-top: 50px;">
+                    <h2 class="text-xl font-bold text-gray-900 mb-6">Signatures</h2>
+                    <div class="grid grid-cols-2 gap-8">
+                        <div class="signature-box">
+                            <div class="border-b-2 border-gray-400 pb-2 mb-2 h-20"></div>
+                            <div class="text-center">
+                                <p class="font-semibold">Client</p>
+                                <p class="text-sm text-gray-600">Nom et signature</p>
+                                <p class="text-sm text-gray-600 mt-2">Date: ___________</p>
+                            </div>
+                        </div>
+                        <div class="signature-box">
+                            <div class="border-b-2 border-gray-400 pb-2 mb-2 h-20"></div>
+                            <div class="text-center">
+                                <p class="font-semibold">PuyDeCom</p>
+                                <p class="text-sm text-gray-600">Nom et signature</p>
+                                <p class="text-sm text-gray-600 mt-2">Date: ___________</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stepper -->
+            <div class="bg-white rounded-lg shadow-lg p-6 no-print">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center">
+                            <div class="flex items-center space-x-2">
+                                <div id="stepIndicator" class="w-8 h-8 bg-puy-orange text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                                <span id="stepTitle" class="text-lg font-semibold text-gray-900">Client & contact</span>
+                            </div>
+                            <div class="ml-4 text-sm text-gray-500">
+                                Étape <span id="currentStep">1</span> sur 10
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button id="prevButton" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50" disabled>Précédent</button>
+                        <button id="nextButton" class="px-4 py-2 bg-puy-orange text-white rounded-md hover:bg-puy-red transition-colors">Suivant</button>
+                    </div>
+                </div>
+                
+                <!-- Progress bar -->
+                <div class="w-full bg-gray-200 rounded-full h-2 mb-6">
+                    <div id="progressBar" class="bg-puy-orange h-2 rounded-full transition-all duration-300" style="width: 10%"></div>
+                </div>
+            </div>
+
+            <!-- Steps Content -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <!-- Étape 1: Client & contact -->
+                <div class="step-content active" data-step="1">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">1. Client & contact</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="raisonSociale" class="block text-sm font-medium text-gray-700">Raison sociale</label>
+                            <input type="text" id="raisonSociale" placeholder="Nom de l'entreprise" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="contactNom" class="block text-sm font-medium text-gray-700">Contact nom</label>
+                            <input type="text" id="contactNom" placeholder="Nom du contact principal" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="contactEmail" class="block text-sm font-medium text-gray-700">Contact email</label>
+                            <input type="email" id="contactEmail" placeholder="email@entreprise.com" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="contactTel" class="block text-sm font-medium text-gray-700">Contact téléphone</label>
+                            <input type="tel" id="contactTel" placeholder="0123456789" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="secteur" class="block text-sm font-medium text-gray-700">Secteur d'activité</label>
+                            <input type="text" id="secteur" placeholder="Commerce, santé, services..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="localisation" class="block text-sm font-medium text-gray-700">Localisation</label>
+                            <input type="text" id="localisation" placeholder="Ville, région" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaire d'étape -->
+                    <div class="mt-6 border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="commentaireClientContact" class="block text-sm font-medium text-gray-700">Commentaire</label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="requireCommentClientContact" class="h-4 w-4 text-puy-orange rounded border-gray-300">
+                                <span class="text-sm text-gray-600">Commentaire requis</span>
+                            </label>
+                        </div>
+                        <textarea id="commentaireClientContact" rows="3" placeholder="Notes, précisions sur le client..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        <div id="errorClientContact" class="hidden mt-2 text-sm text-red-600"></div>
+                    </div>
+                </div>
+
+                <!-- Étape 2: Offre & type de projet -->
+                <div class="step-content" data-step="2">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">2. Offre & type de projet</h3>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label for="offre" class="block text-sm font-medium text-gray-700">Offre</label>
+                                <select id="offre" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                    <option value="">Sélectionner une offre</option>
+                                    <option value="Vitrine Essentiel">Vitrine Essentiel</option>
+                                    <option value="Vitrine Conversion">Vitrine Conversion</option>
+                                    <option value="Vitrine Premium">Vitrine Premium</option>
+                                    <option value="E-commerce Starter">E-commerce Starter</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="objectifs" class="block text-sm font-medium text-gray-700">Objectifs (3 max)</label>
+                                <input type="text" id="objectifs" placeholder="Visibilité, conversions, image..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                            </div>
+                            
+                            <div>
+                                <label for="kpis" class="block text-sm font-medium text-gray-700">KPIs (3 max)</label>
+                                <input type="text" id="kpis" placeholder="Visites, leads, ventes..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                            </div>
+                            
+                            <div>
+                                <label for="deadlineCible" class="block text-sm font-medium text-gray-700">Deadline cible</label>
+                                <input type="date" id="deadlineCible" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                            </div>
+                            
+                            <div>
+                                <label for="budgetFourchette" class="block text-sm font-medium text-gray-700">Budget fourchette</label>
+                                <input type="text" id="budgetFourchette" placeholder="2000-5000€" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                            </div>
+                            
+                            <!-- Groupe Présentations -->
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">Présentations</h4>
+                                <button type="button" id="openPdfOffres" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-puy-orange">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    Ouvrir PDF Offres
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Encart détail offre -->
+                        <div id="offreDetail" class="hidden">
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h4 id="offreDetailTitle" class="text-lg font-semibold text-gray-900 mb-2"></h4>
+                                <p id="offreDetailId" class="text-sm text-gray-500 mb-3"></p>
+                                <ul id="offreDetailBullets" class="space-y-1 text-sm text-gray-700">
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaire d'étape -->
+                    <div class="mt-6 border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="commentaireOffreTypeProjet" class="block text-sm font-medium text-gray-700">Commentaire</label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="requireCommentOffreTypeProjet" class="h-4 w-4 text-puy-orange rounded border-gray-300">
+                                <span class="text-sm text-gray-600">Commentaire requis</span>
+                            </label>
+                        </div>
+                        <textarea id="commentaireOffreTypeProjet" rows="3" placeholder="Précisions sur l'offre choisie..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        <div id="errorOffreTypeProjet" class="hidden mt-2 text-sm text-red-600"></div>
+                    </div>
+                </div>
+
+                <!-- Étape 3: Contenus -->
+                <div class="step-content" data-step="3">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">3. Contenus</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="pagesClefs" class="block text-sm font-medium text-gray-700">Pages clés</label>
+                            <input type="text" id="pagesClefs" placeholder="Accueil, Services, Contact..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="langues" class="block text-sm font-medium text-gray-700">Langues</label>
+                            <input type="text" id="langues" placeholder="FR, EN..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="fournitureContenus" class="block text-sm font-medium text-gray-700">Fourniture contenus</label>
+                            <select id="fournitureContenus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionner</option>
+                                <option value="Client">Client</option>
+                                <option value="PuyDeCom">PuyDeCom</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="creationContenu" class="block text-sm font-medium text-gray-700">Création contenu</label>
+                            <select id="creationContenu" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionner</option>
+                                <option value="Oui">Oui</option>
+                                <option value="Non">Non</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaire d'étape -->
+                    <div class="mt-6 border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="commentaireContenus" class="block text-sm font-medium text-gray-700">Commentaire</label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="requireCommentContenus" class="h-4 w-4 text-puy-orange rounded border-gray-300">
+                                <span class="text-sm text-gray-600">Commentaire requis</span>
+                            </label>
+                        </div>
+                        <textarea id="commentaireContenus" rows="3" placeholder="Détails sur les contenus..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        <div id="errorContenus" class="hidden mt-2 text-sm text-red-600"></div>
+                    </div>
+                </div>
+
+                <!-- Étape 4: Arbo & fonctionnalités -->
+                <div class="step-content" data-step="4">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">4. Arbo & fonctionnalités</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="menuPrincipal" class="block text-sm font-medium text-gray-700">Menu principal</label>
+                            <input type="text" id="menuPrincipal" placeholder="Accueil, Services, Blog..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="fonctionnalites" class="block text-sm font-medium text-gray-700">Fonctionnalités</label>
+                            <input type="text" id="fonctionnalites" placeholder="blog, formulaire, rdv, chat..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="specEcom" class="block text-sm font-medium text-gray-700">Spécifications e-commerce (si applicable)</label>
+                            <textarea id="specEcom" rows="3" placeholder="Catalogue, panier, paiement..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaire d'étape -->
+                    <div class="mt-6 border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="commentaireArboFonctionnalites" class="block text-sm font-medium text-gray-700">Commentaire</label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="requireCommentArboFonctionnalites" class="h-4 w-4 text-puy-orange rounded border-gray-300">
+                                <span class="text-sm text-gray-600">Commentaire requis</span>
+                            </label>
+                        </div>
+                        <textarea id="commentaireArboFonctionnalites" rows="3" placeholder="Détails sur l'architecture..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        <div id="errorArboFonctionnalites" class="hidden mt-2 text-sm text-red-600"></div>
+                    </div>
+                </div>
+
+                <!-- Étape 5: Design & identité -->
+                <div class="step-content" data-step="5">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">5. Design & identité</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="charteLogoDisponible" class="block text-sm font-medium text-gray-700">Charte/Logo disponible</label>
+                                <select id="charteLogoDisponible" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                    <option value="">Sélectionner</option>
+                                    <option value="Oui">Oui</option>
+                                    <option value="Non">Non</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="refsSites" class="block text-sm font-medium text-gray-700">Références sites (3 URLs)</label>
+                                <input type="text" id="refsSites" placeholder="site1.com, site2.com..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="palettePrim" class="block text-sm font-medium text-gray-700">Palette primaire</label>
+                                <input type="text" id="palettePrim" placeholder="#FF6B35, bleu..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="paletteSec" class="block text-sm font-medium text-gray-700">Palette secondaire</label>
+                                <input type="text" id="paletteSec" placeholder="#333, gris..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="tonAmbiance" class="block text-sm font-medium text-gray-700">Ton & ambiance</label>
+                                <input type="text" id="tonAmbiance" placeholder="Moderne, classique, chaleureux..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="charteIdsPresentees" class="block text-sm font-medium text-gray-700">IDs charte présentées</label>
+                                <input type="text" id="charteIdsPresentees" placeholder="CG-001, CG-002..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="modeleIdsPresentes" class="block text-sm font-medium text-gray-700">IDs modèles présentés</label>
+                                <input type="text" id="modeleIdsPresentes" placeholder="M-001, M-002..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="charteIdChoisie" class="block text-sm font-medium text-gray-700">ID charte choisie</label>
+                                <input type="text" id="charteIdChoisie" placeholder="CG-001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="modeleIdChoisi" class="block text-sm font-medium text-gray-700">ID modèle choisi</label>
+                                <input type="text" id="modeleIdChoisi" placeholder="M-001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                            </div>
+                        </div>
+                        
+                        <!-- Groupe Présentations -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Présentations</h4>
+                            <div class="flex space-x-2">
+                                <button type="button" id="openPdfDesign" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-puy-orange">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h8a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 002 2z"/>
+                                    </svg>
+                                    Ouvrir PDF Design
+                                </button>
+                                <button type="button" id="openPdfPalette" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-puy-orange">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h8a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 002 2z"/>
+                                    </svg>
+                                    Ouvrir PDF Palette
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaire d'étape -->
+                    <div class="mt-6 border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="commentaireDesignIdentite" class="block text-sm font-medium text-gray-700">Commentaire</label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="requireCommentDesignIdentite" class="h-4 w-4 text-puy-orange rounded border-gray-300">
+                                <span class="text-sm text-gray-600">Commentaire requis</span>
+                            </label>
+                        </div>
+                        <textarea id="commentaireDesignIdentite" rows="3" placeholder="Précisions sur le design..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        <div id="errorDesignIdentite" class="hidden mt-2 text-sm text-red-600"></div>
+                    </div>
+                </div>
+
+                <!-- Étape 6: Technique & hébergement -->
+                <div class="step-content" data-step="6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">6. Technique & hébergement</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="nomDeDomaine" class="block text-sm font-medium text-gray-700">Nom de domaine</label>
+                            <input type="text" id="nomDeDomaine" placeholder="existant ou à acheter" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="hebergeur" class="block text-sm font-medium text-gray-700">Hébergeur</label>
+                            <input type="text" id="hebergeur" placeholder="OVH, PuyDeCom..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="emailPro" class="block text-sm font-medium text-gray-700">Email pro</label>
+                            <select id="emailPro" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionner</option>
+                                <option value="Oui">Oui</option>
+                                <option value="Non">Non</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="rgpdCookiesAPrevoir" class="block text-sm font-medium text-gray-700">RGPD/Cookies à prévoir</label>
+                            <select id="rgpdCookiesAPrevoir" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionner</option>
+                                <option value="Oui">Oui</option>
+                                <option value="Non">Non</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaire d'étape -->
+                    <div class="mt-6 border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="commentaireTechniqueHebergement" class="block text-sm font-medium text-gray-700">Commentaire</label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="requireCommentTechniqueHebergement" class="h-4 w-4 text-puy-orange rounded border-gray-300">
+                                <span class="text-sm text-gray-600">Commentaire requis</span>
+                            </label>
+                        </div>
+                        <textarea id="commentaireTechniqueHebergement" rows="3" placeholder="Spécifications techniques..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        <div id="errorTechniqueHebergement" class="hidden mt-2 text-sm text-red-600"></div>
+                    </div>
+                </div>
+
+                <!-- Étape 7: SEO & Analytics -->
+                <div class="step-content" data-step="7">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">7. SEO & Analytics</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="motsClesCibles" class="block text-sm font-medium text-gray-700">Mots-clés cibles (3)</label>
+                            <input type="text" id="motsClesCibles" placeholder="restaurant, cuisine, traiteur" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="metadonnees" class="block text-sm font-medium text-gray-700">Métadonnées</label>
+                            <select id="metadonnees" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionner</option>
+                                <option value="Oui">Oui</option>
+                                <option value="Non">Non</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="blogSeo" class="block text-sm font-medium text-gray-700">Blog</label>
+                            <select id="blogSeo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionner</option>
+                                <option value="Oui">Oui</option>
+                                <option value="Non">Non</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="outilsAnalytics" class="block text-sm font-medium text-gray-700">Outils analytics</label>
+                            <input type="text" id="outilsAnalytics" placeholder="GA4, GSC, Meta Pixel..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaire d'étape -->
+                    <div class="mt-6 border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="commentaireSeoAnalytics" class="block text-sm font-medium text-gray-700">Commentaire</label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="requireCommentSeoAnalytics" class="h-4 w-4 text-puy-orange rounded border-gray-300">
+                                <span class="text-sm text-gray-600">Commentaire requis</span>
+                            </label>
+                        </div>
+                        <textarea id="commentaireSeoAnalytics" rows="3" placeholder="Stratégie SEO..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        <div id="errorSeoAnalytics" class="hidden mt-2 text-sm text-red-600"></div>
+                    </div>
+                </div>
+
+                <!-- Étape 8: Maintenance & SAV -->
+                <div class="step-content" data-step="8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">8. Maintenance & SAV</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="maintenance" class="block text-sm font-medium text-gray-700">Maintenance</label>
+                            <select id="maintenance" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionner</option>
+                                <option value="Oui">Oui</option>
+                                <option value="Non">Non</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="perimetreMaintenance" class="block text-sm font-medium text-gray-700">Périmètre maintenance</label>
+                            <input type="text" id="perimetreMaintenance" placeholder="maj, sauvegardes, monitoring..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="slaHeures" class="block text-sm font-medium text-gray-700">SLA heures</label>
+                            <input type="text" id="slaHeures" placeholder="24h, 48h..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="canalSupport" class="block text-sm font-medium text-gray-700">Canal support</label>
+                            <select id="canalSupport" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionner</option>
+                                <option value="email">Email</option>
+                                <option value="ticket">Ticket</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaire d'étape -->
+                    <div class="mt-6 border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="commentaireMaintenanceSav" class="block text-sm font-medium text-gray-700">Commentaire</label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="requireCommentMaintenanceSav" class="h-4 w-4 text-puy-orange rounded border-gray-300">
+                                <span class="text-sm text-gray-600">Commentaire requis</span>
+                            </label>
+                        </div>
+                        <textarea id="commentaireMaintenanceSav" rows="3" placeholder="Détails maintenance..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        <div id="errorMaintenanceSav" class="hidden mt-2 text-sm text-red-600"></div>
+                    </div>
+                </div>
+
+                <!-- Étape 9: Propriété intellectuelle & accès -->
+                <div class="step-content" data-step="9">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">9. Propriété intellectuelle & accès</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="codeSourcePropriete" class="block text-sm font-medium text-gray-700">Code source propriété</label>
+                            <select id="codeSourcePropriete" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionner</option>
+                                <option value="Client">Client</option>
+                                <option value="PuyDeCom">PuyDeCom</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="licenceUsage" class="block text-sm font-medium text-gray-700">Licence usage (si PuyDeCom)</label>
+                            <input type="text" id="licenceUsage" placeholder="MIT, propriétaire..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="accesDepot" class="block text-sm font-medium text-gray-700">Accès dépôt</label>
+                            <select id="accesDepot" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionner</option>
+                                <option value="Oui">Oui</option>
+                                <option value="Non">Non</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="remiseSources" class="block text-sm font-medium text-gray-700">Remise sources</label>
+                            <select id="remiseSources" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionner</option>
+                                <option value="Oui">Oui</option>
+                                <option value="Non">Non</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaire d'étape -->
+                    <div class="mt-6 border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="commentaireProprieteIntellectuelleAcces" class="block text-sm font-medium text-gray-700">Commentaire</label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="requireCommentProprieteIntellectuelleAcces" class="h-4 w-4 text-puy-orange rounded border-gray-300">
+                                <span class="text-sm text-gray-600">Commentaire requis</span>
+                            </label>
+                        </div>
+                        <textarea id="commentaireProprieteIntellectuelleAcces" rows="3" placeholder="Modalités de propriété..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        <div id="errorProprieteIntellectuelleAcces" class="hidden mt-2 text-sm text-red-600"></div>
+                    </div>
+                </div>
+
+                <!-- Étape 10: Organisation & validation -->
+                <div class="step-content" data-step="10">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">10. Organisation & validation</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <p class="text-sm text-blue-800">
+                                <strong>Relation directe PuyDeCom ↔ Client</strong> (pas de chef de projet tiers)
+                            </p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="canaux" class="block text-sm font-medium text-gray-700">Canaux</label>
+                                <input type="text" id="canaux" placeholder="email, visio, téléphone..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="rythmePoints" class="block text-sm font-medium text-gray-700">Rythme points</label>
+                                <select id="rythmePoints" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                    <option value="">Sélectionner</option>
+                                    <option value="hebdo">Hebdo</option>
+                                    <option value="quinzaine">Quinzaine</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="etapesValidation" class="block text-sm font-medium text-gray-700">Étapes validation</label>
+                                <input type="text" id="etapesValidation" placeholder="maquettes→dev→recette" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="livrablesAttendus" class="block text-sm font-medium text-gray-700">Livrables attendus</label>
+                                <input type="text" id="livrablesAttendus" placeholder="site, formation, doc..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                            </div>
+                        </div>
+                        
+                        <!-- Rappel IDs choisis -->
+                        <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Rappel IDs choisis</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-600">ID charte choisie</label>
+                                    <div id="rappelCharteIdChoisie" class="mt-1 text-sm text-gray-900 font-medium">-</div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-600">ID modèle choisi</label>
+                                    <div id="rappelModeleIdChoisi" class="mt-1 text-sm text-gray-900 font-medium">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaire d'étape -->
+                    <div class="mt-6 border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="commentaireOrganisationValidation" class="block text-sm font-medium text-gray-700">Commentaire</label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="requireCommentOrganisationValidation" class="h-4 w-4 text-puy-orange rounded border-gray-300">
+                                <span class="text-sm text-gray-600">Commentaire requis</span>
+                            </label>
+                        </div>
+                        <textarea id="commentaireOrganisationValidation" rows="3" placeholder="Organisation du projet..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        <div id="errorOrganisationValidation" class="hidden mt-2 text-sm text-red-600"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions sticky -->
+            <div class="sticky bottom-0 bg-white border-t border-gray-200 shadow-lg no-print">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <button id="previewButton" class="inline-flex items-center px-4 py-2 border border-puy-orange text-puy-orange bg-white hover:bg-puy-orange hover:text-white rounded-md transition-colors">
+                            <svg id="previewIcon" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            <span id="previewText">Prévisualiser le CC</span>
+                        </button>
+                        <button id="pdfPreviewButton" class="inline-flex items-center px-4 py-2 border border-red-600 text-red-600 bg-white hover:bg-red-600 hover:text-white rounded-md transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7h4m0 0v4m0-4l-6 6"/>
+                            </svg>
+                            Aperçu PDF
+                        </button>
+                        <button id="exportJsonButton" class="inline-flex items-center px-4 py-2 border border-blue-600 text-blue-600 bg-white hover:bg-blue-600 hover:text-white rounded-md transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                            </svg>
+                            Exporter JSON
+                        </button>
+                        <button id="saveDraftButton" class="inline-flex items-center px-4 py-2 border border-green-600 text-green-600 bg-white hover:bg-green-600 hover:text-white rounded-md transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                            </svg>
+                            Sauvegarder brouillon
+                        </button>
+                        <button id="exportPdfButton" class="inline-flex items-center px-4 py-2 border border-purple-600 text-purple-600 bg-white hover:bg-purple-600 hover:text-white rounded-md transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H9.5a2 2 0 01-2-2V5a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2h13z"/>
+                            </svg>
+                            Exporter PDF
+                        </button>
+                        <button id="sendEmailButton" class="inline-flex items-center px-4 py-2 border border-indigo-600 text-indigo-600 bg-white hover:bg-indigo-600 hover:text-white rounded-md transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            Envoyer par mail
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Prévisualisation -->
+            <div id="previewSection" class="hidden bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Prévisualisation du cahier des charges</h2>
+                <div id="previewContent">
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Configuration Supabase
+        const SUPABASE_URL = 'https://ltqkbtfdjvslqktjtbod.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cWtidGZkanZzbHFrdGp0Ym9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjE1NzgsImV4cCI6MjA3MjM5NzU3OH0.RnZQZ3QmYrcedLK-IefXCQhTeNFJOUNmU7O0f5HGkLg';
+        
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Vérifier l'authentification
+        async function checkAuth() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = './index.html';
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Déconnexion
+        document.getElementById('logoutButton').addEventListener('click', async () => {
+            await supabaseClient.auth.signOut();
+            window.location.href = './index.html';
+        });
+
+        // Définition des offres
+        const OFFRES_DEFINITION = {
+            "Vitrine Essentiel": {
+                id: "OFF-VIT-ESS",
+                bullets: [
+                    "3–4 pages (Accueil, Services, À propos, Contact)",
+                    "Design responsive, SSL",
+                    "Hébergement managé + nom de domaine 1 an, mise en ligne",
+                    "Formulaire simple anti-spam",
+                    "Pages légales & indexation de base"
+                ]
+            },
+            "Vitrine Conversion": {
+                id: "OFF-VIT-CONV",
+                bullets: [
+                    "5–6 pages + preuves (avis, logos, FAQ)",
+                    "SEO local (balises + données structurées)",
+                    "Formulaires anti-spam renforcés",
+                    "Tracking conversions (GA4 + événements) & GSC",
+                    "CTA : appel / WhatsApp cliquables"
+                ]
+            },
+            "Vitrine Premium": {
+                id: "OFF-VIT-PREM",
+                bullets: [
+                    "Jusqu'à 10 pages + Blog/Actualités",
+                    "Prise de RDV / demande de commande",
+                    "Automatisations de relance (email/WhatsApp via n8n)",
+                    "Optimisation continue 1 mois",
+                    "Dashboard synthèse (visites, conversions, top pages)"
+                ]
+            },
+            "E-commerce Starter": {
+                id: "OFF-ECOM-START",
+                bullets: [
+                    "≤ 20 produits (variantes basiques)",
+                    "Paiements sécurisés (Stripe/PayPal), emails commande",
+                    "Livraison, taxes, CGV, pages légales",
+                    "SEO e-commerce (modèles titres/meta)",
+                    "Formation 2h + guide PDF, tracking GA4 e-com"
+                ]
+            }
+        };
+
+        // Variables globales
+        let currentStep = 1;
+        const maxSteps = 10;
+        const steps = [
+            { id: 1, title: "Client & contact" },
+            { id: 2, title: "Offre & type de projet" },
+            { id: 3, title: "Contenus" },
+            { id: 4, title: "Arbo & fonctionnalités" },
+            { id: 5, title: "Design & identité" },
+            { id: 6, title: "Technique & hébergement" },
+            { id: 7, title: "SEO & Analytics" },
+            { id: 8, title: "Maintenance & SAV" },
+            { id: 9, title: "Propriété intellectuelle & accès" },
+            { id: 10, title: "Organisation & validation" }
+        ];
+
+        // Initialisation
+        function init() {
+            loadFromLocalStorage();
+            updateStepDisplay();
+            bindEvents();
+            updateOffreDetail();
+        }
+
+        // Mise à jour de l'affichage du step
+        function updateStepDisplay() {
+            document.getElementById('stepIndicator').textContent = currentStep;
+            document.getElementById('stepTitle').textContent = steps[currentStep - 1].title;
+            document.getElementById('currentStep').textContent = currentStep;
+            document.getElementById('progressBar').style.width = `${(currentStep / maxSteps) * 100}%`;
+            
+            // Afficher/masquer les étapes
+            document.querySelectorAll('.step-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelector(`[data-step="${currentStep}"]`).classList.add('active');
+            
+            // Boutons navigation
+            document.getElementById('prevButton').disabled = currentStep === 1;
+            document.getElementById('nextButton').textContent = currentStep === maxSteps ? 'Terminer' : 'Suivant';
+        }
+
+        // Navigation
+        function goToStep(step) {
+            if (step < 1 || step > maxSteps) return;
+            
+            // Valider l'étape actuelle avant de naviguer
+            if (!validateCurrentStep()) return;
+            
+            currentStep = step;
+            updateStepDisplay();
+        }
+
+        // Validation de l'étape courante
+        function validateCurrentStep() {
+            return true; // Plus de validation de commentaires obligatoires
+        }
+
+        // Obtenir la clé de l'étape pour les IDs
+        function getStepKey(step) {
+            const keys = [
+                'ClientContact',
+                'OffreTypeProjet', 
+                'Contenus',
+                'ArboFonctionnalites',
+                'DesignIdentite',
+                'TechniqueHebergement',
+                'SeoAnalytics',
+                'MaintenanceSav',
+                'ProprieteIntellectuelleAcces',
+                'OrganisationValidation'
+            ];
+            return keys[step - 1];
+        }
+
+        // Gestion des événements
+        function bindEvents() {
+            // Navigation
+            document.getElementById('nextButton').addEventListener('click', () => {
+                if (currentStep < maxSteps) {
+                    goToStep(currentStep + 1);
+                } else {
+                    // Terminer - aller à la prévisualisation
+                    if (document.getElementById('previewSection').classList.contains('hidden')) {
+                        togglePreview();
+                    }
+                }
+            });
+            
+            document.getElementById('prevButton').addEventListener('click', () => {
+                goToStep(currentStep - 1);
+            });
+            
+            // Navigation clavier
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight' && !e.target.matches('input, textarea, select')) {
+                    goToStep(currentStep + 1);
+                } else if (e.key === 'ArrowLeft' && !e.target.matches('input, textarea, select')) {
+                    goToStep(currentStep - 1);
+                }
+            });
+            
+            
+            // Boutons PDF avec URLs fixes
+            document.getElementById('openPdfOffres').addEventListener('click', () => {
+                window.open('/assets/pdfs/offres.pdf', '_blank', 'noopener');
+            });
+            
+            document.getElementById('openPdfDesign').addEventListener('click', () => {
+                window.open('/assets/pdfs/design.pdf', '_blank', 'noopener');
+            });
+            
+            document.getElementById('openPdfPalette').addEventListener('click', () => {
+                window.open('/assets/pdfs/palette.pdf', '_blank', 'noopener');
+            });
+            
+            // Gestion offre
+            document.getElementById('offre').addEventListener('change', updateOffreDetail);
+            
+            // IDs rappel
+            document.getElementById('charteIdChoisie').addEventListener('input', updateRappelIds);
+            document.getElementById('modeleIdChoisi').addEventListener('input', updateRappelIds);
+            
+            // Actions principales
+            document.getElementById('previewButton').addEventListener('click', togglePreview);
+            document.getElementById('pdfPreviewButton').addEventListener('click', showPdfPreview);
+            document.getElementById('exportJsonButton').addEventListener('click', exportJson);
+            document.getElementById('saveDraftButton').addEventListener('click', saveDraft);
+            document.getElementById('exportPdfButton').addEventListener('click', exportPdf);
+            document.getElementById('sendEmailButton').addEventListener('click', sendByEmail);
+            
+            // Sauvegarde automatique
+            document.querySelectorAll('input, textarea, select').forEach(element => {
+                element.addEventListener('input', saveToLocalStorage);
+                element.addEventListener('change', saveToLocalStorage);
+            });
+        }
+
+        // Mise à jour du détail de l'offre
+        function updateOffreDetail() {
+            const offreSelect = document.getElementById('offre');
+            const detailDiv = document.getElementById('offreDetail');
+            const offre = offreSelect.value;
+            
+            if (offre && OFFRES_DEFINITION[offre]) {
+                const def = OFFRES_DEFINITION[offre];
+                
+                document.getElementById('offreDetailTitle').textContent = offre;
+                document.getElementById('offreDetailId').textContent = def.id;
+                
+                const bulletsList = document.getElementById('offreDetailBullets');
+                bulletsList.innerHTML = '';
+                def.bullets.forEach(bullet => {
+                    const li = document.createElement('li');
+                    li.textContent = bullet;
+                    li.className = 'flex items-start space-x-2';
+                    li.innerHTML = `
+                        <svg class="w-4 h-4 text-puy-orange mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>${bullet}</span>
+                    `;
+                    bulletsList.appendChild(li);
+                });
+                
+                detailDiv.classList.remove('hidden');
+            } else {
+                detailDiv.classList.add('hidden');
+            }
+        }
+
+        // Mise à jour des IDs rappel
+        function updateRappelIds() {
+            document.getElementById('rappelCharteIdChoisie').textContent = 
+                document.getElementById('charteIdChoisie').value || '-';
+            document.getElementById('rappelModeleIdChoisi').textContent = 
+                document.getElementById('modeleIdChoisi').value || '-';
+        }
+
+        // Sauvegarde localStorage
+        function saveToLocalStorage() {
+            const data = {
+                formData: {}
+            };
+            
+            // Récupérer tous les champs
+            document.querySelectorAll('input, textarea, select').forEach(element => {
+                if (element.id && !element.id.startsWith('requireComment')) {
+                    data.formData[element.id] = element.type === 'checkbox' ? element.checked : element.value;
+                }
+            });
+            
+            localStorage.setItem('analyse360_site_draft', JSON.stringify(data));
+        }
+
+        // Charger depuis localStorage
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('analyse360_site_draft');
+            if (!saved) return;
+            
+            try {
+                const data = JSON.parse(saved);
+                
+                // Restaurer les données du formulaire
+                if (data.formData) {
+                    Object.entries(data.formData).forEach(([id, value]) => {
+                        const element = document.getElementById(id);
+                        if (element) {
+                            if (element.type === 'checkbox') {
+                                element.checked = value;
+                            } else {
+                                element.value = value;
+                            }
+                        }
+                    });
+                }
+                
+                updateRappelIds();
+                updateOffreDetail();
+            } catch (e) {
+                console.error('Erreur lors du chargement du brouillon:', e);
+            }
+        }
+
+        // Toggle de la prévisualisation
+        function togglePreview() {
+            const previewSection = document.getElementById('previewSection');
+            const previewText = document.getElementById('previewText');
+            const previewIcon = document.getElementById('previewIcon');
+            
+            if (previewSection.classList.contains('hidden')) {
+                // Afficher la prévisualisation
+                generatePreview();
+                previewText.textContent = 'Masquer le CC';
+                previewIcon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464M9.878 9.878l4.242 4.242m0 0L15.536 15.536M14.12 14.12L8.464 8.464"/>
+                `;
+            } else {
+                // Masquer la prévisualisation
+                previewSection.classList.add('hidden');
+                previewText.textContent = 'Prévisualiser le CC';
+                previewIcon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                `;
+            }
+        }
+
+        // Génération de la prévisualisation
+        function generatePreview() {
+            const previewSection = document.getElementById('previewSection');
+            const previewContent = document.getElementById('previewContent');
+            
+            let html = '';
+            
+            // Récupérer toutes les données
+            const data = collectAllData();
+            
+            // Générer le contenu pour chaque section
+            steps.forEach((step, index) => {
+                html += `<div class="mb-8">`;
+                html += `<h3 class="text-xl font-semibold text-gray-900 mb-4">${step.id}. ${step.title}</h3>`;
+                html += generateSectionPreview(step.id, data);
+                
+                // Ajouter le commentaire s'il existe
+                const commentKey = getCommentKey(step.id);
+                const comment = data.commentaires[commentKey];
+                if (comment && comment.trim()) {
+                    html += `<div class="mt-4 p-3 bg-blue-50 border-l-4 border-blue-400">`;
+                    html += `<p class="text-sm text-blue-800"><strong>Commentaire:</strong> ${comment}</p>`;
+                    html += `</div>`;
+                }
+                
+                html += `</div>`;
+            });
+            
+            previewContent.innerHTML = html;
+            previewSection.classList.remove('hidden');
+            previewSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Générer la prévisualisation d'une section
+        function generateSectionPreview(stepId, data) {
+            let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">';
+            
+            switch (stepId) {
+                case 1:
+                    html += generateField('Raison sociale', data.client_contact.raison_sociale);
+                    html += generateField('Contact nom', data.client_contact.contact_nom);
+                    html += generateField('Contact email', data.client_contact.contact_email);
+                    html += generateField('Contact téléphone', data.client_contact.contact_tel);
+                    html += generateField('Secteur', data.client_contact.secteur);
+                    html += generateField('Localisation', data.client_contact.localisation);
+                    break;
+                case 2:
+                    html += generateField('Offre', data.offre_type_projet.offre);
+                    html += generateField('Objectifs', data.offre_type_projet.objectifs.join(', '));
+                    html += generateField('KPIs', data.offre_type_projet.kpis.join(', '));
+                    html += generateField('Deadline cible', data.offre_type_projet.deadline_cible);
+                    html += generateField('Budget fourchette', data.offre_type_projet.budget_fourchette);
+                    break;
+                case 3:
+                    html += generateField('Pages clés', data.contenus.pages_clefs.join(', '));
+                    html += generateField('Langues', data.contenus.langues.join(', '));
+                    html += generateField('Fourniture contenus', data.contenus.fourniture_contenus);
+                    html += generateField('Création contenu', data.contenus.creation_contenu);
+                    break;
+                case 4:
+                    html += generateField('Menu principal', data.arbo_fonctionnalites.menu_principal.join(', '));
+                    html += generateField('Fonctionnalités', data.arbo_fonctionnalites.fonctionnalites.join(', '));
+                    html += `<div class="md:col-span-2">`;
+                    html += generateField('Spéc. e-commerce', data.arbo_fonctionnalites.spec_ecom);
+                    html += `</div>`;
+                    break;
+                case 5:
+                    html += generateField('Charte/Logo disponible', data.design_identite.charte_logo_disponible);
+                    html += generateField('Références sites', data.design_identite.refs_sites.join(', '));
+                    html += generateField('Palette primaire', data.design_identite.palette_prim);
+                    html += generateField('Palette secondaire', data.design_identite.palette_sec);
+                    html += generateField('Ton & ambiance', data.design_identite.ton_ambiance);
+                    html += generateField('IDs charte présentées', data.design_identite.charte_ids_presentees.join(', '));
+                    html += generateField('IDs modèles présentés', data.design_identite.modele_ids_presentes.join(', '));
+                    html += generateField('ID charte choisie', data.design_identite.charte_id_choisie);
+                    html += generateField('ID modèle choisi', data.design_identite.modele_id_choisi);
+                    break;
+                case 6:
+                    html += generateField('Nom de domaine', data.technique_hebergement.nom_de_domaine);
+                    html += generateField('Hébergeur', data.technique_hebergement.hebergeur);
+                    html += generateField('Email pro', data.technique_hebergement.email_pro);
+                    html += generateField('RGPD/Cookies', data.technique_hebergement.rgpd_cookies_a_prevoir);
+                    break;
+                case 7:
+                    html += generateField('Mots-clés cibles', data.seo_analytics.mots_cles_cibles.join(', '));
+                    html += generateField('Métadonnées', data.seo_analytics.metadonnees);
+                    html += generateField('Blog', data.seo_analytics.blog);
+                    html += generateField('Outils analytics', data.seo_analytics.outils_analytics.join(', '));
+                    break;
+                case 8:
+                    html += generateField('Maintenance', data.maintenance_sav.maintenance);
+                    html += generateField('Périmètre maintenance', data.maintenance_sav.perimetre_maintenance.join(', '));
+                    html += generateField('SLA heures', data.maintenance_sav.sla_heures);
+                    html += generateField('Canal support', data.maintenance_sav.canal_support);
+                    break;
+                case 9:
+                    html += generateField('Code source propriété', data.propriete_intellectuelle_acces.code_source_propriete);
+                    html += generateField('Licence usage', data.propriete_intellectuelle_acces.licence_usage);
+                    html += generateField('Accès dépôt', data.propriete_intellectuelle_acces.acces_depot);
+                    html += generateField('Remise sources', data.propriete_intellectuelle_acces.remise_sources);
+                    break;
+                case 10:
+                    html += generateField('Canaux', data.organisation_validation.canaux.join(', '));
+                    html += generateField('Rythme points', data.organisation_validation.rythme_points);
+                    html += generateField('Étapes validation', data.organisation_validation.etapes_validation.join(', '));
+                    html += generateField('Livrables attendus', data.organisation_validation.livrables_attendus.join(', '));
+                    break;
+            }
+            
+            html += '</div>';
+            return html;
+        }
+
+        // Générer un champ de prévisualisation
+        function generateField(label, value) {
+            const displayValue = Array.isArray(value) ? value.join(', ') : (value || '-');
+            return `
+                <div class="border-b border-gray-200 pb-2">
+                    <dt class="font-medium text-gray-600">${label}</dt>
+                    <dd class="mt-1 text-gray-900">${displayValue}</dd>
+                </div>
+            `;
+        }
+
+        // Obtenir la clé de commentaire
+        function getCommentKey(stepId) {
+            const keys = [
+                'client_contact',
+                'offre_type_projet', 
+                'contenus',
+                'arbo_fonctionnalites',
+                'design_identite',
+                'technique_hebergement',
+                'seo_analytics',
+                'maintenance_sav',
+                'propriete_intellectuelle_acces',
+                'organisation_validation'
+            ];
+            return keys[stepId - 1];
+        }
+
+        // Collecter toutes les données
+        function collectAllData() {
+            return {
+                client_contact: {
+                    raison_sociale: document.getElementById('raisonSociale').value,
+                    contact_nom: document.getElementById('contactNom').value,
+                    contact_email: document.getElementById('contactEmail').value,
+                    contact_tel: document.getElementById('contactTel').value,
+                    secteur: document.getElementById('secteur').value,
+                    localisation: document.getElementById('localisation').value
+                },
+                offre_type_projet: {
+                    offre: document.getElementById('offre').value,
+                    objectifs: document.getElementById('objectifs').value.split(',').map(s => s.trim()).filter(s => s),
+                    kpis: document.getElementById('kpis').value.split(',').map(s => s.trim()).filter(s => s),
+                    deadline_cible: document.getElementById('deadlineCible').value,
+                    budget_fourchette: document.getElementById('budgetFourchette').value
+                },
+                contenus: {
+                    pages_clefs: document.getElementById('pagesClefs').value.split(',').map(s => s.trim()).filter(s => s),
+                    langues: document.getElementById('langues').value.split(',').map(s => s.trim()).filter(s => s),
+                    fourniture_contenus: document.getElementById('fournitureContenus').value,
+                    creation_contenu: document.getElementById('creationContenu').value
+                },
+                arbo_fonctionnalites: {
+                    menu_principal: document.getElementById('menuPrincipal').value.split(',').map(s => s.trim()).filter(s => s),
+                    fonctionnalites: document.getElementById('fonctionnalites').value.split(',').map(s => s.trim()).filter(s => s),
+                    spec_ecom: document.getElementById('specEcom').value
+                },
+                design_identite: {
+                    charte_logo_disponible: document.getElementById('charteLogoDisponible').value,
+                    refs_sites: document.getElementById('refsSites').value.split(',').map(s => s.trim()).filter(s => s),
+                    palette_prim: document.getElementById('palettePrim').value,
+                    palette_sec: document.getElementById('paletteSec').value,
+                    ton_ambiance: document.getElementById('tonAmbiance').value,
+                    charte_ids_presentees: document.getElementById('charteIdsPresentees').value.split(',').map(s => s.trim()).filter(s => s),
+                    modele_ids_presentes: document.getElementById('modeleIdsPresentes').value.split(',').map(s => s.trim()).filter(s => s),
+                    charte_id_choisie: document.getElementById('charteIdChoisie').value,
+                    modele_id_choisi: document.getElementById('modeleIdChoisi').value
+                },
+                technique_hebergement: {
+                    nom_de_domaine: document.getElementById('nomDeDomaine').value,
+                    hebergeur: document.getElementById('hebergeur').value,
+                    email_pro: document.getElementById('emailPro').value,
+                    rgpd_cookies_a_prevoir: document.getElementById('rgpdCookiesAPrevoir').value
+                },
+                seo_analytics: {
+                    mots_cles_cibles: document.getElementById('motsClesCibles').value.split(',').map(s => s.trim()).filter(s => s),
+                    metadonnees: document.getElementById('metadonnees').value,
+                    blog: document.getElementById('blogSeo').value,
+                    outils_analytics: document.getElementById('outilsAnalytics').value.split(',').map(s => s.trim()).filter(s => s)
+                },
+                maintenance_sav: {
+                    maintenance: document.getElementById('maintenance').value,
+                    perimetre_maintenance: document.getElementById('perimetreMaintenance').value.split(',').map(s => s.trim()).filter(s => s),
+                    sla_heures: document.getElementById('slaHeures').value,
+                    canal_support: document.getElementById('canalSupport').value
+                },
+                propriete_intellectuelle_acces: {
+                    code_source_propriete: document.getElementById('codeSourcePropriete').value,
+                    licence_usage: document.getElementById('licenceUsage').value,
+                    acces_depot: document.getElementById('accesDepot').value,
+                    remise_sources: document.getElementById('remiseSources').value
+                },
+                organisation_validation: {
+                    canaux: document.getElementById('canaux').value.split(',').map(s => s.trim()).filter(s => s),
+                    rythme_points: document.getElementById('rythmePoints').value,
+                    etapes_validation: document.getElementById('etapesValidation').value.split(',').map(s => s.trim()).filter(s => s),
+                    livrables_attendus: document.getElementById('livrablesAttendus').value.split(',').map(s => s.trim()).filter(s => s)
+                },
+                commentaires: {
+                    client_contact: document.getElementById('commentaireClientContact').value,
+                    offre_type_projet: document.getElementById('commentaireOffreTypeProjet').value,
+                    contenus: document.getElementById('commentaireContenus').value,
+                    arbo_fonctionnalites: document.getElementById('commentaireArboFonctionnalites').value,
+                    design_identite: document.getElementById('commentaireDesignIdentite').value,
+                    technique_hebergement: document.getElementById('commentaireTechniqueHebergement').value,
+                    seo_analytics: document.getElementById('commentaireSeoAnalytics').value,
+                    maintenance_sav: document.getElementById('commentaireMaintenanceSav').value,
+                    propriete_intellectuelle_acces: document.getElementById('commentaireProprieteIntellectuelleAcces').value,
+                    organisation_validation: document.getElementById('commentaireOrganisationValidation').value
+                }
+            };
+        }
+
+        // Export JSON
+        function exportJson() {
+            const data = {
+                analyse360_site: collectAllData()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'analyse360-site.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('Export JSON réussi !', 'success');
+        }
+
+        // Sauvegarder brouillon
+        function saveDraft() {
+            saveToLocalStorage();
+            showNotification('Brouillon sauvegardé !', 'success');
+        }
+
+        // Export PDF
+        function exportPdf() {
+            const data = collectAllData();
+            const date = new Date().toLocaleDateString('fr-FR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Créer le contenu professionnel du PDF
+            const pdfContent = generateProfessionalPDF(data, date);
+            
+            // Créer un conteneur temporaire pour l'impression
+            const printContainer = document.createElement('div');
+            printContainer.innerHTML = pdfContent;
+            printContainer.style.display = 'none';
+            document.body.appendChild(printContainer);
+            
+            // Masquer le contenu normal et afficher le contenu d'impression
+            const originalContent = document.body.innerHTML;
+            document.body.innerHTML = pdfContent;
+            
+            setTimeout(() => {
+                window.print();
+                // Restaurer le contenu original
+                setTimeout(() => {
+                    document.body.innerHTML = originalContent;
+                    // Rebind les événements
+                    init();
+                }, 1000);
+            }, 500);
+        }
+
+        function generateProfessionalPDF(data, date) {
+            const clientName = data.client_contact?.raison_sociale || data.client_contact?.prenom_nom || 'Client';
+            const projectType = data.offre_type_projet?.offre || 'Site Web';
+            
+            return `
+                <!-- Page de couverture -->
+                <div class="cover-page">
+                    <div style="margin-bottom: 3rem;">
+                        <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="PuyDeCom" style="width: 150px; height: 150px; margin: 0 auto 2rem auto; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                    </div>
+                    <h1 style="font-size: 36pt; font-weight: bold; color: #1F2937; margin-bottom: 1rem;">CAHIER DES CHARGES</h1>
+                    <h2 style="font-size: 24pt; color: #FF7A3D; margin-bottom: 2rem;">Site Web ${projectType}</h2>
+                    <div style="margin-bottom: 3rem;">
+                        <p style="font-size: 18pt; color: #374151; margin-bottom: 0.5rem;">Client : ${clientName}</p>
+                        <p style="font-size: 14pt; color: #6B7280;">Établi le ${date}</p>
+                    </div>
+                    <div style="margin-top: auto; padding-top: 4rem;">
+                        <p style="font-size: 14pt; color: #374151;">PuyDeCom</p>
+                        <p style="font-size: 12pt; color: #6B7280;">Agence de Communication Digitale</p>
+                    </div>
+                </div>
+
+                <!-- Table des matières -->
+                <div class="toc-page">
+                    <h1 style="font-size: 24pt; font-weight: bold; color: #1F2937; margin-bottom: 2rem; border-bottom: 2px solid #FF7A3D; padding-bottom: 0.5rem;">TABLE DES MATIÈRES</h1>
+                    <div class="toc-item"><span>1. Informations Client et Contact</span><span>3</span></div>
+                    <div class="toc-item"><span>2. Offre et Type de Projet</span><span>4</span></div>
+                    <div class="toc-item"><span>3. Contenus</span><span>5</span></div>
+                    <div class="toc-item"><span>4. Architecture et Fonctionnalités</span><span>6</span></div>
+                    <div class="toc-item"><span>5. Design et Identité Visuelle</span><span>7</span></div>
+                    <div class="toc-item"><span>6. Technique et Hébergement</span><span>8</span></div>
+                    <div class="toc-item"><span>7. SEO et Analytics</span><span>9</span></div>
+                    <div class="toc-item"><span>8. Maintenance et SAV</span><span>10</span></div>
+                    <div class="toc-item"><span>9. Propriété Intellectuelle et Accès</span><span>11</span></div>
+                    <div class="toc-item"><span>10. Organisation et Validation</span><span>12</span></div>
+                    <div class="toc-item"><span>11. Signatures</span><span>13</span></div>
+                </div>
+
+                <!-- Chapitres -->
+                ${generateChapter(1, "Informations Client et Contact", data.client_contact)}
+                ${generateChapter(2, "Offre et Type de Projet", data.offre_type_projet)}
+                ${generateChapter(3, "Contenus", data.contenus)}
+                ${generateChapter(4, "Architecture et Fonctionnalités", data.arbo_fonctionnalites)}
+                ${generateChapter(5, "Design et Identité Visuelle", data.design_identite)}
+                ${generateChapter(6, "Technique et Hébergement", data.technique_hebergement)}
+                ${generateChapter(7, "SEO et Analytics", data.seo_analytics)}
+                ${generateChapter(8, "Maintenance et SAV", data.maintenance_sav)}
+                ${generateChapter(9, "Propriété Intellectuelle et Accès", data.propriete_intellectuelle_acces)}
+                ${generateChapter(10, "Organisation et Validation", data.organisation_validation)}
+                
+                <!-- Page de signatures -->
+                <div class="signatures-print">
+                    <h1 class="chapter-title"><span class="chapter-number">11.</span> SIGNATURES</h1>
+                    <p style="margin-bottom: 2rem; font-style: italic;">Ce cahier des charges a été établi d'un commun accord entre les parties. Les signatures ci-dessous valident l'acceptation des termes et conditions définis dans ce document.</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-top: 3rem;">
+                        <div class="signature-box avoid-break">
+                            <h3 style="font-weight: bold; margin-bottom: 1rem;">CLIENT</h3>
+                            <div style="height: 100px; border-bottom: 2px solid #333; margin-bottom: 1rem;"></div>
+                            <p><strong>Nom :</strong> ${clientName}</p>
+                            <p><strong>Fonction :</strong> _________________</p>
+                            <p><strong>Date :</strong> ___________________</p>
+                            <p style="margin-top: 0.5rem; font-size: 9pt; color: #666;">Signature précédée de "Lu et approuvé"</p>
+                        </div>
+                        <div class="signature-box avoid-break">
+                            <h3 style="font-weight: bold; margin-bottom: 1rem;">PUYDECOM</h3>
+                            <div style="height: 100px; border-bottom: 2px solid #333; margin-bottom: 1rem;"></div>
+                            <p><strong>Nom :</strong> _________________</p>
+                            <p><strong>Fonction :</strong> Chef de projet</p>
+                            <p><strong>Date :</strong> ___________________</p>
+                            <p style="margin-top: 0.5rem; font-size: 9pt; color: #666;">Signature précédée de "Bon pour accord"</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showPdfPreview() {
+            const data = collectAllData();
+            const date = new Date().toLocaleDateString('fr-FR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Créer le contenu professionnel du PDF
+            const pdfContent = generateProfessionalPDF(data, date);
+            
+            // Ouvrir dans une nouvelle fenêtre pour prévisualisation
+            const previewWindow = window.open('', '_blank', 'width=1200,height=800');
+            previewWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Aperçu PDF - Cahier des charges</title>
+                    <style>
+                        body { 
+                            font-family: 'Inter', Arial, sans-serif; 
+                            margin: 0; 
+                            padding: 20px; 
+                            background: #f5f5f5;
+                        }
+                        .pdf-container {
+                            max-width: 210mm;
+                            margin: 0 auto;
+                            background: white;
+                            padding: 20mm;
+                            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+                        }
+                        ${document.querySelector('style').textContent}
+                    </style>
+                </head>
+                <body>
+                    <div class="pdf-container">
+                        ${pdfContent}
+                    </div>
+                    <div style="text-align: center; margin: 20px;">
+                        <button onclick="window.print()" style="padding: 10px 20px; background: #FF7A3D; color: white; border: none; border-radius: 5px; cursor: pointer;">Imprimer le PDF</button>
+                        <button onclick="window.close()" style="padding: 10px 20px; background: #6B7280; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">Fermer</button>
+                    </div>
+                </body>
+                </html>
+            `);
+            previewWindow.document.close();
+        }
+
+        function generateChapter(number, title, sectionData) {
+            if (!sectionData) return '';
+            
+            let content = `
+                <div class="chapter">
+                    <h1 class="chapter-title"><span class="chapter-number">${number}.</span> ${title.toUpperCase()}</h1>
+            `;
+            
+            // Générer le contenu selon le type de section
+            Object.keys(sectionData).forEach(key => {
+                if (sectionData[key]) {
+                    const fieldName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    const value = sectionData[key];
+                    
+                    if (Array.isArray(value)) {
+                        content += `
+                            <div class="section avoid-break">
+                                <h3 class="section-title">${fieldName}</h3>
+                                <div class="section-content">
+                                    <ul>
+                                        ${value.map(item => `<li>${item}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        `;
+                    } else if (typeof value === 'object') {
+                        content += `
+                            <div class="section avoid-break">
+                                <h3 class="section-title">${fieldName}</h3>
+                                <div class="section-content">
+                                    ${Object.keys(value).map(subKey => 
+                                        `<p><strong>${subKey.replace(/_/g, ' ')}:</strong> ${value[subKey]}</p>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        content += `
+                            <div class="section avoid-break">
+                                <h3 class="section-title">${fieldName}</h3>
+                                <div class="section-content">
+                                    <p>${value}</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            });
+            
+            content += '</div>';
+            return content;
+        }
+
+        // Envoyer par email
+        function sendByEmail() {
+            const data = collectAllData();
+            const clientEmail = data.client_contact.contact_email;
+            const raisonSociale = data.client_contact.raison_sociale || 'Client';
+            
+            const subject = encodeURIComponent(`Cahier des charges - Site web - ${raisonSociale}`);
+            const body = encodeURIComponent(`Bonjour,
+
+Veuillez trouver en pièce jointe le cahier des charges pour votre projet de site web.
+
+Ce document reprend l'ensemble des éléments que nous avons définis ensemble lors de notre analyse 360°.
+
+N'hésitez pas à me contacter pour toute question ou modification.
+
+Cordialement,
+L'équipe PuyDeCom`);
+            
+            if (clientEmail) {
+                window.open(`mailto:${clientEmail}?subject=${subject}&body=${body}`, '_blank');
+            } else {
+                // Ouvrir avec un email vide si pas d'email client
+                window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+            }
+        }
+
+        // Notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 text-white ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        // Initialisation au chargement
+        checkAuth().then(isAuthenticated => {
+            if (isAuthenticated) {
+                init();
+            }
+        });
+    </script>
+</body>
+</html>

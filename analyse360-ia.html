@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit de besoins — Automatisation & IA - PuyDeCom Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="icon" href="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'puy-orange': '#8B5CF6',
+                        'puy-red': '#7C3AED',
+                        'puy-blue': '#1E40AF',
+                        'puy-action': '#8B5CF6'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        :root {
+            --puy-orange: #8B5CF6;
+            --puy-red: #7C3AED;
+            --puy-dark: #1F2937;
+            --puy-light: #A78BFA;
+            --puy-action: #8B5CF6;
+        }
+        
+        .bg-puy-action { background-color: var(--puy-action); }
+        .text-puy-action { color: var(--puy-action); }
+        
+        /* Wizard specific styles */
+        .step-content {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Focus styles for accessibility */
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            ring-width: 2px;
+            ring-color: #8B5CF6;
+            border-color: transparent;
+        }
+        
+        /* Mobile responsive adjustments */
+        @media (max-width: 640px) {
+            .progress-step-label {
+                display: none;
+            }
+            
+            .wizard-navigation {
+                flex-direction: column-reverse;
+                gap: 0.5rem;
+            }
+        }
+        
+        /* Progress bar responsive */
+        @media (max-width: 768px) {
+            .progress-bar-container {
+                padding: 1rem;
+            }
+        }
+        
+        .step-content {
+            display: none;
+        }
+        
+        .step-content.active {
+            display: block;
+        }
+        
+        @media print {
+            body { 
+                font-size: 11pt; 
+                font-family: 'Inter', 'Arial', sans-serif;
+                line-height: 1.4;
+                color: #333;
+            }
+            .print-header { display: block !important; }
+            .no-print { display: none !important; }
+            .step-content { display: block !important; }
+            .bg-white { background: white !important; }
+            .shadow-lg, .shadow-xl { box-shadow: none !important; }
+            
+            /* Page de couverture */
+            .cover-page {
+                page-break-after: always;
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                text-align: center;
+                padding: 2cm;
+            }
+            
+            /* Table des matières */
+            .toc-page {
+                page-break-before: always;
+                page-break-after: always;
+            }
+            
+            .toc-item {
+                display: flex;
+                justify-content: space-between;
+                padding: 0.3rem 0;
+                border-bottom: 1px dotted #ccc;
+                margin-bottom: 0.2rem;
+            }
+            
+            /* Chapitres */
+            .chapter {
+                page-break-before: always;
+                margin-bottom: 2rem;
+            }
+            
+            .chapter:first-child {
+                page-break-before: auto;
+            }
+            
+            .chapter-title {
+                font-size: 18pt;
+                font-weight: bold;
+                color: #1F2937;
+                margin-bottom: 1rem;
+                padding-bottom: 0.5rem;
+                border-bottom: 2px solid #8B5CF6;
+            }
+            
+            .chapter-number {
+                color: #8B5CF6;
+                margin-right: 0.5rem;
+            }
+            
+            /* Sections */
+            .section {
+                margin-bottom: 1.5rem;
+            }
+            
+            .section-title {
+                font-size: 14pt;
+                font-weight: 600;
+                color: #374151;
+                margin-bottom: 0.8rem;
+            }
+            
+            .section-content {
+                margin-left: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            /* Tableaux */
+            .print-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 1rem 0;
+                font-size: 10pt;
+            }
+            
+            .print-table th,
+            .print-table td {
+                border: 1px solid #ddd;
+                padding: 0.5rem;
+                text-align: left;
+            }
+            
+            .print-table th {
+                background-color: #f8f9fa;
+                font-weight: 600;
+            }
+            
+            /* Éviter les coupures */
+            .avoid-break {
+                page-break-inside: avoid;
+            }
+            
+            /* Headers et footers */
+            @page {
+                margin: 2.5cm 2cm;
+                @top-center {
+                    content: "Audit Automatisation & IA";
+                    font-size: 9pt;
+                    color: #666;
+                }
+                @bottom-center {
+                    content: "Page " counter(page);
+                    font-size: 9pt;
+                    color: #666;
+                }
+                @bottom-right {
+                    content: "PuyDeCom";
+                    font-size: 9pt;
+                    color: #666;
+                }
+            }
+            
+            /* Page de couverture sans header/footer */
+            @page:first {
+                @top-center { content: none; }
+                @bottom-center { content: none; }
+                @bottom-right { content: none; }
+            }
+            
+            /* Signatures */
+            .signatures-print {
+                page-break-before: always;
+                margin-top: 2rem;
+            }
+            
+            .signature-box {
+                border: 1px solid #ddd;
+                padding: 1rem;
+                margin: 1rem 0;
+            }
+            
+            /* Listes */
+            ul, ol {
+                margin: 0.5rem 0;
+                padding-left: 1.5rem;
+            }
+            
+            li {
+                margin-bottom: 0.3rem;
+            }
+        }
+        
+        .print-header {
+            display: none;
+            page-break-after: avoid;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-inter">
+    
+    <!-- Navigation moderne -->
+    <nav class="bg-white/80 backdrop-blur-md shadow-lg border-b border-gray-200/50 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center space-x-3">
+                        <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="PuyDeCom" class="w-10 h-10 rounded-lg shadow-sm">
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-900">PuyDeCom</h1>
+                            <p class="text-xs text-gray-500">Admin Dashboard</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Actions droite -->
+                <div class="flex items-center space-x-4">
+                    <a href="./analyse360.html" class="text-puy-action hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        <span>Retour</span>
+                    </a>
+                    <button id="logoutButton" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors shadow-lg">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        <span class="hidden md:inline">Déconnexion</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-6" aria-label="Breadcrumb">
+            <ol class="flex items-center space-x-4">
+                <li>
+                    <a href="./analyse360.html" class="text-gray-500 hover:text-gray-700 transition-colors">
+                        Analyse 360°
+                    </a>
+                </li>
+                <li>
+                    <svg class="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                </li>
+                <li>
+                    <span class="text-gray-900 font-medium" aria-current="page">Audit Automatisation & IA</span>
+                </li>
+            </ol>
+        </nav>
+
+        <!-- En-tête -->
+        <header class="mb-8">
+            <div class="flex items-center space-x-4 mb-4">
+                <div class="p-3 bg-purple-100 rounded-xl">
+                    <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Audit de besoins — Automatisation & IA</h1>
+                    <p class="text-lg text-gray-600 mt-1">Questionnaire complet pour évaluer vos besoins en automatisation et intelligence artificielle</p>
+                </div>
+            </div>
+        </header>
+        <div class="space-y-8">
+            
+            <!-- Print Header -->
+            <div class="print-header">
+                <div class="flex justify-between items-start mb-8">
+                    <div class="flex items-center space-x-4">
+                        <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="PuyDeCom" class="w-16 h-16 rounded-lg">
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900">Audit Automatisation & IA</h1>
+                            <p class="text-lg text-gray-600 mt-1">PuyDeCom - Analyse 360</p>
+                            <p class="text-sm text-gray-500 mt-1">Généré le: <span id="printDate"></span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Zones de signature en bas du PDF -->
+                <div class="signatures-section" style="page-break-before: always; margin-top: 50px;">
+                    <h2 class="text-xl font-bold text-gray-900 mb-6">Signatures</h2>
+                    <div class="grid grid-cols-2 gap-8">
+                        <div class="signature-box">
+                            <div class="border-b-2 border-gray-400 pb-2 mb-2 h-20"></div>
+                            <div class="text-center">
+                                <p class="font-semibold">Client</p>
+                                <p class="text-sm text-gray-600">Nom et signature</p>
+                                <p class="text-sm text-gray-600 mt-2">Date: ___________</p>
+                            </div>
+                        </div>
+                        <div class="signature-box">
+                            <div class="border-b-2 border-gray-400 pb-2 mb-2 h-20"></div>
+                            <div class="text-center">
+                                <p class="font-semibold">PuyDeCom</p>
+                                <p class="text-sm text-gray-600">Nom et signature</p>
+                                <p class="text-sm text-gray-600 mt-2">Date: ___________</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stepper -->
+            <div class="bg-white rounded-lg shadow-lg p-6 no-print">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center">
+                            <div class="flex items-center space-x-2">
+                                <div id="stepIndicator" class="w-8 h-8 bg-puy-orange text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                                <span id="stepTitle" class="text-lg font-semibold text-gray-900">Informations générales</span>
+                            </div>
+                            <div class="ml-4 text-sm text-gray-500">
+                                Étape <span id="currentStep">1</span> sur 8
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button id="prevButton" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50" disabled>Précédent</button>
+                        <button id="nextButton" class="px-4 py-2 bg-puy-orange text-white rounded-md hover:bg-puy-red transition-colors">Suivant</button>
+                    </div>
+                </div>
+                
+                <!-- Progress bar -->
+                <div class="w-full bg-gray-200 rounded-full h-2 mb-6">
+                    <div id="progressBar" class="bg-puy-orange h-2 rounded-full transition-all duration-300" style="width: 12.5%"></div>
+                </div>
+            </div>
+
+            <!-- Steps Content -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <!-- Étape 1: Informations générales -->
+                <div class="step-content active" data-step="1">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">1. Informations générales</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="entreprise" class="block text-sm font-medium text-gray-700">Nom de l'entreprise</label>
+                            <input type="text" id="entreprise" placeholder="Raison sociale" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="secteur" class="block text-sm font-medium text-gray-700">Secteur d'activité</label>
+                            <input type="text" id="secteur" placeholder="Votre secteur" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="nomPrenom" class="block text-sm font-medium text-gray-700">Nom et prénom</label>
+                            <input type="text" id="nomPrenom" placeholder="Contact principal" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                            <input type="email" id="email" placeholder="votre@email.com" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="telephone" class="block text-sm font-medium text-gray-700">Téléphone</label>
+                            <input type="tel" id="telephone" placeholder="Numéro de téléphone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="tailleEntreprise" class="block text-sm font-medium text-gray-700">Taille de l'entreprise</label>
+                            <select id="tailleEntreprise" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionnez</option>
+                                <option value="tpe">TPE (1-9 salariés)</option>
+                                <option value="pme">PME (10-249 salariés)</option>
+                                <option value="eti">ETI (250-4999 salariés)</option>
+                                <option value="ge">Grande entreprise (+5000 salariés)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaire d'étape -->
+                    <div class="mt-6 border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="commentaireInformationsGenerales" class="block text-sm font-medium text-gray-700">Commentaire</label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="requireCommentInformationsGenerales" class="h-4 w-4 text-puy-orange rounded border-gray-300">
+                                <span class="text-sm text-gray-600">Commentaire requis</span>
+                            </label>
+                        </div>
+                        <textarea id="commentaireInformationsGenerales" rows="3" placeholder="Notes sur les informations générales..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        <div id="errorInformationsGenerales" class="hidden mt-2 text-sm text-red-600"></div>
+                    </div>
+                </div>
+
+                <!-- Étape 2: Processus actuels -->
+                <div class="step-content" data-step="2">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">2. Processus actuels</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="processusChronophages" class="block text-sm font-medium text-gray-700">Quels sont vos processus les plus chronophages ?</label>
+                            <textarea id="processusChronophages" rows="4" placeholder="Décrivez les tâches qui vous prennent le plus de temps..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        </div>
+                        
+                        <div>
+                            <label for="outilsActuels" class="block text-sm font-medium text-gray-700">Outils actuellement utilisés</label>
+                            <textarea id="outilsActuels" rows="3" placeholder="Logiciels, plateformes, outils de gestion..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        </div>
+
+                        <div>
+                            <label for="frequenceTaches" class="block text-sm font-medium text-gray-700">À quelle fréquence effectuez-vous ces tâches répétitives ?</label>
+                            <select id="frequenceTaches" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionnez</option>
+                                <option value="quotidien">Quotidiennement</option>
+                                <option value="hebdomadaire">Hebdomadaire</option>
+                                <option value="mensuel">Mensuel</option>
+                                <option value="ponctuel">Ponctuellement</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="problematiquesActuelles" class="block text-sm font-medium text-gray-700">Principales problématiques rencontrées</label>
+                            <div class="space-y-2 mt-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="pertesTemps" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Perte de temps sur des tâches répétitives</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="erreursHumaines" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Erreurs humaines fréquentes</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="difficultesSuivi" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Difficultés de suivi des processus</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="manqueCoordination" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Manque de coordination entre équipes</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="surchargeTravail" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Surcharge de travail</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaire d'étape -->
+                    <div class="mt-6 border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="commentaireProcessusActuels" class="block text-sm font-medium text-gray-700">Commentaire</label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="requireCommentProcessusActuels" class="h-4 w-4 text-puy-orange rounded border-gray-300">
+                                <span class="text-sm text-gray-600">Commentaire requis</span>
+                            </label>
+                        </div>
+                        <textarea id="commentaireProcessusActuels" rows="3" placeholder="Notes sur les processus actuels..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        <div id="errorProcessusActuels" class="hidden mt-2 text-sm text-red-600"></div>
+                    </div>
+                </div>
+
+                <!-- Étape 3: Besoins d'automatisation -->
+                <div class="step-content" data-step="3">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">3. Besoins d'automatisation</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Quels processus souhaitez-vous automatiser en priorité ?</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="gestionEmails" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Gestion des emails et réponses automatiques</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="saisieData" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Saisie et traitement de données</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="planificationTaches" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Planification et rappels de tâches</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="rapportsAuto" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Génération automatique de rapports</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="gestionStock" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Gestion des stocks et commandes</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="serviceClient" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Service client automatisé (chatbot)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="gainTempsEstime" class="block text-sm font-medium text-gray-700">Gain de temps estimé souhaité</label>
+                            <select id="gainTempsEstime" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionnez</option>
+                                <option value="5-10h">5-10 heures par semaine</option>
+                                <option value="10-20h">10-20 heures par semaine</option>
+                                <option value="20-30h">20-30 heures par semaine</option>
+                                <option value="plus30h">Plus de 30 heures par semaine</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="prioriteAutomatisation" class="block text-sm font-medium text-gray-700">Niveau de priorité de l'automatisation</label>
+                            <select id="prioriteAutomatisation" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionnez</option>
+                                <option value="urgent">Urgent (besoin immédiat)</option>
+                                <option value="important">Important (dans les 3 mois)</option>
+                                <option value="souhaitable">Souhaitable (dans l'année)</option>
+                                <option value="reflexion">En réflexion</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="contraintesAutomatisation" class="block text-sm font-medium text-gray-700">Contraintes ou limitations</label>
+                            <textarea id="contraintesAutomatisation" rows="3" placeholder="Contraintes budgétaires, techniques, organisationnelles..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaire d'étape -->
+                    <div class="mt-6 border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="commentaireBesoinsAutomatisation" class="block text-sm font-medium text-gray-700">Commentaire</label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="requireCommentBesoinsAutomatisation" class="h-4 w-4 text-puy-orange rounded border-gray-300">
+                                <span class="text-sm text-gray-600">Commentaire requis</span>
+                            </label>
+                        </div>
+                        <textarea id="commentaireBesoinsAutomatisation" rows="3" placeholder="Notes sur les besoins d'automatisation..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        <div id="errorBesoinsAutomatisation" class="hidden mt-2 text-sm text-red-600"></div>
+                    </div>
+                </div>
+
+                <!-- Étape 4: Intelligence artificielle -->
+                <div class="step-content" data-step="4">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">4. Intelligence artificielle</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="connaissanceIA" class="block text-sm font-medium text-gray-700">Niveau de connaissance de l'IA</label>
+                            <select id="connaissanceIA" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionnez</option>
+                                <option value="debutant">Débutant (peu de connaissances)</option>
+                                <option value="intermediaire">Intermédiaire (notions de base)</option>
+                                <option value="avance">Avancé (bonne compréhension)</option>
+                                <option value="expert">Expert (utilisation quotidienne)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Domaines d'application de l'IA qui vous intéressent</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="analyseDonnees" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Analyse de données et insights</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="chatbotIA" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Chatbots intelligents</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="recommandations" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Systèmes de recommandation</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="predictionTendances" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Prédiction de tendances</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="generationContenu" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Génération de contenu</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="optimisationPrix" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Optimisation des prix</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="outilsIA" class="block text-sm font-medium text-gray-700">Outils IA déjà utilisés</label>
+                            <input type="text" id="outilsIA" placeholder="ChatGPT, Claude, Midjourney, autres..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+
+                        <div>
+                            <label for="objectifsIA" class="block text-sm font-medium text-gray-700">Objectifs principaux avec l'IA</label>
+                            <textarea id="objectifsIA" rows="4" placeholder="Que souhaitez-vous accomplir grâce à l'intelligence artificielle ?" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        </div>
+
+                        <div>
+                            <label for="inquietudesIA" class="block text-sm font-medium text-gray-700">Préoccupations ou réticences concernant l'IA</label>
+                            <textarea id="inquietudesIA" rows="3" placeholder="Sécurité, emplois, coûts, complexité..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaire d'étape -->
+                    <div class="mt-6 border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="commentaireIntelligenceArtificielle" class="block text-sm font-medium text-gray-700">Commentaire</label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="requireCommentIntelligenceArtificielle" class="h-4 w-4 text-puy-orange rounded border-gray-300">
+                                <span class="text-sm text-gray-600">Commentaire requis</span>
+                            </label>
+                        </div>
+                        <textarea id="commentaireIntelligenceArtificielle" rows="3" placeholder="Notes sur l'intelligence artificielle..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        <div id="errorIntelligenceArtificielle" class="hidden mt-2 text-sm text-red-600"></div>
+                    </div>
+                </div>
+
+                <!-- Étape 5: Outils et intégrations -->
+                <div class="step-content" data-step="5">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">5. Outils et intégrations</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="crm" class="block text-sm font-medium text-gray-700">CRM utilisé</label>
+                            <input type="text" id="crm" placeholder="Salesforce, HubSpot, Pipedrive..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+
+                        <div>
+                            <label for="erp" class="block text-sm font-medium text-gray-700">ERP/Logiciel de gestion</label>
+                            <input type="text" id="erp" placeholder="SAP, Odoo, Sage..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+
+                        <div>
+                            <label for="outilsCommunication" class="block text-sm font-medium text-gray-700">Outils de communication</label>
+                            <input type="text" id="outilsCommunication" placeholder="Slack, Teams, Discord..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Intégrations souhaitées</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="integrationCRM" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">CRM avec outils marketing</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="integrationComptabilite" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Comptabilité avec facturation</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="integrationStock" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Gestion de stock avec e-commerce</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="integrationAnalytics" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Analytics avec réseaux sociaux</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="integrationEmail" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Email marketing avec CRM</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="apiDisponibles" class="block text-sm font-medium text-gray-700">APIs disponibles dans vos outils actuels</label>
+                            <textarea id="apiDisponibles" rows="3" placeholder="Précisez si vous avez accès aux APIs de vos outils..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        </div>
+
+                        <div>
+                            <label for="securiteDonnees" class="block text-sm font-medium text-gray-700">Exigences de sécurité des données</label>
+                            <select id="securiteDonnees" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionnez</option>
+                                <option value="standard">Sécurité standard</option>
+                                <option value="renforcee">Sécurité renforcée</option>
+                                <option value="rgpd">Conformité RGPD stricte</option>
+                                <option value="bancaire">Niveau bancaire</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaire d'étape -->
+                    <div class="mt-6 border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="commentaireOutilsIntegrations" class="block text-sm font-medium text-gray-700">Commentaire</label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="requireCommentOutilsIntegrations" class="h-4 w-4 text-puy-orange rounded border-gray-300">
+                                <span class="text-sm text-gray-600">Commentaire requis</span>
+                            </label>
+                        </div>
+                        <textarea id="commentaireOutilsIntegrations" rows="3" placeholder="Notes sur les outils et intégrations..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        <div id="errorOutilsIntegrations" class="hidden mt-2 text-sm text-red-600"></div>
+                    </div>
+                </div>
+
+                <!-- Étape 6: Budget et ressources -->
+                <div class="step-content" data-step="6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">6. Budget et ressources</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="budgetAutomatisation" class="block text-sm font-medium text-gray-700">Budget envisagé pour l'automatisation</label>
+                            <select id="budgetAutomatisation" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionnez</option>
+                                <option value="1000">Moins de 1000€</option>
+                                <option value="1000-5000">1000€ - 5000€</option>
+                                <option value="5000-15000">5000€ - 15000€</option>
+                                <option value="15000-50000">15000€ - 50000€</option>
+                                <option value="50000+">Plus de 50000€</option>
+                                <option value="negocier">À définir ensemble</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="budgetIA" class="block text-sm font-medium text-gray-700">Budget mensuel pour outils IA</label>
+                            <select id="budgetIA" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionnez</option>
+                                <option value="100">Moins de 100€/mois</option>
+                                <option value="100-300">100€ - 300€/mois</option>
+                                <option value="300-1000">300€ - 1000€/mois</option>
+                                <option value="1000+">Plus de 1000€/mois</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Types de services souhaités</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="audit" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Audit des processus actuels</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="conseil" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Conseil en stratégie d'automatisation</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="implementationOutils" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Implémentation d'outils</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="formation" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Formation des équipes</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="maintenance" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Maintenance et support</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="developpementSurMesure" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Développement sur mesure</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="equipeInterne" class="block text-sm font-medium text-gray-700">Équipe technique interne disponible</label>
+                            <select id="equipeInterne" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionnez</option>
+                                <option value="aucune">Aucune équipe technique</option>
+                                <option value="limitee">Équipe technique limitée</option>
+                                <option value="moyenne">Équipe technique moyenne</option>
+                                <option value="expertes">Équipe technique expertes</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="calendrierImplementation" class="block text-sm font-medium text-gray-700">Calendrier d'implémentation souhaité</label>
+                            <select id="calendrierImplementation" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionnez</option>
+                                <option value="immediat">Immédiatement (0-3 mois)</option>
+                                <option value="court_terme">Court terme (3-6 mois)</option>
+                                <option value="moyen_terme">Moyen terme (6-12 mois)</option>
+                                <option value="long_terme">Long terme (12+ mois)</option>
+                                <option value="reflexion">En phase de réflexion</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaire d'étape -->
+                    <div class="mt-6 border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="commentaireBudgetRessources" class="block text-sm font-medium text-gray-700">Commentaire</label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="requireCommentBudgetRessources" class="h-4 w-4 text-puy-orange rounded border-gray-300">
+                                <span class="text-sm text-gray-600">Commentaire requis</span>
+                            </label>
+                        </div>
+                        <textarea id="commentaireBudgetRessources" rows="3" placeholder="Notes sur le budget et ressources..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        <div id="errorBudgetRessources" class="hidden mt-2 text-sm text-red-600"></div>
+                    </div>
+                </div>
+
+                <!-- Étape 7: Mesure et analyse -->
+                <div class="step-content" data-step="7">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">7. Mesure et analyse</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Indicateurs de performance prioritaires</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="gainTemps" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Gain de temps</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="reductionErreurs" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Réduction des erreurs</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="economiesCouts" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Économies de coûts</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="ameliorationQualite" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Amélioration de la qualité</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="satisfactionClient" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Satisfaction client</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="productiviteEquipe" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Productivité de l'équipe</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="frequenceRapports" class="block text-sm font-medium text-gray-700">Fréquence de reporting souhaitée</label>
+                            <select id="frequenceRapports" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionnez</option>
+                                <option value="hebdomadaire">Hebdomadaire</option>
+                                <option value="mensuel">Mensuelle</option>
+                                <option value="trimestriel">Trimestrielle</option>
+                                <option value="semestriel">Semestrielle</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="dashboardSouhaite" class="block text-sm font-medium text-gray-700">Type de dashboard souhaité</label>
+                            <select id="dashboardSouhaite" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionnez</option>
+                                <option value="simple">Simple (indicateurs clés)</option>
+                                <option value="detaille">Détaillé (métriques complètes)</option>
+                                <option value="temps_reel">Temps réel (live)</option>
+                                <option value="personnalise">Personnalisé par utilisateur</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="objectifsQuantitatifs" class="block text-sm font-medium text-gray-700">Objectifs quantitatifs</label>
+                            <textarea id="objectifsQuantitatifs" rows="4" placeholder="Ex: Réduire de 50% le temps de traitement des commandes..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaire d'étape -->
+                    <div class="mt-6 border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="commentaireMesureAnalyse" class="block text-sm font-medium text-gray-700">Commentaire</label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="requireCommentMesureAnalyse" class="h-4 w-4 text-puy-orange rounded border-gray-300">
+                                <span class="text-sm text-gray-600">Commentaire requis</span>
+                            </label>
+                        </div>
+                        <textarea id="commentaireMesureAnalyse" rows="3" placeholder="Notes sur la mesure et analyse..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        <div id="errorMesureAnalyse" class="hidden mt-2 text-sm text-red-600"></div>
+                    </div>
+                </div>
+
+                <!-- Étape 8: Organisation et collaboration -->
+                <div class="step-content" data-step="8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">8. Organisation et collaboration</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="champMission" class="block text-sm font-medium text-gray-700">Champion de projet identifié</label>
+                            <input type="text" id="champMission" placeholder="Nom et fonction du référent projet" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                        </div>
+
+                        <div>
+                            <label for="equipesImpactees" class="block text-sm font-medium text-gray-700">Équipes impactées par l'automatisation</label>
+                            <textarea id="equipesImpactees" rows="3" placeholder="Services, départements, nombre de personnes..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        </div>
+
+                        <div>
+                            <label for="methodePilotage" class="block text-sm font-medium text-gray-700">Méthode de pilotage préférée</label>
+                            <select id="methodePilotage" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionnez</option>
+                                <option value="agile">Agile (sprints courts)</option>
+                                <option value="cascade">Cascade (phases séquentielles)</option>
+                                <option value="hybride">Hybride</option>
+                                <option value="adaptatif">Adaptatif selon le projet</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="communicationProjet" class="block text-sm font-medium text-gray-700">Préférences de communication</label>
+                            <div class="grid grid-cols-2 gap-3 mt-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="emailPref" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Email</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="visioconference" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Visioconférence</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="reunionsPhysiques" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Réunions physiques</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="outilsCollabo" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Outils collaboratifs</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="rapportsEcrits" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Rapports écrits</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="tableauBord" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                    <span class="ml-2 text-sm text-gray-700">Tableau de bord partagé</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="frequenceRDV" class="block text-sm font-medium text-gray-700">Fréquence des points projet</label>
+                            <select id="frequenceRDV" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm">
+                                <option value="">Sélectionnez</option>
+                                <option value="hebdomadaire">Hebdomadaire</option>
+                                <option value="bi-hebdomadaire">Bi-hebdomadaire</option>
+                                <option value="mensuel">Mensuel</option>
+                                <option value="besoin">Selon les besoins</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="attentesSpecifiques" class="block text-sm font-medium text-gray-700">Attentes spécifiques de PuyDeCom</label>
+                            <textarea id="attentesSpecifiques" rows="4" placeholder="Ce que vous attendez précisément de notre accompagnement..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaire d'étape -->
+                    <div class="mt-6 border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="commentaireOrganisationCollaboration" class="block text-sm font-medium text-gray-700">Commentaire</label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="requireCommentOrganisationCollaboration" class="h-4 w-4 text-puy-orange rounded border-gray-300">
+                                <span class="text-sm text-gray-600">Commentaire requis</span>
+                            </label>
+                        </div>
+                        <textarea id="commentaireOrganisationCollaboration" rows="3" placeholder="Notes sur l'organisation et collaboration..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-puy-orange focus:ring-puy-orange sm:text-sm"></textarea>
+                        <div id="errorOrganisationCollaboration" class="hidden mt-2 text-sm text-red-600"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions sticky -->
+            <div class="sticky bottom-0 bg-white border-t border-gray-200 shadow-lg no-print">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <button id="previewButton" class="inline-flex items-center px-4 py-2 border border-puy-orange text-puy-orange bg-white hover:bg-puy-orange hover:text-white rounded-md transition-colors">
+                            <svg id="previewIcon" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            <span id="previewText">Prévisualiser l'audit</span>
+                        </button>
+                        <button id="pdfPreviewButton" class="inline-flex items-center px-4 py-2 border border-purple-600 text-purple-600 bg-white hover:bg-purple-600 hover:text-white rounded-md transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7h4m0 0v4m0-4l-6 6"/>
+                            </svg>
+                            Aperçu PDF
+                        </button>
+                        <button id="exportJsonButton" class="inline-flex items-center px-4 py-2 border border-blue-600 text-blue-600 bg-white hover:bg-blue-600 hover:text-white rounded-md transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                            </svg>
+                            Exporter JSON
+                        </button>
+                        <button id="saveDraftButton" class="inline-flex items-center px-4 py-2 border border-purple-600 text-purple-600 bg-white hover:bg-purple-600 hover:text-white rounded-md transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                            </svg>
+                            Sauvegarder
+                        </button>
+                        <button id="exportPdfButton" class="inline-flex items-center px-4 py-2 bg-puy-orange text-white hover:bg-puy-red rounded-md transition-colors shadow-lg">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a1 1 0 00-.293-.707L16 5.586A1 1 0 0015.586 5H4a2 2 0 00-2 2v10a2 2 0 002 2h2"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.5 7.5l3 3m0 0l3-3m-3 3v12"/>
+                            </svg>
+                            Exporter PDF
+                        </button>
+                        <button id="sendEmailButton" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-md transition-colors shadow-lg">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            Envoyer par email
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Configuration Supabase
+        const SUPABASE_URL = 'https://ltqkbtfdjvslqktjtbod.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cWtidGZkanZzbHFrdGp0Ym9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjE1NzgsImV4cCI6MjA3MjM5NzU3OH0.RnZQZ3QmYrcedLK-IefXCQhTeNFJOUNmU7O0f5HGkLg';
+        
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Vérifier l'authentification
+        async function checkAuth() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = './index.html';
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Déconnexion
+        document.getElementById('logoutButton').addEventListener('click', async () => {
+            await supabaseClient.auth.signOut();
+            window.location.href = './index.html';
+        });
+
+        // Variables globales
+        let currentStep = 1;
+        const maxSteps = 8;
+        const steps = [
+            { id: 1, title: "Informations générales" },
+            { id: 2, title: "Processus actuels" },
+            { id: 3, title: "Besoins d'automatisation" },
+            { id: 4, title: "Intelligence artificielle" },
+            { id: 5, title: "Outils et intégrations" },
+            { id: 6, title: "Budget et ressources" },
+            { id: 7, title: "Mesure et analyse" },
+            { id: 8, title: "Organisation et collaboration" }
+        ];
+
+        // Initialisation
+        function init() {
+            loadFromLocalStorage();
+            updateStepDisplay();
+            bindEvents();
+        }
+
+        // Mise à jour de l'affichage du step
+        function updateStepDisplay() {
+            document.getElementById('stepIndicator').textContent = currentStep;
+            document.getElementById('stepTitle').textContent = steps[currentStep - 1].title;
+            document.getElementById('currentStep').textContent = currentStep;
+            document.getElementById('progressBar').style.width = `${(currentStep / maxSteps) * 100}%`;
+            
+            // Afficher/masquer les étapes
+            document.querySelectorAll('.step-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelector(`[data-step="${currentStep}"]`).classList.add('active');
+            
+            // Boutons navigation
+            document.getElementById('prevButton').disabled = currentStep === 1;
+            document.getElementById('nextButton').textContent = currentStep === maxSteps ? 'Terminer' : 'Suivant';
+        }
+
+        // Navigation
+        function goToStep(step) {
+            if (step < 1 || step > maxSteps) return;
+            
+            // Valider l'étape actuelle avant de naviguer
+            if (!validateCurrentStep()) return;
+            
+            currentStep = step;
+            updateStepDisplay();
+        }
+
+        // Validation de l'étape courante
+        function validateCurrentStep() {
+            return true; // Pas de validation obligatoire
+        }
+
+        // Gestion des événements
+        function bindEvents() {
+            // Navigation
+            document.getElementById('nextButton').addEventListener('click', () => {
+                if (currentStep < maxSteps) {
+                    goToStep(currentStep + 1);
+                } else {
+                    // Terminer - aller à la prévisualisation
+                    if (document.getElementById('previewSection').classList.contains('hidden')) {
+                        togglePreview();
+                    }
+                }
+            });
+            
+            document.getElementById('prevButton').addEventListener('click', () => {
+                goToStep(currentStep - 1);
+            });
+            
+            // Navigation clavier
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight' && !e.target.matches('input, textarea, select')) {
+                    goToStep(currentStep + 1);
+                } else if (e.key === 'ArrowLeft' && !e.target.matches('input, textarea, select')) {
+                    goToStep(currentStep - 1);
+                }
+            });
+            
+            // Actions principales
+            document.getElementById('previewButton').addEventListener('click', togglePreview);
+            document.getElementById('pdfPreviewButton').addEventListener('click', showPdfPreview);
+            document.getElementById('exportJsonButton').addEventListener('click', exportJson);
+            document.getElementById('saveDraftButton').addEventListener('click', saveDraft);
+            document.getElementById('exportPdfButton').addEventListener('click', exportPdf);
+            document.getElementById('sendEmailButton').addEventListener('click', sendByEmail);
+            
+            // Sauvegarder automatiquement
+            setInterval(saveToLocalStorage, 30000);
+            
+            // Sauvegarder au changement de valeur
+            document.addEventListener('input', saveToLocalStorage);
+            document.addEventListener('change', saveToLocalStorage);
+        }
+
+        // Collecte toutes les données du formulaire
+        function collectAllData() {
+            return {
+                informations_generales: {
+                    entreprise: document.getElementById('entreprise')?.value || '',
+                    secteur: document.getElementById('secteur')?.value || '',
+                    nom_prenom: document.getElementById('nomPrenom')?.value || '',
+                    email: document.getElementById('email')?.value || '',
+                    telephone: document.getElementById('telephone')?.value || '',
+                    taille_entreprise: document.getElementById('tailleEntreprise')?.value || ''
+                },
+                processus_actuels: {
+                    processus_chronophages: document.getElementById('processusChronophages')?.value || '',
+                    outils_actuels: document.getElementById('outilsActuels')?.value || '',
+                    frequence_taches: document.getElementById('frequenceTaches')?.value || '',
+                    problematiques: {
+                        pertes_temps: document.getElementById('pertesTemps')?.checked || false,
+                        erreurs_humaines: document.getElementById('erreursHumaines')?.checked || false,
+                        difficultes_suivi: document.getElementById('difficultesSuivi')?.checked || false,
+                        manque_coordination: document.getElementById('manqueCoordination')?.checked || false,
+                        surcharge_travail: document.getElementById('surchargeTravail')?.checked || false
+                    }
+                },
+                besoins_automatisation: {
+                    processus_prioritaires: {
+                        gestion_emails: document.getElementById('gestionEmails')?.checked || false,
+                        saisie_data: document.getElementById('saisieData')?.checked || false,
+                        planification_taches: document.getElementById('planificationTaches')?.checked || false,
+                        rapports_auto: document.getElementById('rapportsAuto')?.checked || false,
+                        gestion_stock: document.getElementById('gestionStock')?.checked || false,
+                        service_client: document.getElementById('serviceClient')?.checked || false
+                    },
+                    gain_temps_estime: document.getElementById('gainTempsEstime')?.value || '',
+                    priorite_automatisation: document.getElementById('prioriteAutomatisation')?.value || '',
+                    contraintes_automatisation: document.getElementById('contraintesAutomatisation')?.value || ''
+                },
+                intelligence_artificielle: {
+                    connaissance_ia: document.getElementById('connaissanceIA')?.value || '',
+                    domaines_application: {
+                        analyse_donnees: document.getElementById('analyseDonnees')?.checked || false,
+                        chatbot_ia: document.getElementById('chatbotIA')?.checked || false,
+                        recommandations: document.getElementById('recommandations')?.checked || false,
+                        prediction_tendances: document.getElementById('predictionTendances')?.checked || false,
+                        generation_contenu: document.getElementById('generationContenu')?.checked || false,
+                        optimisation_prix: document.getElementById('optimisationPrix')?.checked || false
+                    },
+                    outils_ia: document.getElementById('outilsIA')?.value || '',
+                    objectifs_ia: document.getElementById('objectifsIA')?.value || '',
+                    inquietudes_ia: document.getElementById('inquietudesIA')?.value || ''
+                },
+                outils_integrations: {
+                    crm: document.getElementById('crm')?.value || '',
+                    erp: document.getElementById('erp')?.value || '',
+                    outils_communication: document.getElementById('outilsCommunication')?.value || '',
+                    integrations_souhaitees: {
+                        integration_crm: document.getElementById('integrationCRM')?.checked || false,
+                        integration_comptabilite: document.getElementById('integrationComptabilite')?.checked || false,
+                        integration_stock: document.getElementById('integrationStock')?.checked || false,
+                        integration_analytics: document.getElementById('integrationAnalytics')?.checked || false,
+                        integration_email: document.getElementById('integrationEmail')?.checked || false
+                    },
+                    api_disponibles: document.getElementById('apiDisponibles')?.value || '',
+                    securite_donnees: document.getElementById('securiteDonnees')?.value || ''
+                },
+                budget_ressources: {
+                    budget_automatisation: document.getElementById('budgetAutomatisation')?.value || '',
+                    budget_ia: document.getElementById('budgetIA')?.value || '',
+                    services_souhaites: {
+                        audit: document.getElementById('audit')?.checked || false,
+                        conseil: document.getElementById('conseil')?.checked || false,
+                        implementation_outils: document.getElementById('implementationOutils')?.checked || false,
+                        formation: document.getElementById('formation')?.checked || false,
+                        maintenance: document.getElementById('maintenance')?.checked || false,
+                        developpement_sur_mesure: document.getElementById('developpementSurMesure')?.checked || false
+                    },
+                    equipe_interne: document.getElementById('equipeInterne')?.value || '',
+                    calendrier_implementation: document.getElementById('calendrierImplementation')?.value || ''
+                },
+                mesure_analyse: {
+                    indicateurs_performance: {
+                        gain_temps: document.getElementById('gainTemps')?.checked || false,
+                        reduction_erreurs: document.getElementById('reductionErreurs')?.checked || false,
+                        economies_couts: document.getElementById('economiesCouts')?.checked || false,
+                        amelioration_qualite: document.getElementById('ameliorationQualite')?.checked || false,
+                        satisfaction_client: document.getElementById('satisfactionClient')?.checked || false,
+                        productivite_equipe: document.getElementById('productiviteEquipe')?.checked || false
+                    },
+                    frequence_rapports: document.getElementById('frequenceRapports')?.value || '',
+                    dashboard_souhaite: document.getElementById('dashboardSouhaite')?.value || '',
+                    objectifs_quantitatifs: document.getElementById('objectifsQuantitatifs')?.value || ''
+                },
+                organisation_collaboration: {
+                    champ_mission: document.getElementById('champMission')?.value || '',
+                    equipes_impactees: document.getElementById('equipesImpactees')?.value || '',
+                    methode_pilotage: document.getElementById('methodePilotage')?.value || '',
+                    communication_projet: {
+                        email_pref: document.getElementById('emailPref')?.checked || false,
+                        visioconference: document.getElementById('visioconference')?.checked || false,
+                        reunions_physiques: document.getElementById('reunionsPhysiques')?.checked || false,
+                        outils_collabo: document.getElementById('outilsCollabo')?.checked || false,
+                        rapports_ecrits: document.getElementById('rapportsEcrits')?.checked || false,
+                        tableau_bord: document.getElementById('tableauBord')?.checked || false
+                    },
+                    frequence_rdv: document.getElementById('frequenceRDV')?.value || '',
+                    attentes_specifiques: document.getElementById('attentesSpecifiques')?.value || ''
+                }
+            };
+        }
+
+        // Sauvegarder dans le localStorage
+        function saveToLocalStorage() {
+            const data = collectAllData();
+            localStorage.setItem('analyse360_ia', JSON.stringify(data));
+        }
+
+        // Charger depuis le localStorage
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('analyse360_ia');
+            if (!saved) return;
+            
+            try {
+                const data = JSON.parse(saved);
+                populateForm(data);
+            } catch (e) {
+                console.error('Erreur lors du chargement des données sauvegardées:', e);
+            }
+        }
+
+        // Remplir le formulaire avec les données
+        function populateForm(data) {
+            // Helper pour remplir les champs
+            function setField(id, value) {
+                const field = document.getElementById(id);
+                if (field) {
+                    if (field.type === 'checkbox') {
+                        field.checked = value;
+                    } else {
+                        field.value = value;
+                    }
+                }
+            }
+
+            // Informations générales
+            if (data.informations_generales) {
+                setField('entreprise', data.informations_generales.entreprise);
+                setField('secteur', data.informations_generales.secteur);
+                setField('nomPrenom', data.informations_generales.nom_prenom);
+                setField('email', data.informations_generales.email);
+                setField('telephone', data.informations_generales.telephone);
+                setField('tailleEntreprise', data.informations_generales.taille_entreprise);
+            }
+
+            // Continue for other sections...
+        }
+
+        // Export PDF
+        function exportPdf() {
+            const data = collectAllData();
+            const date = new Date().toLocaleDateString('fr-FR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Créer le contenu professionnel du PDF
+            const pdfContent = generateProfessionalPDF(data, date);
+            
+            // Masquer le contenu normal et afficher le contenu d'impression
+            const originalContent = document.body.innerHTML;
+            document.body.innerHTML = pdfContent;
+            
+            setTimeout(() => {
+                window.print();
+                // Restaurer le contenu original
+                setTimeout(() => {
+                    document.body.innerHTML = originalContent;
+                    // Rebind les événements
+                    init();
+                }, 1000);
+            }, 500);
+        }
+
+        function generateProfessionalPDF(data, date) {
+            const clientName = data.informations_generales?.entreprise || data.informations_generales?.nom_prenom || 'Client';
+            
+            return `
+                <!-- Page de couverture -->
+                <div class="cover-page">
+                    <div style="margin-bottom: 3rem;">
+                        <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="PuyDeCom" style="width: 150px; height: 150px; margin: 0 auto 2rem auto; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                    </div>
+                    <h1 style="font-size: 36pt; font-weight: bold; color: #1F2937; margin-bottom: 1rem;">AUDIT DE BESOINS</h1>
+                    <h2 style="font-size: 24pt; color: #8B5CF6; margin-bottom: 2rem;">Automatisation & Intelligence Artificielle</h2>
+                    <div style="margin-bottom: 3rem;">
+                        <p style="font-size: 18pt; color: #374151; margin-bottom: 0.5rem;">Client : ${clientName}</p>
+                        <p style="font-size: 14pt; color: #6B7280;">Établi le ${date}</p>
+                    </div>
+                    <div style="margin-top: auto; padding-top: 4rem;">
+                        <p style="font-size: 14pt; color: #374151;">PuyDeCom</p>
+                        <p style="font-size: 12pt; color: #6B7280;">Agence de Communication Digitale</p>
+                    </div>
+                </div>
+
+                <!-- Table des matières -->
+                <div class="toc-page">
+                    <h1 style="font-size: 24pt; font-weight: bold; color: #1F2937; margin-bottom: 2rem; border-bottom: 2px solid #8B5CF6; padding-bottom: 0.5rem;">TABLE DES MATIÈRES</h1>
+                    <div class="toc-item"><span>1. Informations Générales</span><span>3</span></div>
+                    <div class="toc-item"><span>2. Processus Actuels</span><span>4</span></div>
+                    <div class="toc-item"><span>3. Besoins d'Automatisation</span><span>5</span></div>
+                    <div class="toc-item"><span>4. Intelligence Artificielle</span><span>6</span></div>
+                    <div class="toc-item"><span>5. Outils et Intégrations</span><span>7</span></div>
+                    <div class="toc-item"><span>6. Budget et Ressources</span><span>8</span></div>
+                    <div class="toc-item"><span>7. Mesure et Analyse</span><span>9</span></div>
+                    <div class="toc-item"><span>8. Organisation et Collaboration</span><span>10</span></div>
+                    <div class="toc-item"><span>9. Signatures</span><span>11</span></div>
+                </div>
+
+                <!-- Chapitres -->
+                ${generateChapter(1, "Informations Générales", data.informations_generales)}
+                ${generateChapter(2, "Processus Actuels", data.processus_actuels)}
+                ${generateChapter(3, "Besoins d'Automatisation", data.besoins_automatisation)}
+                ${generateChapter(4, "Intelligence Artificielle", data.intelligence_artificielle)}
+                ${generateChapter(5, "Outils et Intégrations", data.outils_integrations)}
+                ${generateChapter(6, "Budget et Ressources", data.budget_ressources)}
+                ${generateChapter(7, "Mesure et Analyse", data.mesure_analyse)}
+                ${generateChapter(8, "Organisation et Collaboration", data.organisation_collaboration)}
+                
+                <!-- Page de signatures -->
+                <div class="signatures-print">
+                    <h1 class="chapter-title"><span class="chapter-number">9.</span> SIGNATURES</h1>
+                    <p style="margin-bottom: 2rem; font-style: italic;">Cet audit de besoins a été établi d'un commun accord entre les parties. Les signatures ci-dessous valident l'acceptation des termes et conditions définis dans ce document.</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-top: 3rem;">
+                        <div class="signature-box avoid-break">
+                            <h3 style="font-weight: bold; margin-bottom: 1rem;">CLIENT</h3>
+                            <div style="height: 100px; border-bottom: 2px solid #333; margin-bottom: 1rem;"></div>
+                            <p><strong>Nom :</strong> ${clientName}</p>
+                            <p><strong>Fonction :</strong> _________________</p>
+                            <p><strong>Date :</strong> ___________________</p>
+                            <p style="margin-top: 0.5rem; font-size: 9pt; color: #666;">Signature précédée de "Lu et approuvé"</p>
+                        </div>
+                        <div class="signature-box avoid-break">
+                            <h3 style="font-weight: bold; margin-bottom: 1rem;">PUYDECOM</h3>
+                            <div style="height: 100px; border-bottom: 2px solid #333; margin-bottom: 1rem;"></div>
+                            <p><strong>Nom :</strong> _________________</p>
+                            <p><strong>Fonction :</strong> Consultant IA & Automatisation</p>
+                            <p><strong>Date :</strong> ___________________</p>
+                            <p style="margin-top: 0.5rem; font-size: 9pt; color: #666;">Signature précédée de "Bon pour accord"</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateChapter(number, title, sectionData) {
+            if (!sectionData) return '';
+            
+            let content = `
+                <div class="chapter">
+                    <h1 class="chapter-title"><span class="chapter-number">${number}.</span> ${title.toUpperCase()}</h1>
+            `;
+            
+            // Générer le contenu selon le type de section
+            Object.keys(sectionData).forEach(key => {
+                if (sectionData[key]) {
+                    const fieldName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    const value = sectionData[key];
+                    
+                    if (Array.isArray(value)) {
+                        content += `
+                            <div class="section avoid-break">
+                                <h3 class="section-title">${fieldName}</h3>
+                                <div class="section-content">
+                                    <ul>
+                                        ${value.map(item => `<li>${item}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        `;
+                    } else if (typeof value === 'object') {
+                        content += `
+                            <div class="section avoid-break">
+                                <h3 class="section-title">${fieldName}</h3>
+                                <div class="section-content">
+                                    ${Object.keys(value).map(subKey => 
+                                        `<p><strong>${subKey.replace(/_/g, ' ')}:</strong> ${value[subKey]}</p>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        content += `
+                            <div class="section avoid-break">
+                                <h3 class="section-title">${fieldName}</h3>
+                                <div class="section-content">
+                                    <p>${value}</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            });
+            
+            content += '</div>';
+            return content;
+        }
+
+        function showPdfPreview() {
+            const data = collectAllData();
+            const date = new Date().toLocaleDateString('fr-FR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Créer le contenu professionnel du PDF
+            const pdfContent = generateProfessionalPDF(data, date);
+            
+            // Ouvrir dans une nouvelle fenêtre pour prévisualisation
+            const previewWindow = window.open('', '_blank', 'width=1200,height=800');
+            previewWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Aperçu PDF - Audit Automatisation & IA</title>
+                    <style>
+                        body { 
+                            font-family: 'Inter', Arial, sans-serif; 
+                            margin: 0; 
+                            padding: 20px; 
+                            background: #f5f5f5;
+                        }
+                        .pdf-container {
+                            max-width: 210mm;
+                            margin: 0 auto;
+                            background: white;
+                            padding: 20mm;
+                            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+                        }
+                        ${document.querySelector('style').textContent}
+                    </style>
+                </head>
+                <body>
+                    <div class="pdf-container">
+                        ${pdfContent}
+                    </div>
+                    <div style="text-align: center; margin: 20px;">
+                        <button onclick="window.print()" style="padding: 10px 20px; background: #8B5CF6; color: white; border: none; border-radius: 5px; cursor: pointer;">Imprimer le PDF</button>
+                        <button onclick="window.close()" style="padding: 10px 20px; background: #6B7280; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">Fermer</button>
+                    </div>
+                </body>
+                </html>
+            `);
+            previewWindow.document.close();
+        }
+
+        // Autres fonctions utilitaires (exportJson, saveDraft, sendByEmail, togglePreview, etc.)
+        function exportJson() {
+            const data = {
+                analyse360_ia: collectAllData()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'analyse360-ia.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('Export JSON réussi !', 'success');
+        }
+
+        function saveDraft() {
+            saveToLocalStorage();
+            showNotification('Brouillon sauvegardé !', 'success');
+        }
+
+        function sendByEmail() {
+            const data = collectAllData();
+            const clientEmail = data.informations_generales.email;
+            const raisonSociale = data.informations_generales.entreprise || 'Client';
+            
+            const subject = encodeURIComponent(`Audit Automatisation & IA - ${raisonSociale}`);
+            const body = encodeURIComponent(`Bonjour,
+
+Veuillez trouver en pièce jointe l'audit de besoins pour votre projet d'automatisation et d'intelligence artificielle.
+
+Ce document reprend l'ensemble des éléments que nous avons définis ensemble lors de notre analyse.
+
+N'hésitez pas à me contacter pour toute question ou modification.
+
+Cordialement,
+L'équipe PuyDeCom`);
+            
+            if (clientEmail) {
+                window.open(`mailto:${clientEmail}?subject=${subject}&body=${body}`, '_blank');
+            } else {
+                window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+            }
+        }
+
+        function togglePreview() {
+            // Implementation for preview toggle
+            showNotification('Prévisualisation activée', 'info');
+        }
+
+        function showNotification(message, type) {
+            // Simple notification system
+            console.log(`${type.toUpperCase()}: ${message}`);
+        }
+
+        // Initialisation au chargement de la page
+        checkAuth().then(authenticated => {
+            if (authenticated) {
+                init();
+            }
+        });
+    </script>
+</body>
+</html>

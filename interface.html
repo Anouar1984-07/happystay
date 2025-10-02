@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent IA - Veille Concurrentielle | PuyDeCom</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="icon" href="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg">
+    <style>
+        .puy-gradient { background: linear-gradient(135deg, #FF7F50 0%, #DC2626 100%); }
+        .pulse-dot { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #FF7F50;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="../../../sites/admin/agents-ia.html" class="flex items-center space-x-3">
+                        <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="PuyDeCom" class="w-8 h-8 rounded-lg">
+                        <div class="text-sm">
+                            <div class="font-bold text-gray-900">← Retour aux Agents IA</div>
+                            <div class="text-gray-500">Veille Concurrentielle CM</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></div>
+                        <span class="text-sm text-gray-600">Agent Actif</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto p-6">
+
+        <!-- Header -->
+        <div class="puy-gradient text-white rounded-lg p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">🔍 Agent de Veille Concurrentielle</h1>
+                    <p class="text-orange-100">Analyse automatisée des tendances Community Management</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-2xl font-bold" id="totalReports">-</div>
+                    <div class="text-sm text-orange-100">Rapports générés</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Panel -->
+        <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                <span class="text-2xl mr-2">⚙️</span> Configuration de la Veille
+            </h2>
+
+            <form id="veilleForm" class="space-y-6">
+                <div class="grid md:grid-cols-3 gap-6">
+                    <!-- Portée -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Portée d'analyse</label>
+                        <select id="scope" class="w-full border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500">
+                            <option value="national">🇫🇷 National (France)</option>
+                            <option value="regional" selected>📍 Régional</option>
+                            <option value="hybride">🔄 National + Régional</option>
+                        </select>
+                    </div>
+
+                    <!-- Région -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Région focus</label>
+                        <select id="region" class="w-full border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500">
+                            <option value="Auvergne-Rhône-Alpes">Auvergne-Rhône-Alpes</option>
+                            <option value="Puy-de-Dôme" selected>Puy-de-Dôme</option>
+                            <option value="Clermont-Ferrand">Clermont-Ferrand</option>
+                            <option value="France">France entière</option>
+                        </select>
+                    </div>
+
+                    <!-- Période -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Période d'analyse</label>
+                        <select id="periode" class="w-full border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500">
+                            <option value="7j" selected>7 derniers jours</option>
+                            <option value="14j">14 derniers jours</option>
+                            <option value="30j">30 derniers jours</option>
+                            <option value="custom">Période personnalisée</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex space-x-4">
+                    <button type="submit" id="executeBtn" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 transition-colors">
+                        <span id="executeIcon">🚀</span>
+                        <span id="executeText">Lancer la Veille</span>
+                    </button>
+
+                    <button type="button" id="scheduledBtn" class="border border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-3 rounded-lg font-medium flex items-center space-x-2 transition-colors">
+                        <span>📅</span>
+                        <span>Programmer</span>
+                    </button>
+
+                    <button type="button" id="refreshBtn" class="border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-3 rounded-lg font-medium flex items-center space-x-2 transition-colors">
+                        <span>🔄</span>
+                        <span>Actualiser</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Status Panel -->
+        <div id="statusPanel" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 hidden">
+            <div class="flex items-center space-x-3">
+                <div class="loading-spinner"></div>
+                <div>
+                    <div class="font-medium text-blue-900">Analyse en cours...</div>
+                    <div class="text-sm text-blue-700" id="statusText">Initialisation de l'agent IA</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="grid lg:grid-cols-2 gap-6">
+
+            <!-- Latest Report -->
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <span class="text-xl mr-2">📊</span> Dernier Rapport
+                </h3>
+                <div id="latestReportContent">
+                    <div class="text-center py-8 text-gray-500">
+                        <div class="text-4xl mb-2">📋</div>
+                        <p>Aucun rapport généré</p>
+                        <p class="text-sm">Lancez une analyse pour voir les résultats</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports History -->
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <span class="text-xl mr-2">📚</span> Historique des Rapports
+                </h3>
+                <div id="reportsHistory" class="space-y-3">
+                    <div class="text-center py-8 text-gray-500">
+                        <div class="text-4xl mb-2">📁</div>
+                        <p>Aucun historique</p>
+                        <p class="text-sm">Les rapports apparaîtront ici</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Insights Panel -->
+        <div class="bg-white rounded-lg shadow-sm border p-6 mt-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                <span class="text-xl mr-2">💡</span> Insights Récents
+            </h3>
+            <div id="insightsContent" class="grid md:grid-cols-2 gap-4">
+                <div class="text-center py-8 text-gray-500 col-span-2">
+                    <div class="text-4xl mb-2">🔍</div>
+                    <p>Insights en attente</p>
+                    <p class="text-sm">Générez un rapport pour voir les tendances détectées</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE = '/srv/claude/puy_de_com/agents_ia/community_management/veille_concurrentielle';
+
+        // Éléments DOM
+        const veilleForm = document.getElementById('veilleForm');
+        const executeBtn = document.getElementById('executeBtn');
+        const executeIcon = document.getElementById('executeIcon');
+        const executeText = document.getElementById('executeText');
+        const statusPanel = document.getElementById('statusPanel');
+        const statusText = document.getElementById('statusText');
+        const latestReportContent = document.getElementById('latestReportContent');
+        const reportsHistory = document.getElementById('reportsHistory');
+        const insightsContent = document.getElementById('insightsContent');
+        const totalReports = document.getElementById('totalReports');
+
+        // État de l'application
+        let isExecuting = false;
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Debug: afficher les URLs API utilisées
+            const apiBaseUrl = `${window.location.protocol}//${window.location.hostname}:5001`;
+            console.log('API Base URL:', apiBaseUrl);
+            console.log('Protocol:', window.location.protocol);
+            console.log('Hostname:', window.location.hostname);
+
+            loadReportsHistory();
+            updateTotalReports();
+        });
+
+        // Gestion du formulaire
+        veilleForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            if (isExecuting) return;
+
+            const scope = document.getElementById('scope').value;
+            const region = document.getElementById('region').value;
+            const periode = document.getElementById('periode').value;
+
+            await executeVeille(scope, region, periode);
+        });
+
+        // Bouton actualiser
+        document.getElementById('refreshBtn').addEventListener('click', function() {
+            loadReportsHistory();
+            updateTotalReports();
+        });
+
+        // Exécution réelle de la veille via API
+        async function executeVeille(scope, region, periode) {
+            isExecuting = true;
+            showExecutionStatus();
+
+            try {
+                statusText.textContent = "Connexion à l'agent IA...";
+
+                // Détection automatique de l'URL API avec fallback
+                let apiUrls = [
+                    `${window.location.protocol}//${window.location.hostname}:5001`,
+                    'http://localhost:5001',
+                    'http://82.25.115.1:5001'
+                ];
+
+                let response = null;
+                let lastError = null;
+
+                // Essayer chaque URL jusqu'à ce qu'une fonctionne
+                for (const apiUrl of apiUrls) {
+                    try {
+                        console.log(`Tentative de connexion à: ${apiUrl}`);
+                        response = await fetch(`${apiUrl}/api/execute`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                scope: scope,
+                                region: region,
+                                periode: periode
+                            })
+                        });
+
+                        if (response.ok) {
+                            console.log(`✅ Connexion réussie avec: ${apiUrl}`);
+                            break;
+                        }
+                    } catch (error) {
+                        console.log(`❌ Échec avec ${apiUrl}:`, error.message);
+                        lastError = error;
+                        response = null;
+                    }
+                }
+
+                if (!response) {
+                    throw lastError || new Error('Aucune API accessible');
+                }
+
+                statusText.textContent = "Génération du rapport en cours...";
+                const result = await response.json();
+
+                if (result.success) {
+                    statusText.textContent = "Récupération des données...";
+
+                    // Récupération du fichier JSON généré
+                    const jsonResponse = await fetch(`${apiBaseUrl}/api/report/${result.json_file}`);
+                    const reportData = await jsonResponse.json();
+
+                    // Mise à jour de l'affichage avec les vraies données
+                    updateLatestReport(reportData);
+                    updateInsights(reportData.tendances_detectees);
+
+                    showSuccess("Rapport de veille généré avec succès !");
+                    loadReportsHistory();
+                    updateTotalReports();
+                } else {
+                    throw new Error(result.message || "Erreur lors de la génération");
+                }
+
+            } catch (error) {
+                showError("Erreur lors de la génération : " + error.message);
+                console.error('Erreur API:', error);
+            } finally {
+                isExecuting = false;
+                hideExecutionStatus();
+            }
+        }
+
+
+        // Mise à jour du dernier rapport
+        function updateLatestReport(data) {
+            const metadata = data.metadata;
+            latestReportContent.innerHTML = `
+                <div class="border-l-4 border-orange-500 pl-4 mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-semibold">Rapport ${metadata.scope}</h4>
+                        <span class="text-xs text-gray-500">${new Date(metadata.execution_date).toLocaleString('fr-FR')}</span>
+                    </div>
+                    <div class="text-sm text-gray-600 grid grid-cols-2 gap-2 mb-3">
+                        <div><strong>Région:</strong> ${metadata.region}</div>
+                        <div><strong>Période:</strong> ${metadata.periode}</div>
+                    </div>
+                    <div class="space-y-2">
+                        ${data.resume_global.map(point => `
+                            <div class="text-sm flex items-start">
+                                <span class="text-orange-500 mr-2">•</span>
+                                <span>${point}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <button class="w-full bg-orange-50 hover:bg-orange-100 text-orange-700 py-2 px-4 rounded-lg text-sm font-medium transition-colors">
+                    📊 Voir le rapport complet
+                </button>
+            `;
+        }
+
+        // Mise à jour des insights
+        function updateInsights(tendances) {
+            insightsContent.innerHTML = tendances.map(tendance => {
+                const impactColors = {
+                    high: 'bg-red-100 text-red-800',
+                    medium: 'bg-yellow-100 text-yellow-800',
+                    low: 'bg-green-100 text-green-800'
+                };
+                const colorClass = impactColors[tendance.impact] || 'bg-gray-100 text-gray-800';
+
+                return `
+                    <div class="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-medium">${tendance.tendance}</h4>
+                            <span class="px-2 py-1 rounded text-xs ${colorClass}">${tendance.impact.toUpperCase()}</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-2">${tendance.description}</p>
+                        <div class="text-xs text-gray-500">
+                            Plateformes: ${tendance.plateformes.join(', ')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Chargement de l'historique réel via API
+        async function loadReportsHistory() {
+            try {
+                const apiBaseUrl = `${window.location.protocol}//${window.location.hostname}:5001`;
+                const response = await fetch(`${apiBaseUrl}/api/reports`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.reports) {
+                        reportsHistory.innerHTML = data.reports.slice(0, 5).map(report => {
+                            const date = new Date(report.created).toLocaleString('fr-FR');
+                            const size = (report.size / 1024).toFixed(1) + ' KB';
+                            return `
+                                <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="text-lg">✅</span>
+                                        <div>
+                                            <div class="font-medium text-sm">${report.filename}</div>
+                                            <div class="text-xs text-gray-500">${date} • ${size}</div>
+                                        </div>
+                                    </div>
+                                    <button onclick="downloadReport('${report.filename}')" class="text-orange-600 hover:text-orange-700 text-sm">Télécharger</button>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement de l\'historique:', error);
+                reportsHistory.innerHTML = '<div class="text-center text-gray-500 py-4">Erreur de chargement</div>';
+            }
+        }
+
+        // Mise à jour du compteur total via API
+        async function updateTotalReports() {
+            try {
+                const apiBaseUrl = `${window.location.protocol}//${window.location.hostname}:5001`;
+                const response = await fetch(`${apiBaseUrl}/api/reports`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.reports) {
+                        totalReports.textContent = data.reports.length;
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement du compteur:', error);
+                totalReports.textContent = "-";
+            }
+        }
+
+        // Fonction pour télécharger un rapport
+        function downloadReport(filename) {
+            const apiBaseUrl = `${window.location.protocol}//${window.location.hostname}:5001`;
+            window.open(`${apiBaseUrl}/api/report/${filename}`, '_blank');
+        }
+
+        // Affichage du statut d'exécution
+        function showExecutionStatus() {
+            executeIcon.textContent = "";
+            executeIcon.innerHTML = '<div class="loading-spinner"></div>';
+            executeText.textContent = "Analyse en cours...";
+            executeBtn.disabled = true;
+            executeBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            statusPanel.classList.remove('hidden');
+        }
+
+        // Masquage du statut d'exécution
+        function hideExecutionStatus() {
+            executeIcon.textContent = "🚀";
+            executeText.textContent = "Lancer la Veille";
+            executeBtn.disabled = false;
+            executeBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            statusPanel.classList.add('hidden');
+        }
+
+        // Utilitaires
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function showSuccess(message) {
+            // Implémentation d'une notification de succès
+            console.log("✅ " + message);
+        }
+
+        function showError(message) {
+            // Implémentation d'une notification d'erreur
+            console.error("❌ " + message);
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse 360° - PuyDeCom Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="icon" href="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'puy-orange': '#FF7F50',
+                        'puy-red': '#DC2626',
+                        'puy-blue': '#1E40AF',
+                        'puy-action': '#FF7A3D'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        :root {
+            --puy-orange: #FF7F50;
+            --puy-red: #DC2626;
+            --puy-dark: #1F2937;
+            --puy-light: #F97316;
+            --puy-action: #FF7A3D;
+        }
+        
+        .bg-puy-orange { background-color: var(--puy-orange); }
+        .text-puy-orange { color: var(--puy-orange); }
+        .border-puy-orange { border-color: var(--puy-orange); }
+        .hover\:bg-puy-orange:hover { background-color: var(--puy-orange); }
+        .hover\:text-puy-orange:hover { color: var(--puy-orange); }
+        .hover\:text-puy-red:hover { color: var(--puy-red); }
+        .from-puy-orange { --tw-gradient-from: var(--puy-orange); }
+        .to-puy-red { --tw-gradient-to: var(--puy-red); }
+        .hover\:from-puy-red:hover { --tw-gradient-from: var(--puy-red); }
+        
+        .bg-puy-action { background-color: var(--puy-action); }
+        .hover\:bg-puy-action-dark:hover { background-color: #E6682D; }
+        .text-puy-action { color: var(--puy-action); }
+        .border-puy-action { border-color: var(--puy-action); }
+        
+        .audit-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .audit-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Modal styles */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        
+        /* Focus trap styles */
+        .focus-visible\:ring-puy-action:focus-visible {
+            box-shadow: 0 0 0 2px var(--puy-action);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-inter">
+    
+    <!-- Navigation moderne -->
+    <nav class="bg-white/80 backdrop-blur-md shadow-lg border-b border-gray-200/50 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center space-x-3">
+                        <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="PuyDeCom" class="w-10 h-10 rounded-lg shadow-sm">
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-900">PuyDeCom</h1>
+                            <p class="text-xs text-gray-500">Admin Dashboard</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Menu desktop moderne -->
+                    <div class="hidden md:ml-10 md:flex md:space-x-1">
+                        <a href="./dashboard.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="./clients.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                            </svg>
+                            <span>Clients</span>
+                        </a>
+                        <a href="./projets.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                            <span>Projets</span>
+                        </a>
+                        <a href="./leads.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
+                            </svg>
+                            <span>Leads</span>
+                        </a>
+                        <a href="./calendrier.html" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Calendrier</span>
+                        </a>
+                        <a href="./analyse360.html" class="bg-puy-action text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 shadow-lg">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>Analyse 360°</span>
+                        </a>
+                        <a href="https://mail.hostinger.com/" target="_blank" class="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Emails</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Actions droite -->
+                <div class="flex items-center space-x-4">
+                    <button id="logoutButton" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors shadow-lg">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        <span class="hidden md:inline">Déconnexion</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header avec actions -->
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
+            <div class="mb-4 lg:mb-0">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Analyse 360°</h1>
+                <p class="text-lg text-gray-600">Audits de besoins complets pour vos clients avant chaque projet</p>
+            </div>
+            
+            <!-- Barre d'actions -->
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button 
+                    id="newAuditBtn" 
+                    data-action="new-audit"
+                    class="bg-puy-action hover:bg-puy-action-dark text-white px-6 py-3 rounded-xl text-sm font-semibold flex items-center space-x-2 transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-puy-action focus:ring-offset-2"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    <span>Nouvel audit</span>
+                </button>
+                
+                <button 
+                    id="exportBtn" 
+                    data-action="export"
+                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl text-sm font-semibold flex items-center space-x-2 transition-all duration-200 opacity-75 cursor-not-allowed focus:outline-none"
+                    disabled
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span>Exporter</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Cartes d'audit -->
+        <section class="mb-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Carte Site Web -->
+                <div class="audit-card bg-white rounded-xl p-6 shadow-lg border border-gray-100" data-type="site" data-action="start-audit">
+                    <div class="flex items-start space-x-4 mb-4">
+                        <div class="p-3 bg-blue-100 rounded-lg">
+                            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Site Web</h3>
+                            <p class="text-gray-600 text-sm mb-4">Audit complet des besoins web : design, fonctionnalités, SEO et performance.</p>
+                        </div>
+                    </div>
+                    <button 
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        onclick="startAudit('site')"
+                    >
+                        Commencer l'audit
+                    </button>
+                </div>
+
+                <!-- Carte Community Management -->
+                <div class="audit-card bg-white rounded-xl p-6 shadow-lg border border-gray-100" data-type="cm" data-action="start-audit">
+                    <div class="flex items-start space-x-4 mb-4">
+                        <div class="p-3 bg-green-100 rounded-lg">
+                            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a3 3 0 01-3-3V6a3 3 0 013-3h6a3 3 0 013 3v2z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Community Management</h3>
+                            <p class="text-gray-600 text-sm mb-4">Stratégie réseaux sociaux, contenus et animation de communauté.</p>
+                        </div>
+                    </div>
+                    <button 
+                        class="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                        onclick="startAudit('cm')"
+                    >
+                        Commencer l'audit
+                    </button>
+                </div>
+
+                <!-- Carte Automatisation & IA -->
+                <div class="audit-card bg-white rounded-xl p-6 shadow-lg border border-gray-100" data-type="ia" data-action="start-audit">
+                    <div class="flex items-start space-x-4 mb-4">
+                        <div class="p-3 bg-purple-100 rounded-lg">
+                            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Automatisation & IA</h3>
+                            <p class="text-gray-600 text-sm mb-4">Processus automatisés, chatbots et outils d'intelligence artificielle.</p>
+                        </div>
+                    </div>
+                    <button 
+                        class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                        onclick="startAudit('ia')"
+                    >
+                        Commencer l'audit
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Historique -->
+        <section>
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Historique des audits</h2>
+            
+            <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client/Projet</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type d'audit</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Export</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <!-- TODO: Hydrater depuis Supabase -->
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">15/12/2024</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">Restaurant Le Bistrot</div>
+                                    <div class="text-sm text-gray-500">Site vitrine + commande</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        Site Web
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Terminé
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <button class="text-puy-action hover:text-puy-action font-medium">PDF</button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">12/12/2024</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">Boutique Mode Bella</div>
+                                    <div class="text-sm text-gray-500">Stratégie Instagram</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Community Mgmt
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        En cours
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <button class="text-gray-400 cursor-not-allowed">PDF</button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">10/12/2024</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">Cabinet Expertise Comptable</div>
+                                    <div class="text-sm text-gray-500">Chatbot + automatisation</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                        Automatisation & IA
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        Planifié
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <button class="text-gray-400 cursor-not-allowed">PDF</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal Nouvel Audit -->
+    <div id="newAuditModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" aria-modal="true">
+        <div class="modal-overlay fixed inset-0" onclick="closeModal()"></div>
+        
+        <div class="fixed inset-0 overflow-y-auto">
+            <div class="flex items-center justify-center min-h-full p-4">
+                <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 relative">
+                    <!-- Header du modal -->
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 id="modal-title" class="text-xl font-semibold text-gray-900">
+                            Lancer un nouvel audit
+                        </h3>
+                        <button 
+                            onclick="closeModal()" 
+                            class="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-puy-action rounded-lg p-1"
+                            aria-label="Fermer la modal"
+                        >
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Contenu du modal -->
+                    <div class="space-y-4">
+                        <p class="text-gray-600 mb-6">Choisissez le type d'audit que vous souhaitez réaliser :</p>
+                        
+                        <!-- Boutons d'audit -->
+                        <div class="space-y-3">
+                            <button 
+                                onclick="startAuditFromModal('site')"
+                                data-type="site"
+                                class="w-full flex items-center space-x-4 p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <div class="p-2 bg-blue-100 rounded-lg">
+                                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <div class="text-left">
+                                    <div class="font-semibold text-gray-900">Site Web</div>
+                                    <div class="text-sm text-gray-600">Design, fonctionnalités, SEO</div>
+                                </div>
+                            </button>
+
+                            <button 
+                                onclick="startAuditFromModal('cm')"
+                                data-type="cm"
+                                class="w-full flex items-center space-x-4 p-4 rounded-lg border border-gray-200 hover:border-green-300 hover:bg-green-50 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500"
+                            >
+                                <div class="p-2 bg-green-100 rounded-lg">
+                                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a3 3 0 01-3-3V6a3 3 0 013-3h6a3 3 0 013 3v2z"/>
+                                    </svg>
+                                </div>
+                                <div class="text-left">
+                                    <div class="font-semibold text-gray-900">Community Management</div>
+                                    <div class="text-sm text-gray-600">Réseaux sociaux, contenu</div>
+                                </div>
+                            </button>
+
+                            <button 
+                                onclick="startAuditFromModal('ia')"
+                                data-type="ia"
+                                class="w-full flex items-center space-x-4 p-4 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                                <div class="p-2 bg-purple-100 rounded-lg">
+                                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                </div>
+                                <div class="text-left">
+                                    <div class="font-semibold text-gray-900">Automatisation & IA</div>
+                                    <div class="text-sm text-gray-600">Processus, chatbots, IA</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Configuration Supabase
+        const SUPABASE_URL = 'https://ltqkbtfdjvslqktjtbod.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cWtidGZkanZzbHFrdGp0Ym9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjE1NzgsImV4cCI6MjA3MjM5NzU3OH0.RnZQZ3QmYrcedLK-IefXCQhTeNFJOUNmU7O0f5HGkLg';
+        
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Gestion d'authentification
+        supabaseClient.auth.getSession().then(({ data: { session } }) => {
+            if (!session) {
+                window.location.href = './index.html';
+            }
+        });
+
+        document.getElementById('logoutButton').addEventListener('click', async () => {
+            await supabaseClient.auth.signOut();
+            window.location.href = './index.html';
+        });
+
+        // Variables globales pour le modal
+        let modal = null;
+        let focusableElements = [];
+        let firstFocusableElement = null;
+        let lastFocusableElement = null;
+
+        // Gestion du modal
+        function openModal() {
+            modal = document.getElementById('newAuditModal');
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            // Setup focus trap
+            setupFocusTrap();
+            
+            // Focus sur le premier élément
+            if (firstFocusableElement) {
+                firstFocusableElement.focus();
+            }
+        }
+
+        function closeModal() {
+            modal = document.getElementById('newAuditModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+            
+            // Retour du focus
+            document.getElementById('newAuditBtn').focus();
+        }
+
+        function setupFocusTrap() {
+            focusableElements = modal.querySelectorAll(
+                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            );
+            
+            firstFocusableElement = focusableElements[0];
+            lastFocusableElement = focusableElements[focusableElements.length - 1];
+        }
+
+        // Gestion des audits
+        function startAudit(type) {
+            const urls = {
+                'site': './analyse360-site.html',
+                'cm': './analyse360-cm.html',
+                'ia': './analyse360-ia.html'
+            };
+            
+            if (urls[type]) {
+                // TODO: brancher webhook n8n lors du lancement
+                window.location.href = urls[type];
+            }
+        }
+
+        function startAuditFromModal(type) {
+            closeModal();
+            startAudit(type);
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Bouton nouvel audit
+            document.getElementById('newAuditBtn').addEventListener('click', openModal);
+            
+            // Bouton export (placeholder)
+            document.getElementById('exportBtn').addEventListener('click', function() {
+                // TODO: Implémenter l'export
+                alert('Fonctionnalité d\'export bientôt disponible !');
+            });
+
+            // Gestion clavier pour modal
+            document.addEventListener('keydown', function(e) {
+                if (!modal || modal.classList.contains('hidden')) return;
+
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+
+                if (e.key === 'Tab') {
+                    if (focusableElements.length === 1) {
+                        e.preventDefault();
+                        return;
+                    }
+
+                    if (e.shiftKey) {
+                        if (document.activeElement === firstFocusableElement) {
+                            lastFocusableElement.focus();
+                            e.preventDefault();
+                        }
+                    } else {
+                        if (document.activeElement === lastFocusableElement) {
+                            firstFocusableElement.focus();
+                            e.preventDefault();
+                        }
+                    }
+                }
+            });
+        });
+
+        // TODO: Hydrater l'historique depuis Supabase
+        // TODO: Ajouter filtres et recherche sur l'historique
+        // TODO: Implémenter toasts succès/erreur
+    </script>
+</body>
+</html>

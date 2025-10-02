@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paramètres - PuyDeCom Production</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'puy-orange': '#FF7F50',
+                        'puy-pink': '#DB2777',
+                        'puy-dark': '#1F2937'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50">
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="flex items-center">
+                    <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="PuyDeCom" class="w-8 h-8 rounded-full mr-3">
+                    <div>
+                        <h2 class="text-white font-bold text-lg">PuyDeCom</h2>
+                        <p class="text-gray-300 text-xs">Production</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                    </svg>
+                    Dashboard
+                </a>
+                
+                <a href="clients.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    Clients
+                </a>
+                
+                <a href="create-post.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Créer un Post
+                </a>
+                
+                <a href="calendar.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Calendrier
+                </a>
+                
+                <a href="analytics.html" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    Analytics
+                </a>
+                
+                <a href="settings.html" class="nav-item active">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Paramètres
+                </a>
+                
+                <div class="mt-8 border-t border-white/10 pt-4">
+                    <button class="nav-item" data-logout>
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        Déconnexion
+                    </button>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button id="toggleSidebar" class="lg:hidden p-2 rounded-lg hover:bg-gray-100">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                    <h1 class="text-2xl font-bold text-gray-900 ml-4">Paramètres</h1>
+                </div>
+                
+                <div class="header-right">
+                    <div class="flex items-center space-x-3">
+                        <div class="text-right">
+                            <p class="text-sm font-medium text-gray-900" data-user-name>Utilisateur</p>
+                            <p class="text-xs text-gray-500" data-user-email>email@domain.com</p>
+                        </div>
+                        <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="Avatar" class="w-8 h-8 rounded-full">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="content">
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                    <!-- Settings Navigation -->
+                    <div class="lg:col-span-1">
+                        <nav class="card">
+                            <h3 class="font-semibold text-gray-900 mb-4">Catégories</h3>
+                            <div class="space-y-1">
+                                <button class="settings-nav-item active" data-section="profile">
+                                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                    Profil Agence
+                                </button>
+                                
+                                <button class="settings-nav-item" data-section="workflow">
+                                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h2m9-4H9m0-5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V15a2 2 0 01-2 2H9"/>
+                                    </svg>
+                                    Workflow
+                                </button>
+                                
+                                <button class="settings-nav-item" data-section="notifications">
+                                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5-5-5h5v-5H7a2 2 0 01-2-2V7a2 2 0 012-2h3"/>
+                                    </svg>
+                                    Notifications
+                                </button>
+                                
+                                <button class="settings-nav-item" data-section="ai">
+                                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                    </svg>
+                                    Intelligence Artificielle
+                                </button>
+                                
+                                <button class="settings-nav-item" data-section="integrations">
+                                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                                    </svg>
+                                    Intégrations
+                                </button>
+                                
+                                <button class="settings-nav-item" data-section="security">
+                                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                    Sécurité
+                                </button>
+                            </div>
+                        </nav>
+                    </div>
+
+                    <!-- Settings Content -->
+                    <div class="lg:col-span-3">
+                        <!-- Profile Section -->
+                        <div id="profile-section" class="settings-section">
+                            <div class="card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-6">Profil de l'Agence</h3>
+                                
+                                <form id="profileForm" class="space-y-6">
+                                    <div class="flex items-center space-x-6">
+                                        <div class="shrink-0">
+                                            <img class="h-16 w-16 object-cover rounded-full" 
+                                                 src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" 
+                                                 alt="Logo agence" id="agencyLogo">
+                                        </div>
+                                        <div>
+                                            <button type="button" class="btn btn-secondary">
+                                                Changer le logo
+                                            </button>
+                                            <p class="text-sm text-gray-500 mt-1">JPG, GIF ou PNG. 1MB max.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div class="form-group">
+                                            <label class="form-label" for="agencyName">Nom de l'agence</label>
+                                            <input type="text" id="agencyName" class="form-input" value="PuyDeCom">
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label class="form-label" for="agencyEmail">Email principal</label>
+                                            <input type="email" id="agencyEmail" class="form-input" value="contact@puydecom.fr">
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label class="form-label" for="agencyPhone">Téléphone</label>
+                                            <input type="tel" id="agencyPhone" class="form-input" value="04 73 XX XX XX">
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label class="form-label" for="agencyWebsite">Site web</label>
+                                            <input type="url" id="agencyWebsite" class="form-input" value="https://puydecom.fr">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label" for="agencyAddress">Adresse</label>
+                                        <textarea id="agencyAddress" class="form-input" rows="3">Clermont-Ferrand, France</textarea>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label" for="agencyDescription">Description</label>
+                                        <textarea id="agencyDescription" class="form-input" rows="4">Agence de communication digitale spécialisée dans la gestion des réseaux sociaux avec intelligence artificielle intégrée.</textarea>
+                                    </div>
+                                    
+                                    <div class="flex justify-end">
+                                        <button type="submit" class="btn btn-primary">
+                                            Sauvegarder les modifications
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Workflow Section -->
+                        <div id="workflow-section" class="settings-section hidden">
+                            <div class="card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-6">Configuration du Workflow</h3>
+                                
+                                <div class="space-y-8">
+                                    <!-- Default Approval Settings -->
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 mb-4">Approbation par Défaut</h4>
+                                        <div class="space-y-4">
+                                            <label class="flex items-start">
+                                                <input type="checkbox" id="requireApproval" class="mt-1 rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                                <div class="ml-3">
+                                                    <span class="text-sm font-medium text-gray-900">Approbation obligatoire</span>
+                                                    <p class="text-sm text-gray-500">Tous les nouveaux posts nécessitent une approbation avant publication</p>
+                                                </div>
+                                            </label>
+                                            
+                                            <div class="ml-7">
+                                                <select id="defaultApprover" class="form-select w-64">
+                                                    <option value="manager">Manager</option>
+                                                    <option value="client">Client final</option>
+                                                    <option value="both">Manager puis client</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Auto-scheduling -->
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 mb-4">Programmation Automatique</h4>
+                                        <div class="space-y-4">
+                                            <label class="flex items-start">
+                                                <input type="checkbox" id="enableAutoSchedule" class="mt-1 rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                                <div class="ml-3">
+                                                    <span class="text-sm font-medium text-gray-900">Programmation intelligente</span>
+                                                    <p class="text-sm text-gray-500">Programmer automatiquement aux heures optimales basées sur l'analyse des performances</p>
+                                                </div>
+                                            </label>
+                                            
+                                            <div class="grid grid-cols-2 gap-4 ml-7">
+                                                <div>
+                                                    <label class="form-label">Fréquence minimale (par client)</label>
+                                                    <select class="form-select">
+                                                        <option value="1">1 post/semaine</option>
+                                                        <option value="2">2 posts/semaine</option>
+                                                        <option value="3" selected>3 posts/semaine</option>
+                                                        <option value="daily">1 post/jour</option>
+                                                    </select>
+                                                </div>
+                                                
+                                                <div>
+                                                    <label class="form-label">Fréquence maximale</label>
+                                                    <select class="form-select">
+                                                        <option value="5">5 posts/semaine</option>
+                                                        <option value="daily" selected>1 post/jour</option>
+                                                        <option value="2daily">2 posts/jour</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Team Assignments -->
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 mb-4">Attribution d'Équipe</h4>
+                                        <div class="space-y-4">
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="form-label">Créateur par défaut</label>
+                                                    <select class="form-select">
+                                                        <option value="auto">Attribution automatique</option>
+                                                        <option value="user1">Marie (Community Manager)</option>
+                                                        <option value="user2" selected>Thomas (Graphiste)</option>
+                                                        <option value="user3">Sophie (Rédactrice)</option>
+                                                    </select>
+                                                </div>
+                                                
+                                                <div>
+                                                    <label class="form-label">Approbateur par défaut</label>
+                                                    <select class="form-select">
+                                                        <option value="manager" selected>Chef de projet</option>
+                                                        <option value="client">Client</option>
+                                                        <option value="both">Les deux</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-end mt-8">
+                                    <button class="btn btn-primary">
+                                        Sauvegarder les paramètres
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notifications Section -->
+                        <div id="notifications-section" class="settings-section hidden">
+                            <div class="card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-6">Préférences de Notifications</h3>
+                                
+                                <div class="space-y-6">
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 mb-4">Notifications Email</h4>
+                                        <div class="space-y-3">
+                                            <label class="flex items-center justify-between">
+                                                <div>
+                                                    <span class="text-sm font-medium text-gray-900">Nouveau post créé</span>
+                                                    <p class="text-sm text-gray-500">Recevoir un email quand un nouveau post est créé</p>
+                                                </div>
+                                                <input type="checkbox" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange" checked>
+                                            </label>
+                                            
+                                            <label class="flex items-center justify-between">
+                                                <div>
+                                                    <span class="text-sm font-medium text-gray-900">Post approuvé/rejeté</span>
+                                                    <p class="text-sm text-gray-500">Notification de changement de statut d'approbation</p>
+                                                </div>
+                                                <input type="checkbox" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange" checked>
+                                            </label>
+                                            
+                                            <label class="flex items-center justify-between">
+                                                <div>
+                                                    <span class="text-sm font-medium text-gray-900">Post publié</span>
+                                                    <p class="text-sm text-gray-500">Confirmation de publication sur les réseaux sociaux</p>
+                                                </div>
+                                                <input type="checkbox" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                            </label>
+                                            
+                                            <label class="flex items-center justify-between">
+                                                <div>
+                                                    <span class="text-sm font-medium text-gray-900">Rapport hebdomadaire</span>
+                                                    <p class="text-sm text-gray-500">Résumé des performances de la semaine</p>
+                                                </div>
+                                                <input type="checkbox" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange" checked>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 mb-4">Notifications Push</h4>
+                                        <div class="space-y-3">
+                                            <label class="flex items-center justify-between">
+                                                <div>
+                                                    <span class="text-sm font-medium text-gray-900">Urgences</span>
+                                                    <p class="text-sm text-gray-500">Problèmes de publication ou erreurs critiques</p>
+                                                </div>
+                                                <input type="checkbox" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange" checked>
+                                            </label>
+                                            
+                                            <label class="flex items-center justify-between">
+                                                <div>
+                                                    <span class="text-sm font-medium text-gray-900">Mentions & commentaires</span>
+                                                    <p class="text-sm text-gray-500">Interactions importantes sur les réseaux sociaux</p>
+                                                </div>
+                                                <input type="checkbox" class="rounded border-gray-300 text-puy-orange focus:ring-puy-orange">
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 mb-4">Fréquence des Résumés</h4>
+                                        <select class="form-select w-48">
+                                            <option value="daily">Quotidien</option>
+                                            <option value="weekly" selected>Hebdomadaire</option>
+                                            <option value="monthly">Mensuel</option>
+                                            <option value="never">Jamais</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-end mt-8">
+                                    <button class="btn btn-primary">
+                                        Sauvegarder les notifications
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Section -->
+                        <div id="ai-section" class="settings-section hidden">
+                            <div class="card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-6">🤖 Configuration IA</h3>
+                                
+                                <div class="space-y-8">
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 mb-4">Génération de Contenu</h4>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="form-label">Ton par défaut</label>
+                                                <select class="form-select w-48">
+                                                    <option value="professional">Professionnel</option>
+                                                    <option value="friendly" selected>Amical</option>
+                                                    <option value="fun">Amusant</option>
+                                                    <option value="elegant">Élégant</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="form-label">Longueur de texte préférée</label>
+                                                <select class="form-select w-48">
+                                                    <option value="short">Court (< 100 caractères)</option>
+                                                    <option value="medium" selected>Moyen (100-200 caractères)</option>
+                                                    <option value="long">Long (200+ caractères)</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <label class="flex items-start">
+                                                <input type="checkbox" class="mt-1 rounded border-gray-300 text-puy-orange focus:ring-puy-orange" checked>
+                                                <div class="ml-3">
+                                                    <span class="text-sm font-medium text-gray-900">Ajout automatique d'emojis</span>
+                                                    <p class="text-sm text-gray-500">L'IA ajoute automatiquement des emojis pertinents</p>
+                                                </div>
+                                            </label>
+                                            
+                                            <label class="flex items-start">
+                                                <input type="checkbox" class="mt-1 rounded border-gray-300 text-puy-orange focus:ring-puy-orange" checked>
+                                                <div class="ml-3">
+                                                    <span class="text-sm font-medium text-gray-900">Génération de hashtags</span>
+                                                    <p class="text-sm text-gray-500">Proposer automatiquement des hashtags pertinents</p>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 mb-4">Configuration n8n</h4>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="form-label">URL Webhook n8n</label>
+                                                <input type="url" class="form-input" placeholder="https://votre-n8n.com/webhook/ai-generation" value="https://n8n.puydecom.fr/webhook/ai-content">
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="form-label">Clé API</label>
+                                                <input type="password" class="form-input" placeholder="••••••••••••••••" value="sk-proj-abc123...">
+                                            </div>
+                                            
+                                            <button class="btn btn-outline" id="testWebhook">
+                                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                                </svg>
+                                                Tester la connexion
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 mb-4">Modèles IA Préférés</h4>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="form-label">Génération de texte</label>
+                                                <select class="form-select w-64">
+                                                    <option value="gpt-4" selected>GPT-4</option>
+                                                    <option value="gpt-3.5">GPT-3.5 Turbo</option>
+                                                    <option value="claude">Claude Sonnet</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="form-label">Génération d'images</label>
+                                                <select class="form-select w-64">
+                                                    <option value="dalle3" selected>DALL-E 3</option>
+                                                    <option value="midjourney">Midjourney</option>
+                                                    <option value="stable-diffusion">Stable Diffusion</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="form-label">Génération de vidéos</label>
+                                                <select class="form-select w-64">
+                                                    <option value="runaway" selected>Runway</option>
+                                                    <option value="pika">Pika Labs</option>
+                                                    <option value="synthesia">Synthesia</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-end mt-8">
+                                    <button class="btn btn-primary">
+                                        Sauvegarder la configuration IA
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Integrations Section -->
+                        <div id="integrations-section" class="settings-section hidden">
+                            <div class="card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-6">Intégrations Plateformes</h3>
+                                
+                                <div class="space-y-6">
+                                    <!-- Instagram -->
+                                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                                                <span class="text-white text-xl">📷</span>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-medium text-gray-900">Instagram Business</h4>
+                                                <p class="text-sm text-gray-500">Publier des posts, stories et reels automatiquement</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-3">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                Connecté
+                                            </span>
+                                            <button class="btn btn-outline btn-sm">Configurer</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Facebook -->
+                                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                                                <span class="text-white text-xl">📘</span>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-medium text-gray-900">Facebook Pages</h4>
+                                                <p class="text-sm text-gray-500">Gestion des pages Facebook et publication automatique</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-3">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                Connecté
+                                            </span>
+                                            <button class="btn btn-outline btn-sm">Configurer</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- LinkedIn -->
+                                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-12 h-12 bg-blue-700 rounded-lg flex items-center justify-center">
+                                                <span class="text-white text-xl">💼</span>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-medium text-gray-900">LinkedIn Pages</h4>
+                                                <p class="text-sm text-gray-500">Publication sur les pages d'entreprise LinkedIn</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-3">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                Configuration requise
+                                            </span>
+                                            <button class="btn btn-primary btn-sm">Connecter</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Twitter -->
+                                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-12 h-12 bg-black rounded-lg flex items-center justify-center">
+                                                <span class="text-white text-xl">𝕏</span>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-medium text-gray-900">Twitter / X</h4>
+                                                <p class="text-sm text-gray-500">Publication de tweets et gestion des comptes</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-3">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                Non connecté
+                                            </span>
+                                            <button class="btn btn-primary btn-sm">Connecter</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- TikTok -->
+                                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-12 h-12 bg-black rounded-lg flex items-center justify-center">
+                                                <span class="text-white text-xl">🎵</span>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-medium text-gray-900">TikTok for Business</h4>
+                                                <p class="text-sm text-gray-500">Publication de vidéos courtes automatisée</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-3">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                Non connecté
+                                            </span>
+                                            <button class="btn btn-primary btn-sm">Connecter</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-8 p-4 bg-blue-50 rounded-lg">
+                                    <div class="flex">
+                                        <svg class="w-5 h-5 text-blue-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-blue-800">Information Importante</h3>
+                                            <div class="mt-2 text-sm text-blue-700">
+                                                <p>Certaines plateformes nécessitent une validation manuelle des comptes business. Contactez le support si vous rencontrez des problèmes de connexion.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Section -->
+                        <div id="security-section" class="settings-section hidden">
+                            <div class="card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-6">Sécurité & Accès</h3>
+                                
+                                <div class="space-y-8">
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 mb-4">Mot de Passe</h4>
+                                        <form class="space-y-4">
+                                            <div>
+                                                <label class="form-label">Mot de passe actuel</label>
+                                                <input type="password" class="form-input w-64" placeholder="••••••••">
+                                            </div>
+                                            <div>
+                                                <label class="form-label">Nouveau mot de passe</label>
+                                                <input type="password" class="form-input w-64" placeholder="••••••••">
+                                            </div>
+                                            <div>
+                                                <label class="form-label">Confirmer le nouveau mot de passe</label>
+                                                <input type="password" class="form-input w-64" placeholder="••••••••">
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">
+                                                Changer le mot de passe
+                                            </button>
+                                        </form>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 mb-4">Authentification à Deux Facteurs</h4>
+                                        <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <span class="text-sm font-medium text-gray-900">2FA via SMS</span>
+                                                <p class="text-sm text-gray-500">Ajouter une couche de sécurité supplémentaire</p>
+                                            </div>
+                                            <label class="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" class="sr-only peer">
+                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-puy-orange/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-puy-orange"></div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 mb-4">Sessions Actives</h4>
+                                        <div class="space-y-3">
+                                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                                <div>
+                                                    <p class="text-sm font-medium text-gray-900">Session Actuelle</p>
+                                                    <p class="text-sm text-gray-500">Chrome sur Windows • Clermont-Ferrand, France</p>
+                                                </div>
+                                                <span class="text-sm text-green-600 font-medium">Actuelle</span>
+                                            </div>
+                                            
+                                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                                <div>
+                                                    <p class="text-sm font-medium text-gray-900">Mobile App</p>
+                                                    <p class="text-sm text-gray-500">iPhone • Il y a 2 heures</p>
+                                                </div>
+                                                <button class="text-sm text-red-600 hover:underline">Révoquer</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 mb-4">Zone Dangereuse</h4>
+                                        <div class="p-4 border border-red-200 rounded-lg bg-red-50">
+                                            <h5 class="text-sm font-medium text-red-900 mb-2">Supprimer le Compte</h5>
+                                            <p class="text-sm text-red-700 mb-4">
+                                                Cette action est irréversible. Toutes vos données, clients et posts seront définitivement supprimés.
+                                            </p>
+                                            <button class="btn btn-secondary text-red-700 border-red-300 hover:bg-red-100">
+                                                Supprimer mon compte
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script type="module" src="js/supabase.js"></script>
+    <script>
+        // Initialize settings page
+        function initSettings() {
+            setupEventListeners();
+            loadUserSettings();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Mobile sidebar toggle
+            document.getElementById('toggleSidebar').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('show');
+            });
+
+            // Settings navigation
+            document.querySelectorAll('.settings-nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const section = this.dataset.section;
+                    switchSettingsSection(section);
+                    
+                    // Update active state
+                    document.querySelectorAll('.settings-nav-item').forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Form submissions
+            document.getElementById('profileForm').addEventListener('submit', handleProfileSave);
+            document.getElementById('testWebhook').addEventListener('click', testN8nConnection);
+        }
+
+        // Switch settings section
+        function switchSettingsSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.settings-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Show selected section
+            document.getElementById(`${sectionName}-section`).classList.remove('hidden');
+        }
+
+        // Load user settings
+        async function loadUserSettings() {
+            try {
+                const user = await window.PuyDeComAuth.getCurrentUser();
+                if (user) {
+                    // Update profile form with user data
+                    document.getElementById('agencyEmail').value = user.email || '';
+                    // Load other settings from database
+                }
+            } catch (error) {
+                console.error('Error loading user settings:', error);
+            }
+        }
+
+        // Handle profile form submission
+        async function handleProfileSave(event) {
+            event.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('agencyName').value,
+                email: document.getElementById('agencyEmail').value,
+                phone: document.getElementById('agencyPhone').value,
+                website: document.getElementById('agencyWebsite').value,
+                address: document.getElementById('agencyAddress').value,
+                description: document.getElementById('agencyDescription').value
+            };
+            
+            try {
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                window.PuyDeComAuth.showNotification('Profil mis à jour avec succès !', 'success');
+                
+            } catch (error) {
+                console.error('Error saving profile:', error);
+                window.PuyDeComAuth.showNotification('Erreur lors de la sauvegarde', 'error');
+            }
+        }
+
+        // Test n8n webhook connection
+        async function testN8nConnection() {
+            const button = document.getElementById('testWebhook');
+            const originalText = button.innerHTML;
+            
+            // Show loading state
+            button.innerHTML = `
+                <div class="inline-block w-5 h-5 mr-2 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+                Test en cours...
+            `;
+            button.disabled = true;
+            
+            try {
+                // Simulate webhook test
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Simulate success (you would make actual API call here)
+                window.PuyDeComAuth.showNotification('Connexion n8n testée avec succès !', 'success');
+                
+            } catch (error) {
+                console.error('Error testing webhook:', error);
+                window.PuyDeComAuth.showNotification('Erreur de connexion au webhook', 'error');
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
+
+        // CSS for settings nav items
+        const style = document.createElement('style');
+        style.textContent = `
+            .settings-nav-item {
+                display: flex;
+                align-items: center;
+                width: 100%;
+                padding: 0.75rem;
+                text-align: left;
+                border: none;
+                background: none;
+                color: #6B7280;
+                border-radius: 0.5rem;
+                transition: all 0.2s ease;
+                font-size: 0.875rem;
+            }
+            
+            .settings-nav-item:hover {
+                background-color: #F3F4F6;
+                color: #374151;
+            }
+            
+            .settings-nav-item.active {
+                background: linear-gradient(135deg, #FF7F50 0%, #DB2777 100%);
+                color: white;
+            }
+            
+            .settings-nav-item.active svg {
+                color: white;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize settings on page load
+        document.addEventListener('DOMContentLoaded', initSettings);
+    </script>
+</body>
+</html>

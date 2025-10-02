@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent IA - Veille Concurrentielle | PuyDeCom</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="icon" href="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg">
+    <style>
+        .puy-gradient { background: linear-gradient(135deg, #FF7F50 0%, #DC2626 100%); }
+        .pulse-dot { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #FF7F50;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="../../../agents-ia.html" class="flex items-center space-x-3">
+                        <img src="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg" alt="PuyDeCom" class="w-8 h-8 rounded-lg">
+                        <div class="text-sm">
+                            <div class="font-bold text-gray-900">← Retour aux Agents IA</div>
+                            <div class="text-gray-500">Veille Concurrentielle CM (API Réelle)</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></div>
+                        <span class="text-sm text-gray-600">Agent Actif</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Header -->
+        <div class="puy-gradient text-white rounded-lg p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold mb-2">🔍 Agent de Veille Concurrentielle</h1>
+                    <p class="text-orange-100">Analyse automatisée des tendances Community Management avec OpenAI</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-orange-100">Version API Réelle</div>
+                    <div class="text-xs text-orange-200">Connecté à GPT-4o-mini</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Panel -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <h2 class="text-lg font-semibold mb-4">Configuration de la Veille</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Portée</label>
+                            <select id="scopeSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                <option value="national">National (France)</option>
+                                <option value="regional" selected>Régional</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Région</label>
+                            <select id="regionSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                <option value="Puy-de-Dôme" selected>Puy-de-Dôme</option>
+                                <option value="Auvergne-Rhône-Alpes">Auvergne-Rhône-Alpes</option>
+                                <option value="Clermont-Ferrand">Clermont-Ferrand</option>
+                                <option value="France">France</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Période</label>
+                            <select id="periodeSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                <option value="7j" selected>7 jours</option>
+                                <option value="14j">14 jours</option>
+                                <option value="30j">30 jours</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button id="executeBtn" onclick="launchVeille()" class="w-full puy-gradient text-white py-3 px-6 rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center justify-center space-x-2">
+                        <span id="executeIcon">🚀</span>
+                        <span id="executeText">Lancer la Veille OpenAI</span>
+                    </button>
+                </div>
+
+                <!-- Status Panel -->
+                <div id="statusPanel" class="bg-white rounded-lg shadow-sm border p-6 mt-6 hidden">
+                    <h3 class="font-semibold mb-3">Statut d'exécution</h3>
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="loading-spinner"></div>
+                        <span id="statusText" class="text-gray-700">Initialisation...</span>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-3">
+                        <div class="text-sm text-gray-600">
+                            <div>⚡ Agent utilisant l'API OpenAI réelle</div>
+                            <div>🧠 Modèle: GPT-4o-mini</div>
+                            <div>📊 Génération de rapport authentique</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="space-y-6">
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <h3 class="font-semibold mb-3">Actions Rapides</h3>
+                    <div class="space-y-2">
+                        <button onclick="launchQuickVeille('national')" class="w-full text-left px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md text-sm transition-colors">
+                            🇫🇷 Veille Nationale Express
+                        </button>
+                        <button onclick="launchQuickVeille('regional')" class="w-full text-left px-3 py-2 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-md text-sm transition-colors">
+                            🗺️ Veille Puy-de-Dôme Express
+                        </button>
+                        <button onclick="checkApiStatus()" class="w-full text-left px-3 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-md text-sm transition-colors">
+                            ✅ Vérifier API Agent
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <h3 class="font-semibold mb-3">Derniers Rapports</h3>
+                    <div id="reportsHistory" class="space-y-2 text-sm">
+                        <div class="text-gray-500">Aucun rapport généré</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div id="resultsPanel" class="hidden">
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <h2 class="text-lg font-semibold mb-4">📊 Résultats de l'Analyse</h2>
+                <div id="reportContent" class="space-y-4">
+                    <!-- Le contenu sera injecté ici -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Panel -->
+        <div id="alertPanel" class="fixed top-4 right-4 max-w-md z-50 hidden">
+            <div id="alertContent" class="p-4 rounded-lg shadow-lg"></div>
+        </div>
+    </div>
+
+    <script>
+        let isExecuting = false;
+
+        // Éléments DOM
+        const executeBtn = document.getElementById('executeBtn');
+        const executeIcon = document.getElementById('executeIcon');
+        const executeText = document.getElementById('executeText');
+        const statusPanel = document.getElementById('statusPanel');
+        const statusText = document.getElementById('statusText');
+        const resultsPanel = document.getElementById('resultsPanel');
+        const reportContent = document.getElementById('reportContent');
+        const reportsHistory = document.getElementById('reportsHistory');
+        const alertPanel = document.getElementById('alertPanel');
+        const alertContent = document.getElementById('alertContent');
+
+        // Fonction principale d'exécution
+        async function launchVeille() {
+            if (isExecuting) return;
+
+            const scope = document.getElementById('scopeSelect').value;
+            const region = document.getElementById('regionSelect').value;
+            const periode = document.getElementById('periodeSelect').value;
+
+            await executeVeille(scope, region, periode);
+        }
+
+        async function executeVeille(scope, region, periode) {
+            isExecuting = true;
+            showExecutionStatus();
+
+            try {
+                statusText.textContent = "Connexion à l'agent IA...";
+
+                // Appel à l'API Flask réelle
+                const response = await fetch('http://82.25.115.1:5001/api/execute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        scope: scope,
+                        region: region,
+                        periode: periode
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+
+                statusText.textContent = "🧠 Exécution OpenAI en cours...";
+                const result = await response.json();
+
+                if (result.success) {
+                    statusText.textContent = "📊 Récupération du rapport...";
+
+                    // Récupération du rapport JSON généré
+                    const reportResponse = await fetch(`http://82.25.115.1:5001/api/report/${result.json_file}`);
+                    if (reportResponse.ok) {
+                        const reportData = await reportResponse.json();
+                        displayReport(reportData);
+                    }
+
+                    showAlert(`✅ Rapport OpenAI généré: ${result.html_file}`, 'success');
+                    loadReportsHistory();
+                } else {
+                    throw new Error(result.message || 'Erreur lors de l\'exécution');
+                }
+            } catch (error) {
+                console.error('Erreur détaillée:', error);
+                if (error.message.includes('Failed to fetch')) {
+                    showAlert("⚠️ API Agent non disponible. Vérifiez que le serveur Flask est démarré sur le port 5001.", 'warning');
+                } else {
+                    showAlert("❌ Erreur: " + error.message, 'error');
+                }
+            } finally {
+                isExecuting = false;
+                hideExecutionStatus();
+            }
+        }
+
+        // Actions rapides
+        async function launchQuickVeille(scope) {
+            const region = scope === 'national' ? 'France' : 'Puy-de-Dôme';
+            await executeVeille(scope, region, '7j');
+        }
+
+        // Vérification du statut de l'API
+        async function checkApiStatus() {
+            try {
+                const response = await fetch('http://82.25.115.1:5001/api/status');
+                if (response.ok) {
+                    const status = await response.json();
+                    showAlert(`✅ API Active - ${status.agent} v${status.version}`, 'success');
+                } else {
+                    showAlert('❌ API non accessible', 'error');
+                }
+            } catch (error) {
+                showAlert('⚠️ API Flask non démarrée. Port 5001 non accessible.', 'warning');
+            }
+        }
+
+        // Affichage du rapport
+        function displayReport(data) {
+            resultsPanel.classList.remove('hidden');
+
+            reportContent.innerHTML = `
+                <div class="border-l-4 border-orange-500 pl-4 mb-6">
+                    <h3 class="font-semibold text-lg mb-2">📋 Résumé Global</h3>
+                    <div class="space-y-2">
+                        ${data.resume_global.map(point => `
+                            <div class="flex items-start">
+                                <span class="text-orange-500 mr-2">•</span>
+                                <span class="text-sm">${point}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div class="border rounded-lg p-4">
+                        <h4 class="font-semibold mb-3">📈 Benchmarks</h4>
+                        ${Object.entries(data.benchmarks).map(([level, bench]) => `
+                            <div class="mb-3">
+                                <div class="font-medium capitalize">${level}</div>
+                                <div class="text-sm text-gray-600">
+                                    <div>Publications/semaine: ${bench.freq_publication_semaine}</div>
+                                    <div>Taux engagement: ${bench.taux_engagement_moyen}%</div>
+                                    <div>Formats: ${bench.formats_performants.join(', ')}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="border rounded-lg p-4">
+                        <h4 class="font-semibold mb-3">🔥 Tendances Détectées</h4>
+                        ${data.tendances_detectees.map(tendance => `
+                            <div class="mb-3 p-3 bg-gray-50 rounded">
+                                <div class="font-medium">${tendance.tendance}</div>
+                                <div class="text-sm text-gray-600">${tendance.description}</div>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    Impact: ${tendance.impact} | ${tendance.plateformes.join(', ')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-semibold mb-3">🚀 Opportunités PuyDeCom</h4>
+                    ${data.opportunites_puydecom.map(opp => `
+                        <div class="mb-3 p-3 bg-blue-50 rounded">
+                            <div class="font-medium">${opp.opportunite}</div>
+                            <div class="text-sm text-gray-600">${opp.description}</div>
+                            <div class="text-xs text-gray-500 mt-1">
+                                Clients cibles: ${opp.clients_cibles.join(', ')} | Priorité: ${opp.priorite}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="mt-4 p-3 bg-gray-100 rounded text-xs text-gray-600">
+                    📊 Rapport généré par ${data.metadata.agent} v${data.metadata.version}
+                    le ${new Date(data.metadata.execution_date).toLocaleString('fr-FR')}
+                    <br>🤖 Modèle utilisé: ${data.metadata.model_used}
+                </div>
+            `;
+        }
+
+        // Gestion de l'affichage
+        function showExecutionStatus() {
+            executeIcon.innerHTML = '<div class="loading-spinner"></div>';
+            executeText.textContent = "Analyse en cours...";
+            executeBtn.disabled = true;
+            executeBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            statusPanel.classList.remove('hidden');
+        }
+
+        function hideExecutionStatus() {
+            executeIcon.textContent = "🚀";
+            executeText.textContent = "Lancer la Veille OpenAI";
+            executeBtn.disabled = false;
+            executeBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            statusPanel.classList.add('hidden');
+        }
+
+        function showAlert(message, type) {
+            const colors = {
+                success: 'bg-green-100 border-green-500 text-green-700',
+                error: 'bg-red-100 border-red-500 text-red-700',
+                warning: 'bg-yellow-100 border-yellow-500 text-yellow-700'
+            };
+
+            alertContent.className = `p-4 rounded-lg shadow-lg border-l-4 ${colors[type] || colors.success}`;
+            alertContent.textContent = message;
+            alertPanel.classList.remove('hidden');
+
+            setTimeout(() => {
+                alertPanel.classList.add('hidden');
+            }, 5000);
+        }
+
+        async function loadReportsHistory() {
+            try {
+                const response = await fetch('http://82.25.115.1:5001/api/reports');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.reports.length > 0) {
+                        reportsHistory.innerHTML = data.reports.slice(0, 3).map(report => `
+                            <div class="text-xs p-2 bg-gray-50 rounded">
+                                <div class="font-medium">${report.filename}</div>
+                                <div class="text-gray-500">${new Date(report.created).toLocaleString('fr-FR')}</div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.log('Impossible de charger l\'historique');
+            }
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            loadReportsHistory();
+            checkApiStatus();
+        });
+    </script>
+</body>
+</html>

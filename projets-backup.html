@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projets - PuyDeCom Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="icon" href="https://puydecom.fr/images/Logo-Puy-De-Com.jpeg">
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <a href="./dashboard.html" class="text-xl font-bold text-indigo-600">
+                            PuyDeCom Admin
+                        </a>
+                        <span class="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                            Supabase
+                        </span>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <a href="./dashboard.html" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <span class="mr-2">📊</span>
+                            Dashboard
+                        </a>
+                        <a href="./clients.html" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <span class="mr-2">👥</span>
+                            Clients
+                        </a>
+                        <a href="./projets.html" class="border-indigo-500 text-indigo-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <span class="mr-2">📁</span>
+                            Projets
+                        </a>
+                        <a href="./leads.html" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <span class="mr-2">🎯</span>
+                            Leads
+                        </a>
+                        <a href="https://mail.hostinger.com/" target="_blank" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <span class="mr-2">📧</span>
+                            Emails
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="userEmail" class="text-sm text-gray-600"></div>
+                    <a href="/" target="_blank" class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">
+                        Voir le site
+                    </a>
+                    <button
+                        id="logoutButton"
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    >
+                        Déconnexion
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="space-y-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Projets</h1>
+                        <p class="mt-2 text-gray-600">
+                            Suivi de tous vos projets en cours
+                        </p>
+                    </div>
+                    <button id="nouveauProjetBtn" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                        <span class="mr-2">+</span>
+                        Nouveau projet
+                    </button>
+                </div>
+
+                <!-- Liste des projets -->
+                <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                    <div id="projetsLoading" class="p-8 text-center">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+                        <p class="mt-2 text-gray-600">Chargement des projets...</p>
+                    </div>
+                    <div id="projetsList" class="hidden px-4 py-5 sm:p-6">
+                        <div class="grid grid-cols-1 gap-6"></div>
+                    </div>
+                </div>
+
+                <!-- Statistiques rapides -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-900" id="totalProjets">-</div>
+                        <div class="text-sm text-blue-600">Total projets</div>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <div class="text-2xl font-bold text-green-900" id="projetsEnCours">-</div>
+                        <div class="text-sm text-green-600">En cours</div>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <div class="text-2xl font-bold text-yellow-900" id="projetsPlanifies">-</div>
+                        <div class="text-sm text-yellow-600">Planifiés</div>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <div class="text-2xl font-bold text-purple-900" id="projetsTermines">-</div>
+                        <div class="text-sm text-purple-600">Terminés</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Nouveau Projet -->
+    <div id="projetModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium text-gray-900 text-center mb-6">Nouveau Projet</h3>
+                <form id="projetForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Nom du projet *</label>
+                            <input type="text" id="projetNom" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Client *</label>
+                            <select id="projetClient" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="">Sélectionner un client</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Type de projet *</label>
+                            <select id="projetType" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="site_web">Site Web</option>
+                                <option value="community_management">Community Management</option>
+                                <option value="publicite">Publicité</option>
+                                <option value="automatisation">Automatisation</option>
+                                <option value="autre">Autre</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Statut</label>
+                            <select id="projetStatut" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="planifie">Planifié</option>
+                                <option value="en_cours">En cours</option>
+                                <option value="en_pause">En pause</option>
+                                <option value="termine">Terminé</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Budget (€)</label>
+                            <input type="number" id="projetBudget" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Date de début</label>
+                            <input type="date" id="projetDateDebut" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Date de fin prévue</label>
+                            <input type="date" id="projetDateFin" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Description</label>
+                        <textarea id="projetDescription" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Description du projet..."></textarea>
+                    </div>
+
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" id="cancelProjet" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                            Annuler
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                            Créer le projet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Détails Projet -->
+    <div id="projetDetailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-medium text-gray-900">Détails du Projet</h3>
+                    <button id="closeProjetDetails" class="text-gray-400 hover:text-gray-600">
+                        <span class="sr-only">Fermer</span>
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <div id="projetDetailsContent" class="space-y-6">
+                    <!-- Le contenu sera injecté par JavaScript -->
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-6 border-t">
+                    <button id="editProjet" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                        Modifier
+                    </button>
+                    <button id="deleteProjet" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                        Supprimer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit Projet -->
+    <div id="projetEditModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium text-gray-900 text-center mb-6">Modifier le Projet</h3>
+                <form id="projetEditForm" class="space-y-4">
+                    <input type="hidden" id="editProjetId">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Nom du projet *</label>
+                            <input type="text" id="editProjetNom" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Type de projet *</label>
+                            <select id="editProjetType" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="site_web">Site Web</option>
+                                <option value="community_management">Community Management</option>
+                                <option value="publicite">Publicité</option>
+                                <option value="automatisation">Automatisation</option>
+                                <option value="autre">Autre</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Statut</label>
+                            <select id="editProjetStatut" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="planifie">Planifié</option>
+                                <option value="en_cours">En cours</option>
+                                <option value="en_pause">En pause</option>
+                                <option value="termine">Terminé</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Progression (%)</label>
+                            <input type="range" id="editProjetProgression" min="0" max="100" class="mt-1 block w-full">
+                            <div class="text-center text-sm text-gray-500 mt-1">
+                                <span id="progressionValue">0</span>%
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Budget (€)</label>
+                            <input type="number" id="editProjetBudget" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Date de début</label>
+                            <input type="date" id="editProjetDateDebut" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Date de fin prévue</label>
+                            <input type="date" id="editProjetDateFin" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Description</label>
+                        <textarea id="editProjetDescription" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                    </div>
+
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" id="cancelEditProjet" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                            Annuler
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                            Sauvegarder
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration Supabase
+        const SUPABASE_URL = 'https://ltqkbtfdjvslqktjtbod.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cWtidGZkanZzbHFrdGp0Ym9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjE1NzgsImV4cCI6MjA3MjM5NzU3OH0.RnZQZ3QmYrcedLK-IefXCQhTeNFJOUNmU7O0f5HGkLg';
+        
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Vérifier l'authentification
+        async function checkAuth() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = './index.html';
+                return false;
+            }
+            
+            document.getElementById('userEmail').textContent = session.user.email;
+            return true;
+        }
+
+        // Déconnexion
+        document.getElementById('logoutButton').addEventListener('click', async () => {
+            await supabaseClient.auth.signOut();
+            window.location.href = './index.html';
+        });
+
+        function getStatutColor(statut) {
+            switch (statut) {
+                case 'en_cours': return 'bg-blue-100 text-blue-800';
+                case 'planifie': return 'bg-gray-100 text-gray-800';
+                case 'en_pause': return 'bg-yellow-100 text-yellow-800';
+                case 'termine': return 'bg-green-100 text-green-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        function getTypeIcon(type) {
+            switch (type) {
+                case 'site_web': return '🌐';
+                case 'community_management': return '📱';
+                case 'publicite': return '📢';
+                case 'automatisation': return '🤖';
+                default: return '📁';
+            }
+        }
+
+        // Charger les projets avec informations client
+        async function loadProjets() {
+            try {
+                // Utiliser la vue v_projets_complets pour avoir les infos client
+                const { data: projets, error } = await supabaseClient
+                    .from('v_projets_complets')
+                    .select('*')
+                    .order('date_debut', { ascending: false });
+
+                if (error) {
+                    // Si la vue n'existe pas, faire une requête avec jointure
+                    console.warn('Vue v_projets_complets non disponible, utilisation de la jointure manuelle');
+                    
+                    const { data: projetsAlternative, error: errorAlternative } = await supabaseClient
+                        .from('projets')
+                        .select(`
+                            *,
+                            clients:client_id (
+                                nom,
+                                secteur,
+                                email
+                            )
+                        `)
+                        .order('date_debut', { ascending: false });
+                    
+                    if (errorAlternative) throw errorAlternative;
+                    
+                    // Reformater les données pour correspondre à la structure attendue
+                    const projetsFormates = projetsAlternative.map(projet => ({
+                        ...projet,
+                        client_nom: projet.clients?.nom || 'Client inconnu',
+                        client_secteur: projet.clients?.secteur || '',
+                        client_email: projet.clients?.email || ''
+                    }));
+                    
+                    displayProjets(projetsFormates);
+                    return;
+                }
+
+                displayProjets(projets);
+
+            } catch (error) {
+                console.error('Erreur lors du chargement des projets:', error);
+                document.getElementById('projetsLoading').innerHTML = `
+                    <p class="text-red-600">Erreur lors du chargement : ${error.message}</p>
+                `;
+            }
+        }
+
+        function displayProjets(projets) {
+            // Masquer le loading
+            document.getElementById('projetsLoading').classList.add('hidden');
+            document.getElementById('projetsList').classList.remove('hidden');
+
+            // Afficher les projets
+            const projetsContainer = document.querySelector('#projetsList .grid');
+            if (projets.length > 0) {
+                projetsContainer.innerHTML = projets.map(projet => `
+                    <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-3">${getTypeIcon(projet.type)}</span>
+                                <div>
+                                    <h3 class="text-lg font-medium text-gray-900">
+                                        ${projet.nom}
+                                    </h3>
+                                    <p class="text-sm text-gray-500 capitalize">
+                                        ${projet.client_nom} • ${projet.type.replace('_', ' ')} • Budget: ${projet.budget ? projet.budget.toLocaleString('fr-FR') + '€' : 'Non défini'}
+                                    </p>
+                                </div>
+                            </div>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatutColor(projet.statut)}">
+                                ${projet.statut.replace('_', ' ')}
+                            </span>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="flex justify-between text-sm text-gray-600 mb-1">
+                                <span>Progression</span>
+                                <span>${projet.progression || 0}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                    class="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                                    style="width: ${projet.progression || 0}%"
+                                ></div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center text-sm text-gray-500">
+                            <div>
+                                ${projet.date_debut ? 'Début: ' + new Date(projet.date_debut).toLocaleDateString('fr-FR') : 'Date de début non définie'}
+                            </div>
+                            <div>
+                                ${projet.date_fin_prevue ? 'Échéance: ' + new Date(projet.date_fin_prevue).toLocaleDateString('fr-FR') : 'Pas d\'échéance'}
+                            </div>
+                            <button onclick="openProjetDetails('${projet.id}')" class="text-indigo-600 hover:text-indigo-900 font-medium">
+                                Voir détails
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                projetsContainer.innerHTML = '<div class="text-center text-gray-500 py-8">Aucun projet trouvé</div>';
+            }
+
+            // Calculer les statistiques
+            const total = projets.length;
+            const enCours = projets.filter(p => p.statut === 'en_cours').length;
+            const planifies = projets.filter(p => p.statut === 'planifie').length;
+            const termines = projets.filter(p => p.statut === 'termine').length;
+
+            document.getElementById('totalProjets').textContent = total;
+            document.getElementById('projetsEnCours').textContent = enCours;
+            document.getElementById('projetsPlanifies').textContent = planifies;
+            document.getElementById('projetsTermines').textContent = termines;
+        }
+
+        // Charger les clients pour le formulaire
+        let clientsData = [];
+        async function loadClients() {
+            try {
+                const { data: clients, error } = await supabaseClient
+                    .from('clients')
+                    .select('id, nom')
+                    .eq('statut', 'actif')
+                    .order('nom');
+                
+                if (error) throw error;
+                clientsData = clients;
+                
+                // Remplir le select des clients
+                const clientSelect = document.getElementById('projetClient');
+                clientSelect.innerHTML = '<option value="">Sélectionner un client</option>';
+                clients.forEach(client => {
+                    clientSelect.innerHTML += `<option value="${client.id}">${client.nom}</option>`;
+                });
+            } catch (error) {
+                console.error('Erreur lors du chargement des clients:', error);
+            }
+        }
+
+        // Modal nouveau projet
+        document.getElementById('nouveauProjetBtn').addEventListener('click', () => {
+            document.getElementById('projetModal').classList.remove('hidden');
+        });
+
+        document.getElementById('cancelProjet').addEventListener('click', () => {
+            document.getElementById('projetModal').classList.add('hidden');
+            document.getElementById('projetForm').reset();
+        });
+
+        // Créer un nouveau projet
+        document.getElementById('projetForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                nom: document.getElementById('projetNom').value,
+                client_id: document.getElementById('projetClient').value,
+                type: document.getElementById('projetType').value,
+                statut: document.getElementById('projetStatut').value,
+                budget: document.getElementById('projetBudget').value ? parseInt(document.getElementById('projetBudget').value) : null,
+                description: document.getElementById('projetDescription').value || null,
+                date_debut: document.getElementById('projetDateDebut').value || null,
+                date_fin_prevue: document.getElementById('projetDateFin').value || null,
+                progression: 0
+            };
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('projets')
+                    .insert([formData]);
+
+                if (error) throw error;
+
+                // Fermer le modal et recharger
+                document.getElementById('projetModal').classList.add('hidden');
+                document.getElementById('projetForm').reset();
+                loadProjets();
+                showNotification('Projet créé avec succès !', 'success');
+
+            } catch (error) {
+                console.error('Erreur lors de la création du projet:', error);
+                showNotification('Erreur lors de la création: ' + error.message, 'error');
+            }
+        });
+
+        // Variable globale pour stocker le projet actuel
+        let currentProjet = null;
+
+        // Fonction pour ouvrir les détails d'un projet
+        async function openProjetDetails(projetId) {
+            try {
+                const { data: projet, error } = await supabaseClient
+                    .from('projets')
+                    .select(`
+                        *,
+                        clients:client_id (
+                            nom,
+                            secteur,
+                            email,
+                            telephone
+                        )
+                    `)
+                    .eq('id', projetId)
+                    .single();
+
+                if (error) throw error;
+
+                currentProjet = projet;
+                
+                // Remplir le contenu du modal
+                const content = document.getElementById('projetDetailsContent');
+                content.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500">Projet</h4>
+                                <p class="text-lg font-medium text-gray-900">${projet.nom}</p>
+                            </div>
+                            
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500">Client</h4>
+                                <p class="text-lg text-gray-900">${projet.clients?.nom || 'Client inconnu'}</p>
+                                ${projet.clients?.email ? `<p class="text-sm text-gray-600">${projet.clients.email}</p>` : ''}
+                                ${projet.clients?.telephone ? `<p class="text-sm text-gray-600">${projet.clients.telephone}</p>` : ''}
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-500">Type</h4>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        ${getTypeIcon(projet.type)} ${projet.type.replace('_', ' ')}
+                                    </span>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-500">Statut</h4>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatutColor(projet.statut)}">
+                                        ${projet.statut.replace('_', ' ')}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500">Progression</h4>
+                                <div class="mt-2">
+                                    <div class="flex justify-between text-sm text-gray-600 mb-1">
+                                        <span>Avancement</span>
+                                        <span>${projet.progression || 0}%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-indigo-600 h-2 rounded-full" style="width: ${projet.progression || 0}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-500">Budget</h4>
+                                    <p class="text-lg text-gray-900">${projet.budget ? projet.budget.toLocaleString('fr-FR') + '€' : 'Non défini'}</p>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-500">Dates</h4>
+                                    <p class="text-sm text-gray-900">
+                                        <strong>Début:</strong> ${projet.date_debut ? new Date(projet.date_debut).toLocaleDateString('fr-FR') : 'Non définie'}
+                                    </p>
+                                    <p class="text-sm text-gray-900">
+                                        <strong>Fin prévue:</strong> ${projet.date_fin_prevue ? new Date(projet.date_fin_prevue).toLocaleDateString('fr-FR') : 'Non définie'}
+                                    </p>
+                                    ${projet.date_fin_reelle ? `<p class="text-sm text-gray-900"><strong>Terminé le:</strong> ${new Date(projet.date_fin_reelle).toLocaleDateString('fr-FR')}</p>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${projet.description ? `
+                        <div class="pt-4 border-t">
+                            <h4 class="text-sm font-medium text-gray-500 mb-2">Description</h4>
+                            <p class="text-gray-900">${projet.description}</p>
+                        </div>
+                    ` : ''}
+                `;
+
+                document.getElementById('projetDetailsModal').classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Erreur lors du chargement des détails:', error);
+                showNotification('Erreur lors du chargement des détails', 'error');
+            }
+        }
+
+        // Fermer le modal de détails
+        document.getElementById('closeProjetDetails').addEventListener('click', () => {
+            document.getElementById('projetDetailsModal').classList.add('hidden');
+        });
+
+        // Ouvrir le modal d'édition
+        document.getElementById('editProjet').addEventListener('click', () => {
+            if (currentProjet) {
+                // Remplir le formulaire d'édition
+                document.getElementById('editProjetId').value = currentProjet.id;
+                document.getElementById('editProjetNom').value = currentProjet.nom;
+                document.getElementById('editProjetType').value = currentProjet.type;
+                document.getElementById('editProjetStatut').value = currentProjet.statut;
+                document.getElementById('editProjetProgression').value = currentProjet.progression || 0;
+                document.getElementById('progressionValue').textContent = currentProjet.progression || 0;
+                document.getElementById('editProjetBudget').value = currentProjet.budget || '';
+                document.getElementById('editProjetDateDebut').value = currentProjet.date_debut || '';
+                document.getElementById('editProjetDateFin').value = currentProjet.date_fin_prevue || '';
+                document.getElementById('editProjetDescription').value = currentProjet.description || '';
+
+                // Fermer le modal de détails et ouvrir celui d'édition
+                document.getElementById('projetDetailsModal').classList.add('hidden');
+                document.getElementById('projetEditModal').classList.remove('hidden');
+            }
+        });
+
+        // Gestion du slider de progression
+        document.getElementById('editProjetProgression').addEventListener('input', (e) => {
+            document.getElementById('progressionValue').textContent = e.target.value;
+        });
+
+        // Annuler l'édition
+        document.getElementById('cancelEditProjet').addEventListener('click', () => {
+            document.getElementById('projetEditModal').classList.add('hidden');
+            document.getElementById('projetEditForm').reset();
+        });
+
+        // Sauvegarder les modifications
+        document.getElementById('projetEditForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const projetId = document.getElementById('editProjetId').value;
+            const updateData = {
+                nom: document.getElementById('editProjetNom').value,
+                type: document.getElementById('editProjetType').value,
+                statut: document.getElementById('editProjetStatut').value,
+                progression: parseInt(document.getElementById('editProjetProgression').value),
+                budget: document.getElementById('editProjetBudget').value ? parseInt(document.getElementById('editProjetBudget').value) : null,
+                date_debut: document.getElementById('editProjetDateDebut').value || null,
+                date_fin_prevue: document.getElementById('editProjetDateFin').value || null,
+                description: document.getElementById('editProjetDescription').value || null
+            };
+
+            // Si le statut passe à "terminé", ajouter la date de fin réelle
+            if (updateData.statut === 'termine' && currentProjet.statut !== 'termine') {
+                updateData.date_fin_reelle = new Date().toISOString().split('T')[0];
+                updateData.progression = 100;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('projets')
+                    .update(updateData)
+                    .eq('id', projetId);
+
+                if (error) throw error;
+
+                document.getElementById('projetEditModal').classList.add('hidden');
+                document.getElementById('projetEditForm').reset();
+                loadProjets();
+                showNotification('Projet mis à jour avec succès !', 'success');
+
+            } catch (error) {
+                console.error('Erreur lors de la mise à jour:', error);
+                showNotification('Erreur lors de la mise à jour: ' + error.message, 'error');
+            }
+        });
+
+        // Supprimer le projet
+        document.getElementById('deleteProjet').addEventListener('click', async () => {
+            if (currentProjet && confirm(`Êtes-vous sûr de vouloir supprimer le projet "${currentProjet.nom}" ? Cette action est irréversible.`)) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('projets')
+                        .delete()
+                        .eq('id', currentProjet.id);
+
+                    if (error) throw error;
+
+                    document.getElementById('projetDetailsModal').classList.add('hidden');
+                    loadProjets();
+                    showNotification('Projet supprimé avec succès !', 'success');
+
+                } catch (error) {
+                    console.error('Erreur lors de la suppression:', error);
+                    showNotification('Erreur lors de la suppression: ' + error.message, 'error');
+                }
+            }
+        });
+
+        // Fonction pour afficher les notifications
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-4 py-2 rounded-md text-white z-50 ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Initialisation
+        checkAuth().then(isAuthenticated => {
+            if (isAuthenticated) {
+                loadProjets();
+                loadClients();
+            }
+        });
+    </script>
+</body>
+</html>
